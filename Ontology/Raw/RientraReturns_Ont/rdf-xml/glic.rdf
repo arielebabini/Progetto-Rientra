@@ -1,0 +1,433 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://www.stiima.cnr.it/glic/"
+     xml:base="http://www.stiima.cnr.it/glic/"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <owl:Ontology rdf:about="http://www.stiima.cnr.it/glic">
+        <rdfs:comment xml:lang="cnr.it">Contact: Daniele Spoladore (STIIMA Cnr)
+daniele.spoladore</rdfs:comment>
+        <rdfs:comment xml:lang="returns research project.">METHODOLOGICAL NOTE: The handbook is based on ISO9999:2011, a version prior to the current ISO9999:2022 adopted in the Rientr</rdfs:comment>
+        <rdfs:comment>Modelling some of the aids in the volume &quot;Manuale degli ausili elettronici ed informatici - tecnologie assistive a supporto della qualità della vita&quot;  provided by GLIC, the Italian Network of Technological Aids Centers (Rete italiana dei centri ausili tecnologici per disabili)</rdfs:comment>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#22 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#22">
+        <rdfs:label>Assistive products for communication and information management</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#22.03 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#22.03">
+        <rdfs:subClassOf rdf:resource="http://www.stiima.cnr.it/glic#22"/>
+        <rdfs:label>Assistive products for seeing</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#22.06 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#22.06">
+        <rdfs:subClassOf rdf:resource="http://www.stiima.cnr.it/glic#22"/>
+        <rdfs:label>Assistive products for hearing</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#22.09 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#22.09">
+        <rdfs:subClassOf rdf:resource="http://www.stiima.cnr.it/glic#22"/>
+        <rdfs:label>Assistive products for voice production</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#22.12 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#22.12">
+        <rdfs:subClassOf rdf:resource="http://www.stiima.cnr.it/glic#22"/>
+        <rdfs:label>Assistive products for drawing and writing</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#22.15 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#22.15">
+        <rdfs:subClassOf rdf:resource="http://www.stiima.cnr.it/glic#22"/>
+        <rdfs:label>Assistive products for calculation</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#22.18 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#22.18">
+        <rdfs:subClassOf rdf:resource="http://www.stiima.cnr.it/glic#22"/>
+        <rdfs:label>Assistive products that record, play and display audio and visual information</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#22.21 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#22.21">
+        <rdfs:subClassOf rdf:resource="http://www.stiima.cnr.it/glic#22"/>
+        <rdfs:label>Assistive products for face-to-face communication</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#22.24 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#22.24">
+        <rdfs:subClassOf rdf:resource="http://www.stiima.cnr.it/glic#22"/>
+        <rdfs:label>Assistive products for telephoning and telematic messaging</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#22.27 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#22.27">
+        <rdfs:subClassOf rdf:resource="http://www.stiima.cnr.it/glic#22"/>
+        <rdfs:label>Assistive products for alarming, indicating, reminding and signalling</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#22.30 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#22.30">
+        <rdfs:subClassOf rdf:resource="http://www.stiima.cnr.it/glic#22"/>
+        <rdfs:label>Assistive products for reading</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#22.33 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#22.33">
+        <rdfs:subClassOf rdf:resource="http://www.stiima.cnr.it/glic#22"/>
+        <rdfs:label>Computers and terminals</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#22.36 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#22.36">
+        <rdfs:subClassOf rdf:resource="http://www.stiima.cnr.it/glic#22"/>
+        <rdfs:label>Input devices for computers</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#22.39 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#22.39">
+        <rdfs:subClassOf rdf:resource="http://www.stiima.cnr.it/glic#22"/>
+        <rdfs:label>Output devices for computers</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#24 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#24">
+        <rdfs:label>Assistive products for controlling, carrying, moving and handling objects and devices</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#24.06 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#24.06">
+        <rdfs:subClassOf rdf:resource="http://www.stiima.cnr.it/glic#24"/>
+        <rdfs:label>Assistive products for handling containers</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#24.09 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#24.09">
+        <rdfs:subClassOf rdf:resource="http://www.stiima.cnr.it/glic#24"/>
+        <rdfs:label>Assistive products for operating and controlling devices</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#24.13 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#24.13">
+        <rdfs:subClassOf rdf:resource="http://www.stiima.cnr.it/glic#24"/>
+        <rdfs:label>Assistive products for controlling from a distance</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#24.18 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#24.18">
+        <rdfs:subClassOf rdf:resource="http://www.stiima.cnr.it/glic#24"/>
+        <rdfs:label>Assistive products to assist or replace arm function, hand function, finger function or combination of these functions</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#24.21 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#24.21">
+        <rdfs:subClassOf rdf:resource="http://www.stiima.cnr.it/glic#24"/>
+        <rdfs:label>Assistive products for extended reach</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#24.24 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#24.24">
+        <rdfs:subClassOf rdf:resource="http://www.stiima.cnr.it/glic#24"/>
+        <rdfs:label>Assistive products for positioning</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#24.27 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#24.27">
+        <rdfs:subClassOf rdf:resource="http://www.stiima.cnr.it/glic#24"/>
+        <rdfs:label>Assistive products for fixation</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic#24.36 -->
+
+    <owl:Class rdf:about="http://www.stiima.cnr.it/glic#24.36">
+        <rdfs:subClassOf rdf:resource="http://www.stiima.cnr.it/glic#24"/>
+        <rdfs:label>Assistive products for carrying and transporting</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic/G_Adaptive_keyboards -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/glic/G_Adaptive_keyboards">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.12"/>
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.36"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic/G_Adjustable_sitting_forniture -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/glic/G_Adjustable_sitting_forniture">
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">18.09</rdfs:comment>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic/G_Alphabetical_communicator -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/glic/G_Alphabetical_communicator">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.33"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic/G_Alternative_keyboards -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/glic/G_Alternative_keyboards">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.03"/>
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.12"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic/G_Automatic_reader -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/glic/G_Automatic_reader">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.30"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic/G_Bookrest -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/glic/G_Bookrest">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.12"/>
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.30"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic/G_Braille_display -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/glic/G_Braille_display">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.03"/>
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.39"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic/G_Braille_keyboard -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/glic/G_Braille_keyboard">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.03"/>
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.12"/>
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.36"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic/G_Braille_tablet -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/glic/G_Braille_tablet">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.03"/>
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.12"/>
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.30"/>
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.36"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic/G_Compact_keyboards -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/glic/G_Compact_keyboards">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.12"/>
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.36"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic/G_Dynamic_communicators -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/glic/G_Dynamic_communicators">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.33"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic/G_Eye_tracker -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/glic/G_Eye_tracker">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.12"/>
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.36"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic/G_Page-turner -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/glic/G_Page-turner">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.30"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic/G_Posture_systems -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/glic/G_Posture_systems">
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">04.08</rdfs:comment>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic/G_Speech_to_Text_STT -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/glic/G_Speech_to_Text_STT">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.03"/>
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.12"/>
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.36"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic/G_Symbolic_communicators -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/glic/G_Symbolic_communicators">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.33"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic/G_Tables -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/glic/G_Tables">
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">18.03</rdfs:comment>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic/G_Telephonic_communicator -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/glic/G_Telephonic_communicator">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.24"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic/G_Text_to_Speech_TTS_reader -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/glic/G_Text_to_Speech_TTS_reader">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.03"/>
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.30"/>
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.39"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic/G_Touchpad -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/glic/G_Touchpad">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.12"/>
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.36"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.stiima.cnr.it/glic/G_Video_magnifier -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/glic/G_Video_magnifier">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.03"/>
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.30"/>
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/glic#22.39"/>
+    </owl:NamedIndividual>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 4.5.26.2023-07-17T20:34:13Z) https://github.com/owlcs/owlapi -->
+

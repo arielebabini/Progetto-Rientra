@@ -1,0 +1,282 @@
+@prefix : <http://www.stiima.cnr.it/glic/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@base <http://www.stiima.cnr.it/glic/> .
+
+<http://www.stiima.cnr.it/glic> rdf:type owl:Ontology ;
+                                 rdfs:comment """Contact: Daniele Spoladore (STIIMA Cnr)
+daniele.spoladore@cnr.it""" ,
+                                              "METHODOLOGICAL NOTE: The handbook is based on ISO9999:2011, a version prior to the current ISO9999:2022 adopted in the Rientr@Returns research project." ,
+                                              "Modelling some of the aids in the volume \"Manuale degli ausili elettronici ed informatici - tecnologie assistive a supporto della qualità della vita\"  provided by GLIC, the Italian Network of Technological Aids Centers (Rete italiana dei centri ausili tecnologici per disabili)" .
+
+#################################################################
+#    Classes
+#################################################################
+
+###  http://www.stiima.cnr.it/glic#22
+<http://www.stiima.cnr.it/glic#22> rdf:type owl:Class ;
+                                   rdfs:label "Assistive products for communication and information management" .
+
+
+###  http://www.stiima.cnr.it/glic#22.03
+<http://www.stiima.cnr.it/glic#22.03> rdf:type owl:Class ;
+                                      rdfs:subClassOf <http://www.stiima.cnr.it/glic#22> ;
+                                      rdfs:label "Assistive products for seeing" .
+
+
+###  http://www.stiima.cnr.it/glic#22.06
+<http://www.stiima.cnr.it/glic#22.06> rdf:type owl:Class ;
+                                      rdfs:subClassOf <http://www.stiima.cnr.it/glic#22> ;
+                                      rdfs:label "Assistive products for hearing" .
+
+
+###  http://www.stiima.cnr.it/glic#22.09
+<http://www.stiima.cnr.it/glic#22.09> rdf:type owl:Class ;
+                                      rdfs:subClassOf <http://www.stiima.cnr.it/glic#22> ;
+                                      rdfs:label "Assistive products for voice production" .
+
+
+###  http://www.stiima.cnr.it/glic#22.12
+<http://www.stiima.cnr.it/glic#22.12> rdf:type owl:Class ;
+                                      rdfs:subClassOf <http://www.stiima.cnr.it/glic#22> ;
+                                      rdfs:label "Assistive products for drawing and writing" .
+
+
+###  http://www.stiima.cnr.it/glic#22.15
+<http://www.stiima.cnr.it/glic#22.15> rdf:type owl:Class ;
+                                      rdfs:subClassOf <http://www.stiima.cnr.it/glic#22> ;
+                                      rdfs:label "Assistive products for calculation" .
+
+
+###  http://www.stiima.cnr.it/glic#22.18
+<http://www.stiima.cnr.it/glic#22.18> rdf:type owl:Class ;
+                                      rdfs:subClassOf <http://www.stiima.cnr.it/glic#22> ;
+                                      rdfs:label "Assistive products that record, play and display audio and visual information" .
+
+
+###  http://www.stiima.cnr.it/glic#22.21
+<http://www.stiima.cnr.it/glic#22.21> rdf:type owl:Class ;
+                                      rdfs:subClassOf <http://www.stiima.cnr.it/glic#22> ;
+                                      rdfs:label "Assistive products for face-to-face communication" .
+
+
+###  http://www.stiima.cnr.it/glic#22.24
+<http://www.stiima.cnr.it/glic#22.24> rdf:type owl:Class ;
+                                      rdfs:subClassOf <http://www.stiima.cnr.it/glic#22> ;
+                                      rdfs:label "Assistive products for telephoning and telematic messaging" .
+
+
+###  http://www.stiima.cnr.it/glic#22.27
+<http://www.stiima.cnr.it/glic#22.27> rdf:type owl:Class ;
+                                      rdfs:subClassOf <http://www.stiima.cnr.it/glic#22> ;
+                                      rdfs:label "Assistive products for alarming, indicating, reminding and signalling" .
+
+
+###  http://www.stiima.cnr.it/glic#22.30
+<http://www.stiima.cnr.it/glic#22.30> rdf:type owl:Class ;
+                                      rdfs:subClassOf <http://www.stiima.cnr.it/glic#22> ;
+                                      rdfs:label "Assistive products for reading" .
+
+
+###  http://www.stiima.cnr.it/glic#22.33
+<http://www.stiima.cnr.it/glic#22.33> rdf:type owl:Class ;
+                                      rdfs:subClassOf <http://www.stiima.cnr.it/glic#22> ;
+                                      rdfs:label "Computers and terminals" .
+
+
+###  http://www.stiima.cnr.it/glic#22.36
+<http://www.stiima.cnr.it/glic#22.36> rdf:type owl:Class ;
+                                      rdfs:subClassOf <http://www.stiima.cnr.it/glic#22> ;
+                                      rdfs:label "Input devices for computers" .
+
+
+###  http://www.stiima.cnr.it/glic#22.39
+<http://www.stiima.cnr.it/glic#22.39> rdf:type owl:Class ;
+                                      rdfs:subClassOf <http://www.stiima.cnr.it/glic#22> ;
+                                      rdfs:label "Output devices for computers" .
+
+
+###  http://www.stiima.cnr.it/glic#24
+<http://www.stiima.cnr.it/glic#24> rdf:type owl:Class ;
+                                   rdfs:label "Assistive products for controlling, carrying, moving and handling objects and devices" .
+
+
+###  http://www.stiima.cnr.it/glic#24.06
+<http://www.stiima.cnr.it/glic#24.06> rdf:type owl:Class ;
+                                      rdfs:subClassOf <http://www.stiima.cnr.it/glic#24> ;
+                                      rdfs:label "Assistive products for handling containers" .
+
+
+###  http://www.stiima.cnr.it/glic#24.09
+<http://www.stiima.cnr.it/glic#24.09> rdf:type owl:Class ;
+                                      rdfs:subClassOf <http://www.stiima.cnr.it/glic#24> ;
+                                      rdfs:label "Assistive products for operating and controlling devices" .
+
+
+###  http://www.stiima.cnr.it/glic#24.13
+<http://www.stiima.cnr.it/glic#24.13> rdf:type owl:Class ;
+                                      rdfs:subClassOf <http://www.stiima.cnr.it/glic#24> ;
+                                      rdfs:label "Assistive products for controlling from a distance" .
+
+
+###  http://www.stiima.cnr.it/glic#24.18
+<http://www.stiima.cnr.it/glic#24.18> rdf:type owl:Class ;
+                                      rdfs:subClassOf <http://www.stiima.cnr.it/glic#24> ;
+                                      rdfs:label "Assistive products to assist or replace arm function, hand function, finger function or combination of these functions" .
+
+
+###  http://www.stiima.cnr.it/glic#24.21
+<http://www.stiima.cnr.it/glic#24.21> rdf:type owl:Class ;
+                                      rdfs:subClassOf <http://www.stiima.cnr.it/glic#24> ;
+                                      rdfs:label "Assistive products for extended reach" .
+
+
+###  http://www.stiima.cnr.it/glic#24.24
+<http://www.stiima.cnr.it/glic#24.24> rdf:type owl:Class ;
+                                      rdfs:subClassOf <http://www.stiima.cnr.it/glic#24> ;
+                                      rdfs:label "Assistive products for positioning" .
+
+
+###  http://www.stiima.cnr.it/glic#24.27
+<http://www.stiima.cnr.it/glic#24.27> rdf:type owl:Class ;
+                                      rdfs:subClassOf <http://www.stiima.cnr.it/glic#24> ;
+                                      rdfs:label "Assistive products for fixation" .
+
+
+###  http://www.stiima.cnr.it/glic#24.36
+<http://www.stiima.cnr.it/glic#24.36> rdf:type owl:Class ;
+                                      rdfs:subClassOf <http://www.stiima.cnr.it/glic#24> ;
+                                      rdfs:label "Assistive products for carrying and transporting" .
+
+
+#################################################################
+#    Individuals
+#################################################################
+
+###  http://www.stiima.cnr.it/glic#G_Adaptive_keyboards
+:G_Adaptive_keyboards rdf:type owl:NamedIndividual ,
+                               <http://www.stiima.cnr.it/glic#22.12> ,
+                               <http://www.stiima.cnr.it/glic#22.36> .
+
+
+###  http://www.stiima.cnr.it/glic#G_Adjustable_sitting_forniture
+:G_Adjustable_sitting_forniture rdf:type owl:NamedIndividual ;
+                                rdfs:comment 18.09 .
+
+
+###  http://www.stiima.cnr.it/glic#G_Alphabetical_communicator
+:G_Alphabetical_communicator rdf:type owl:NamedIndividual ,
+                                      <http://www.stiima.cnr.it/glic#22.33> .
+
+
+###  http://www.stiima.cnr.it/glic#G_Alternative_keyboards
+:G_Alternative_keyboards rdf:type owl:NamedIndividual ,
+                                  <http://www.stiima.cnr.it/glic#22.03> ,
+                                  <http://www.stiima.cnr.it/glic#22.12> .
+
+
+###  http://www.stiima.cnr.it/glic#G_Automatic_reader
+:G_Automatic_reader rdf:type owl:NamedIndividual ,
+                             <http://www.stiima.cnr.it/glic#22.30> .
+
+
+###  http://www.stiima.cnr.it/glic#G_Bookrest
+:G_Bookrest rdf:type owl:NamedIndividual ,
+                     <http://www.stiima.cnr.it/glic#22.12> ,
+                     <http://www.stiima.cnr.it/glic#22.30> .
+
+
+###  http://www.stiima.cnr.it/glic#G_Braille_display
+:G_Braille_display rdf:type owl:NamedIndividual ,
+                            <http://www.stiima.cnr.it/glic#22.03> ,
+                            <http://www.stiima.cnr.it/glic#22.39> .
+
+
+###  http://www.stiima.cnr.it/glic#G_Braille_keyboard
+:G_Braille_keyboard rdf:type owl:NamedIndividual ,
+                             <http://www.stiima.cnr.it/glic#22.03> ,
+                             <http://www.stiima.cnr.it/glic#22.12> ,
+                             <http://www.stiima.cnr.it/glic#22.36> .
+
+
+###  http://www.stiima.cnr.it/glic#G_Braille_tablet
+:G_Braille_tablet rdf:type owl:NamedIndividual ,
+                           <http://www.stiima.cnr.it/glic#22.03> ,
+                           <http://www.stiima.cnr.it/glic#22.12> ,
+                           <http://www.stiima.cnr.it/glic#22.30> ,
+                           <http://www.stiima.cnr.it/glic#22.36> .
+
+
+###  http://www.stiima.cnr.it/glic#G_Compact_keyboards
+:G_Compact_keyboards rdf:type owl:NamedIndividual ,
+                              <http://www.stiima.cnr.it/glic#22.12> ,
+                              <http://www.stiima.cnr.it/glic#22.36> .
+
+
+###  http://www.stiima.cnr.it/glic#G_Dynamic_communicators
+:G_Dynamic_communicators rdf:type owl:NamedIndividual ,
+                                  <http://www.stiima.cnr.it/glic#22.33> .
+
+
+###  http://www.stiima.cnr.it/glic#G_Eye_tracker
+:G_Eye_tracker rdf:type owl:NamedIndividual ,
+                        <http://www.stiima.cnr.it/glic#22.12> ,
+                        <http://www.stiima.cnr.it/glic#22.36> .
+
+
+###  http://www.stiima.cnr.it/glic#G_Page-turner
+:G_Page-turner rdf:type owl:NamedIndividual ,
+                        <http://www.stiima.cnr.it/glic#22.30> .
+
+
+###  http://www.stiima.cnr.it/glic#G_Posture_systems
+:G_Posture_systems rdf:type owl:NamedIndividual ;
+                   rdfs:comment 04.08 .
+
+
+###  http://www.stiima.cnr.it/glic#G_Speech_to_Text_STT
+:G_Speech_to_Text_STT rdf:type owl:NamedIndividual ,
+                               <http://www.stiima.cnr.it/glic#22.03> ,
+                               <http://www.stiima.cnr.it/glic#22.12> ,
+                               <http://www.stiima.cnr.it/glic#22.36> .
+
+
+###  http://www.stiima.cnr.it/glic#G_Symbolic_communicators
+:G_Symbolic_communicators rdf:type owl:NamedIndividual ,
+                                   <http://www.stiima.cnr.it/glic#22.33> .
+
+
+###  http://www.stiima.cnr.it/glic#G_Tables
+:G_Tables rdf:type owl:NamedIndividual ;
+          rdfs:comment 18.03 .
+
+
+###  http://www.stiima.cnr.it/glic#G_Telephonic_communicator
+:G_Telephonic_communicator rdf:type owl:NamedIndividual ,
+                                    <http://www.stiima.cnr.it/glic#22.24> .
+
+
+###  http://www.stiima.cnr.it/glic#G_Text_to_Speech_TTS_reader
+:G_Text_to_Speech_TTS_reader rdf:type owl:NamedIndividual ,
+                                      <http://www.stiima.cnr.it/glic#22.03> ,
+                                      <http://www.stiima.cnr.it/glic#22.30> ,
+                                      <http://www.stiima.cnr.it/glic#22.39> .
+
+
+###  http://www.stiima.cnr.it/glic#G_Touchpad
+:G_Touchpad rdf:type owl:NamedIndividual ,
+                     <http://www.stiima.cnr.it/glic#22.12> ,
+                     <http://www.stiima.cnr.it/glic#22.36> .
+
+
+###  http://www.stiima.cnr.it/glic#G_Video_magnifier
+:G_Video_magnifier rdf:type owl:NamedIndividual ,
+                            <http://www.stiima.cnr.it/glic#22.03> ,
+                            <http://www.stiima.cnr.it/glic#22.30> ,
+                            <http://www.stiima.cnr.it/glic#22.39> .
+
+
+###  Generated by the OWL API (version 4.5.26.2023-07-17T20:34:13Z) https://github.com/owlcs/owlapi
