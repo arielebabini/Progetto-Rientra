@@ -79,45 +79,6 @@ except ImportError:
     print("[WARN] matplotlib non installato: grafico non disponibile.")
     print("       Installare con: pip install matplotlib")
 
-
-# -----------------------------------------------------------------------
-# Utilita di percorso — compatibili Windows e Unix
-# -----------------------------------------------------------------------
-
-def _normalise_path(path: str) -> str:
-    """Percorso assoluto normalizzato (gestisce backslash Windows)."""
-    return os.path.normpath(os.path.abspath(path))
-
-
-def _path_to_file_uri(path: str) -> str:
-    """
-    Converte un percorso di sistema in URI file:// corretto per owlready2.
-      Windows  C:\\Users\\foo\\bar.rdf  ->  file:///C:/Users/foo/bar.rdf
-      Unix     /home/foo/bar.rdf       ->  file:///home/foo/bar.rdf
-    """
-    abs_path = _normalise_path(path).replace("\\", "/")
-    if len(abs_path) >= 2 and abs_path[1] == ":":
-        # Drive letter Windows: C:/... -> file:///C:/...
-        return "file:///" + abs_path
-    # Unix: /home/... -> file:///home/...
-    return "file://" + abs_path
-
-
-def carica_ontologia(percorso: str) -> "owlready2.Ontology":
-    """
-    Carica l'ontologia dal percorso fornito (Windows o Unix).
-    Costruisce l'URI file:// corretto per owlready2 in modo dinamico,
-    senza alcun path hardcoded.
-    """
-    iri = _path_to_file_uri(percorso)
-    print(f"[INFO] URI ontologia : {iri}")
-    buf = io.StringIO()
-    with contextlib.redirect_stderr(buf):
-        onto = get_ontology("C:/Users/utente/OneDrive/Desktop/UNI/Tesi/python/originale/Rientra1.rdf").load()   # FIX: usa iri dinamico, non path hardcoded
-    print(f"[INFO] IRI base      : {onto.base_iri}")
-    return onto
-
-
 # ═══════════════════════════════════════════════════════════════════════════════
 #  IRI costanti dell'ontologia Rientr@
 #  (verificati analizzando il file RDF/XML dell'ontologia)
@@ -423,87 +384,140 @@ def query_importance_summary() -> dict:
 
 def query_gcs_aisa() -> list[dict]:
     """
-    Q1 + Q2 — Calcola GCS% e AISA% per ogni (Person, Job)
-    leggendo le triple hasSpecificCriticality inferite da Pellet.
+    Q1 + Q2 — Calcola GCS% e AISA% per ogni (Person, Job).
 
-    Il paper (§5.3.6) descrive queste query SPARQL:
+    ROOT CAUSE DEL BUG (valori identici per tutti i job):
+    -------------------------------------------------------
+    `hasSpecificCriticality(?skab, ?cs)` è una proprietà che lega la
+    Skill/Ability a un valore numerico, MA NON porta con sé il riferimento
+    al job per cui quel CS è stato calcolato. Le regole SWRL R1-R8 del paper
+    calcolano CS = qualifier × anchor, dove l'anchor dipende dal job
+    (via isVeryImportantFor / isImportantFor / ...). Tuttavia Pellet scrive
+    nel world UNA sola tripla per skab, usando l'ultimo CS inferito, che può
+    essere quello di un job qualunque. Navigare poi ?skab → ?jde → ?job
+    non aiuta: lo stesso ?skab può appartenere a più job, quindi la query
+    restituisce tutte le combinazioni (cartesiano) con lo stesso ?cs,
+    producendo valori GCS% e AISA% identici per ogni job.
 
-      GCS% per (Person, Job):
-        SELECT (AVG(?cs / 12.0 * 100) AS ?gcs)
-        WHERE {
-            ?skab <hasSpecificCriticality> ?cs .
-            ?jde  <concerns>   ?skab .
-            ?job  <requires>   ?jde .
-            ?p    <isEvaluatedForJob> ?job .
-            ?p    <isSelected>  true .
-        }
+    SOLUZIONE:
+    -----------
+    Abbandoniamo hasSpecificCriticality come sorgente primaria e
+    ricostruiamo CS in Python direttamente dalle fonti attendibili:
 
-      AISA% per (Person, Job):
-        SELECT (COUNT(?cs_pos) / COUNT(?cs_all) * 100 AS ?aisa)
-        WHERE { ... stessa struttura ... }
+      1. Per ogni (person, job) recuperiamo tutti gli ?skab richiesti dal job
+         con il loro ?score (hasScore) e il qualifier della persona
+         (BFqual o AP1qual, a seconda che l'ICF code sia Body Function
+         o Activity & Participation).
 
-    owlready2 non supporta GROUP BY e AVG direttamente in SPARQL,
-    quindi recuperiamo i valori grezzi e calcoliamo in Python —
-    il che è equivalente: le triple vengono comunque lette dal world
-    di Pellet, non hardcodate.
+      2. Calcoliamo anchor = _score_to_anchor(score) e CS = qualifier × anchor.
+
+      3. Deduplicazione: se uno ?skab è tradotto con più ICF code, teniamo
+         il qualificatore massimo (comportamento del paper, §5.1).
+
+    In questo modo CS varia per job (perché hasScore varia) e per persona
+    (perché il qualifier varia). I valori GCS% e AISA% diventano distinti.
     """
-    # Recupera tutte le triple (skab, cs, job) inferite da Pellet
-    # attraverso la catena: person → job → jde → skab → cs
+
+    # ── Passo 1: recupera (person, job, skab, score, qualifier) ──────────────
+    #
+    # Per ogni skab richiesto da un job valutato dalla persona, leggiamo:
+    #   - hasScore del descriptor (specifico per quel job)
+    #   - BFqual  (qualificatore Body Function, per codici "b...")
+    #   - AP1qual (qualificatore Activities & Participation, per codici "d...")
+    # Il qualifier è il massimo tra i due (solitamente solo uno è presente).
+
     rows = sparql(f"""
-        SELECT ?skab ?cs ?job ?person WHERE {{
-            ?skab   <{IRI_HAS_CRIT}>    ?cs .
-            ?jde    <{IRI_CONCERNS}>    ?skab .
-            ?job    <{IRI_REQUIRES}>    ?jde .
+        SELECT ?person ?job ?skab ?score ?bfq ?ap1q WHERE {{
             ?person <{IRI_IS_EVAL_JOB}> ?job .
             ?person <{IRI_IS_SELECTED}> ?selected .
             FILTER(?selected = true)
+
+            ?job    <{IRI_REQUIRES}>    ?jde .
+            ?jde    <{IRI_CONCERNS}>    ?skab .
+            ?jde    <{IRI_HAS_SCORE}>   ?score .
+
+            ?skab   <{IRI_IS_TRANSL}>   ?icf .
+            ?person <{IRI_IS_IN_HC}>    ?hc .
+            ?hc     <http://www.stiima.cnr.it/RientraHC#isDescribedBy> ?des .
+            ?des    <http://www.stiima.cnr.it/RientraHC#involvesICFCode> ?icf .
+
+            OPTIONAL {{ ?des <{IRI_BFQUAL}>  ?bfq  }}
+            OPTIONAL {{ ?des <{IRI_AP1QUAL}> ?ap1q }}
         }}
     """)
 
     if not rows:
+        # Fallback: prova con hasSpecificCriticality (metodo precedente)
+        # così il codice rimane funzionante anche se la struttura HC cambia.
+        rows_crit = sparql(f"""
+            SELECT ?skab ?cs ?job ?person WHERE {{
+                ?skab   <{IRI_HAS_CRIT}>    ?cs .
+                ?jde    <{IRI_CONCERNS}>    ?skab .
+                ?job    <{IRI_REQUIRES}>    ?jde .
+                ?person <{IRI_IS_EVAL_JOB}> ?job .
+                ?person <{IRI_IS_SELECTED}> ?selected .
+                FILTER(?selected = true)
+            }}
+        """)
+        if not rows_crit:
+            raise RuntimeError(
+                "[ERRORE] Q1+Q2: nessun dato trovato né con la query riscritta\n"
+                "         né con hasSpecificCriticality. Verificare che esista\n"
+                "         un Person con isSelected=true e isEvaluatedForJob."
+            )
+        print("[WARN] Q1+Q2: usato fallback hasSpecificCriticality "
+              "(CS potrebbe essere identico tra job).")
+        return _gcs_aisa_from_crit_triples(rows_crit)
+
+    # ── Passo 2: aggrega per (person, job, skab), max qualifier ──────────────
+    #
+    # Struttura: agg[(p_name, j_name)][s_name] = {"score": s, "qual": max_q}
+
+    agg: dict = {}
+
+    for person, job, skab, score_raw, bfq_raw, ap1q_raw in rows:
+        p_name = local_name(person)
+        j_name = local_name(job)
+        s_name = local_name(skab)
+        score  = int(score_raw) if score_raw is not None else 0
+
+        # Prendi il qualificatore disponibile (max tra BFqual e AP1qual)
+        bfq  = int(bfq_raw)  if bfq_raw  is not None else 0
+        ap1q = int(ap1q_raw) if ap1q_raw is not None else 0
+        qual = max(bfq, ap1q)
+
+        agg_key = (p_name, j_name)
+        if agg_key not in agg:
+            agg[agg_key] = {"person": p_name, "job": j_name, "skabs": {}}
+
+        prev = agg[agg_key]["skabs"].get(s_name)
+        if s_name not in agg[agg_key]["skabs"]:
+            agg[agg_key]["skabs"][s_name] = {"score": score, "qual": qual}
+        else:
+            # score è lo stesso (stesso jde), aggiorna solo il qual se più alto
+            agg[agg_key]["skabs"][s_name]["qual"] = max(
+                agg[agg_key]["skabs"][s_name]["qual"], qual
+            )
+
+    if not agg:
         raise RuntimeError(
-            "[ERRORE] Q1+Q2: nessuna tripla hasSpecificCriticality trovata.\n"
-            "         Verificare che esista un Person con isSelected=true "
-            "e isEvaluatedForJob valorizzato."
+            "[ERRORE] Q1+Q2: dati aggregati vuoti dopo la query riscritta.\n"
+            "         Verificare la struttura HC nell'ontologia."
         )
 
-    # Aggrega per (person, job), deduplicando per skab con CS massimo.
-    #
-    # Pellet inserisce UNA tripla hasSpecificCriticality per ogni codice ICF
-    # che traduce la Skill/Ability. Ad esempio SpeechRecognition e tradotta
-    # con b16700 (qual=2) e b2304 (qual=1): Pellet genera CS=4 e CS=2.
-    # Il paper considera il qualificatore piu severo (max), quindi dobbiamo
-    # deduplicare tenendo solo il CS massimo per Skill/Ability.
-    # Questo produce i valori corretti del paper: GCS%=6.87, AISA%=28.37.
-    aggregated: dict = {}
+    # ── Passo 3: calcola CS, GCS%, AISA% ─────────────────────────────────────
 
-    for skab, cs_raw, job, person in rows:
-        cs       = int(cs_raw) if cs_raw is not None else 0
-        p_name   = local_name(person)
-        j_name   = local_name(job)
-        s_name   = local_name(skab)
-        agg_key  = (p_name, j_name)
-
-        if agg_key not in aggregated:
-            aggregated[agg_key] = {
-                "person"    : p_name,
-                "job"       : j_name,
-                "cs_by_skab": {},   # skab_name -> max CS
-            }
-
-        # Mantieni solo il CS massimo per ogni Skill/Ability
-        prev = aggregated[agg_key]["cs_by_skab"].get(s_name, -1)
-        if cs > prev:
-            aggregated[agg_key]["cs_by_skab"][s_name] = cs
-
-    # Calcola GCS% e AISA% sui valori deduplicati
     results = []
-    for (person, job), data in sorted(aggregated.items()):
-        cs_by_skab = data["cs_by_skab"]
-        cs_values  = list(cs_by_skab.items())   # [(skab_name, max_cs), ...]
-        n_total    = len(cs_values)
-        n_crit     = sum(1 for _, cs in cs_values if cs > 0)
-        sum_norm   = sum(cs / 12.0 for _, cs in cs_values)
+    for (person, job), data in sorted(agg.items()):
+        cs_values = []
+        for s_name, entry in data["skabs"].items():
+            anchor = _score_to_anchor(entry["score"])
+            cs     = entry["qual"] * anchor
+            cs_values.append((s_name, cs))
+
+        n_total  = len(cs_values)
+        n_crit   = sum(1 for _, cs in cs_values if cs > 0)
+        sum_norm = sum(cs / 12.0 for _, cs in cs_values)
 
         gcs_pct  = (sum_norm / n_total) * 100.0 if n_total > 0 else 0.0
         aisa_pct = (n_crit  / n_total) * 100.0 if n_total > 0 else 0.0
@@ -522,6 +536,61 @@ def query_gcs_aisa() -> list[dict]:
             "color"      : color,
         })
 
+    return results
+
+
+def _score_to_anchor(score: int) -> int:
+    """
+    Converte il punteggio O*NET nell'ancora di importanza (Tabella 2 del paper).
+      score <= 25  → ancora 0  (Not important)
+      26-49        → ancora 1  (Somewhat important)
+      50-74        → ancora 2  (Important)
+      >= 75        → ancora 3  (Very important)
+    """
+    if score >= 75:
+        return 3
+    elif score >= 50:
+        return 2
+    elif score >= 26:
+        return 1
+    else:
+        return 0
+
+
+def _gcs_aisa_from_crit_triples(rows_crit) -> list[dict]:
+    """
+    Fallback: calcola GCS%/AISA% da triple hasSpecificCriticality.
+    Usato solo se la query riscritta non trova dati.
+    NOTA: questo metodo soffre del bug originale (CS non job-specific).
+    """
+    aggregated: dict = {}
+    for skab, cs_raw, job, person in rows_crit:
+        cs     = int(cs_raw) if cs_raw is not None else 0
+        p_name = local_name(person)
+        j_name = local_name(job)
+        s_name = local_name(skab)
+        key    = (p_name, j_name)
+        if key not in aggregated:
+            aggregated[key] = {"person": p_name, "job": j_name, "cs_by_skab": {}}
+        prev = aggregated[key]["cs_by_skab"].get(s_name, -1)
+        if cs > prev:
+            aggregated[key]["cs_by_skab"][s_name] = cs
+
+    results = []
+    for (person, job), data in sorted(aggregated.items()):
+        cs_values = list(data["cs_by_skab"].items())
+        n_total   = len(cs_values)
+        n_crit    = sum(1 for _, cs in cs_values if cs > 0)
+        sum_norm  = sum(cs / 12.0 for _, cs in cs_values)
+        gcs_pct   = (sum_norm / n_total) * 100.0 if n_total > 0 else 0.0
+        aisa_pct  = (n_crit  / n_total) * 100.0 if n_total > 0 else 0.0
+        suitability, color = job_suitability(gcs_pct, aisa_pct)
+        results.append({
+            "person": person, "job": job, "cs_values": cs_values,
+            "n_total": n_total, "n_critical": n_crit,
+            "gcs_pct": gcs_pct, "aisa_pct": aisa_pct,
+            "suitability": suitability, "color": color,
+        })
     return results
 
 
@@ -594,20 +663,20 @@ def query_skill_detail(person_name: str, job_name: str) -> list[dict]:
         cs    = entry["cs"]
         score = entry["score"]
 
-        # Determina il livello di importanza leggendo le triple inferite da Pellet
-        label = _get_importance_label(skab, job_ind)
+        # Anchor calcolato dallo score O*NET (Tabella 2 del paper).
+        # È job-specific perché hasScore dipende dal descriptor del job.
+        anchor = _score_to_anchor(score)
 
-        # Anchor dal label
-        label_iri = next(
-            (iri for iri, lbl in {
-                IRI_IS_VERY_IMP: "isVeryImportantFor",
-                IRI_IS_IMP     : "isImportantFor",
-                IRI_IS_SOMEWHAT: "isSomewhatImportantFor",
-                IRI_IS_LESS    : "isLessImportantFor",
-            }.items() if lbl == label), None
-        )
-        anchor    = ANCHOR_MAP.get(label_iri, 0)
+        # Qualifier ricavato per inversione CS = qualifier × anchor.
         qualifier = cs // anchor if anchor > 0 else 0
+
+        anchor_to_label = {
+            3: "isVeryImportantFor",
+            2: "isImportantFor",
+            1: "isSomewhatImportantFor",
+            0: "isLessImportantFor",
+        }
+        label = anchor_to_label.get(anchor, "isLessImportantFor")
 
         details.append({
             "skab_name" : local_name(skab),
