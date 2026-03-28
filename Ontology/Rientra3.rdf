@@ -294,7 +294,6 @@ Translation of O*NET in ICF deeply revised (elimination of the &quot;translator&
     <!-- http://www.stiima.cnr.it/RientraOnt3#isEvaluatedForJob -->
 
     <owl:ObjectProperty rdf:about="http://www.stiima.cnr.it/RientraOnt3#isEvaluatedForJob">
-        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
         <rdfs:domain rdf:resource="http://www.stiima.cnr.it/FOAF-excerpt#Person"/>
         <rdfs:range rdf:resource="http://www.stiima.cnr.it/JobList#Job"/>
         <rdfs:comment>Connects a person to a profession for which the person&apos;s health condition is being evaluated.</rdfs:comment>
@@ -18787,6 +18786,10 @@ Associated Health Condition: HCPaoloBianchi.</rdfs:comment>
         <RientraOnt3:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#Carpenter"/>
         <RientraOnt3:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#Construction_laborer"/>
         <RientraOnt3:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#FileClerk"/>
+        <RientraOnt3:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#GemWorker"/>
+        <RientraOnt3:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#Receptionist"/>
+        <RientraOnt3:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#Travel_guide"/>
+        <RientraOnt3:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#WordProcessors"/>
         <FOAF-excerpt:first_name>Jane</FOAF-excerpt:first_name>
         <FOAF-excerpt:surname>A</FOAF-excerpt:surname>
         <isSelected rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</isSelected>
@@ -23715,28 +23718,28 @@ Associated Health Condition: HCSandraVerdi.</rdfs:comment>
         <SkAb:isTranslatedWithICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d345"/>
     </owl:NamedIndividual>
     <rdf:Description>
-        <rdfs:comment>Important (2) - Activity&amp;part</rdfs:comment>
-    </rdf:Description>
-    <rdf:Description>
-        <rdfs:comment>LessImport (0) - BodyFunct</rdfs:comment>
+        <rdfs:comment>Important (2) - BodyFunct</rdfs:comment>
     </rdf:Description>
     <rdf:Description>
         <rdfs:comment>VeryImp (3) - Activity&amp;partBodyFunct</rdfs:comment>
     </rdf:Description>
     <rdf:Description>
-        <rdfs:comment>Important (2) - BodyFunct</rdfs:comment>
+        <rdfs:comment>LessImport (0) - BodyFunct</rdfs:comment>
     </rdf:Description>
     <rdf:Description>
-        <rdfs:comment>SomewhatImp(1) - BodyFunct</rdfs:comment>
+        <rdfs:comment>Important (2) - Activity&amp;part</rdfs:comment>
     </rdf:Description>
     <rdf:Description>
-        <rdfs:comment>SomewhatImp(1) - Activity&amp;part</rdfs:comment>
+        <rdfs:comment>VeryImp (3) - Activity&amp;part</rdfs:comment>
     </rdf:Description>
     <rdf:Description>
         <rdfs:comment>LessImport (0) - Activity&amp;part</rdfs:comment>
     </rdf:Description>
     <rdf:Description>
-        <rdfs:comment>VeryImp (3) - Activity&amp;part</rdfs:comment>
+        <rdfs:comment>SomewhatImp(1) - Activity&amp;part</rdfs:comment>
+    </rdf:Description>
+    <rdf:Description>
+        <rdfs:comment>SomewhatImp(1) - BodyFunct</rdfs:comment>
     </rdf:Description>
     
 
@@ -26000,6 +26003,24 @@ Esclusione: vita politica e cittadinanza (d950)</ICF-exc-coreset:descrizioneITA>
             <rdf:Description rdf:about="http://www.stiima.cnr.it/ICF-exc-coreset#Body_structures"/>
         </owl:members>
     </rdf:Description>
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://www.stiima.cnr.it/JobList#Billing_cost_and_rate_clerks"/>
+            <rdf:Description rdf:about="http://www.stiima.cnr.it/JobList#Bookkeping_accounting_and_auditing_clerks"/>
+            <rdf:Description rdf:about="http://www.stiima.cnr.it/JobList#Cabinet_makers_and_bench_carpenters"/>
+            <rdf:Description rdf:about="http://www.stiima.cnr.it/JobList#Construction_laborers"/>
+            <rdf:Description rdf:about="http://www.stiima.cnr.it/JobList#File_clerks"/>
+            <rdf:Description rdf:about="http://www.stiima.cnr.it/JobList#Gem_and_diamond_workers"/>
+            <rdf:Description rdf:about="http://www.stiima.cnr.it/JobList#Insurance_claims_clerks"/>
+            <rdf:Description rdf:about="http://www.stiima.cnr.it/JobList#Insurance_policy_processing_clerks"/>
+            <rdf:Description rdf:about="http://www.stiima.cnr.it/JobList#Landscaping_and_Groundskeeping_Workers"/>
+            <rdf:Description rdf:about="http://www.stiima.cnr.it/JobList#Postal_service_clerks"/>
+            <rdf:Description rdf:about="http://www.stiima.cnr.it/JobList#Receptionist_and_information_clerks"/>
+            <rdf:Description rdf:about="http://www.stiima.cnr.it/JobList#Travel_guides"/>
+            <rdf:Description rdf:about="http://www.stiima.cnr.it/JobList#Word_Processors_and_Typists"/>
+        </owl:members>
+    </rdf:Description>
     
 
 
@@ -26055,6 +26076,61 @@ Esclusione: vita politica e cittadinanza (d950)</ICF-exc-coreset:descrizioneITA>
     </rdf:Description>
     <rdf:Description rdf:about="urn:swrl#x">
         <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#Variable"/>
+    </rdf:Description>
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#Imp"/>
+        <swrl:body>
+            <rdf:Description>
+                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
+                <rdf:first>
+                    <rdf:Description>
+                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#ClassAtom"/>
+                        <swrl:classPredicate rdf:resource="http://www.stiima.cnr.it/FOAF-excerpt#Person"/>
+                        <swrl:argument1 rdf:resource="urn:swrl#p"/>
+                    </rdf:Description>
+                </rdf:first>
+                <rdf:rest>
+                    <rdf:Description>
+                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
+                        <rdf:first>
+                            <rdf:Description>
+                                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#ClassAtom"/>
+                                <swrl:classPredicate rdf:resource="http://www.stiima.cnr.it/RientraOnt3#Match"/>
+                                <swrl:argument1 rdf:resource="urn:swrl#m"/>
+                            </rdf:Description>
+                        </rdf:first>
+                        <rdf:rest>
+                            <rdf:Description>
+                                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
+                                <rdf:first>
+                                    <rdf:Description>
+                                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#IndividualPropertyAtom"/>
+                                        <swrl:propertyPredicate rdf:resource="http://www.stiima.cnr.it/RientraOnt3#isEvaluatedForJob"/>
+                                        <swrl:argument1 rdf:resource="urn:swrl#p"/>
+                                        <swrl:argument2 rdf:resource="urn:swrl#j"/>
+                                    </rdf:Description>
+                                </rdf:first>
+                                <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
+                            </rdf:Description>
+                        </rdf:rest>
+                    </rdf:Description>
+                </rdf:rest>
+            </rdf:Description>
+        </swrl:body>
+        <swrl:head>
+            <rdf:Description>
+                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
+                <rdf:first>
+                    <rdf:Description>
+                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#IndividualPropertyAtom"/>
+                        <swrl:propertyPredicate rdf:resource="http://www.stiima.cnr.it/RientraOnt3#matchedJob"/>
+                        <swrl:argument1 rdf:resource="urn:swrl#m"/>
+                        <swrl:argument2 rdf:resource="urn:swrl#j"/>
+                    </rdf:Description>
+                </rdf:first>
+                <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
+            </rdf:Description>
+        </swrl:head>
     </rdf:Description>
     <rdf:Description>
         <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#Imp"/>
@@ -28771,61 +28847,6 @@ Esclusione: vita politica e cittadinanza (d950)</ICF-exc-coreset:descrizioneITA>
                         <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#IndividualPropertyAtom"/>
                         <swrl:propertyPredicate rdf:resource="http://www.stiima.cnr.it/JobDescription#isLessImportantFor"/>
                         <swrl:argument1 rdf:resource="urn:swrl#sa"/>
-                        <swrl:argument2 rdf:resource="urn:swrl#j"/>
-                    </rdf:Description>
-                </rdf:first>
-                <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
-            </rdf:Description>
-        </swrl:head>
-    </rdf:Description>
-    <rdf:Description>
-        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#Imp"/>
-        <swrl:body>
-            <rdf:Description>
-                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
-                <rdf:first>
-                    <rdf:Description>
-                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#ClassAtom"/>
-                        <swrl:classPredicate rdf:resource="http://www.stiima.cnr.it/FOAF-excerpt#Person"/>
-                        <swrl:argument1 rdf:resource="urn:swrl#p"/>
-                    </rdf:Description>
-                </rdf:first>
-                <rdf:rest>
-                    <rdf:Description>
-                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
-                        <rdf:first>
-                            <rdf:Description>
-                                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#ClassAtom"/>
-                                <swrl:classPredicate rdf:resource="http://www.stiima.cnr.it/RientraOnt3#Match"/>
-                                <swrl:argument1 rdf:resource="urn:swrl#m"/>
-                            </rdf:Description>
-                        </rdf:first>
-                        <rdf:rest>
-                            <rdf:Description>
-                                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
-                                <rdf:first>
-                                    <rdf:Description>
-                                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#IndividualPropertyAtom"/>
-                                        <swrl:propertyPredicate rdf:resource="http://www.stiima.cnr.it/RientraOnt3#isEvaluatedForJob"/>
-                                        <swrl:argument1 rdf:resource="urn:swrl#p"/>
-                                        <swrl:argument2 rdf:resource="urn:swrl#j"/>
-                                    </rdf:Description>
-                                </rdf:first>
-                                <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
-                            </rdf:Description>
-                        </rdf:rest>
-                    </rdf:Description>
-                </rdf:rest>
-            </rdf:Description>
-        </swrl:body>
-        <swrl:head>
-            <rdf:Description>
-                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
-                <rdf:first>
-                    <rdf:Description>
-                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#IndividualPropertyAtom"/>
-                        <swrl:propertyPredicate rdf:resource="http://www.stiima.cnr.it/RientraOnt3#matchedJob"/>
-                        <swrl:argument1 rdf:resource="urn:swrl#m"/>
                         <swrl:argument2 rdf:resource="urn:swrl#j"/>
                     </rdf:Description>
                 </rdf:first>
