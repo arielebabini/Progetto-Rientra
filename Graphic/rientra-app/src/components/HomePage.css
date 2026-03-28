@@ -1,0 +1,276 @@
+/* ============================================
+   HomePage - RIENTR@ returns DSS
+   ============================================ */
+
+.home-page {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(135deg, #1a2a4a 0%, #1e3a5f 25%, #1a4a5a 50%, #163860 75%, #102840 100%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+
+/* ---- Animated background blobs ---- */
+.bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.35;
+  pointer-events: none;
+  animation: blobDrift 12s ease-in-out infinite alternate;
+}
+
+.bg-blob-1 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, #4a90b8 0%, #1e6688 60%, transparent 100%);
+  top: -150px;
+  left: -100px;
+  animation-duration: 14s;
+}
+
+.bg-blob-2 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, #6a5acd 0%, #3b308a 60%, transparent 100%);
+  bottom: -100px;
+  right: 150px;
+  animation-duration: 10s;
+  animation-delay: -4s;
+}
+
+.bg-blob-3 {
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, #20b2aa 0%, #107070 60%, transparent 100%);
+  top: 40%;
+  left: 55%;
+  animation-duration: 16s;
+  animation-delay: -8s;
+}
+
+@keyframes blobDrift {
+  0%   { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(30px, -20px) scale(1.05); }
+  66%  { transform: translate(-20px, 30px) scale(0.95); }
+  100% { transform: translate(20px, 20px) scale(1.02); }
+}
+
+/* ---- Header ---- */
+.home-header {
+  position: relative;
+  z-index: 10;
+  padding: 48px 60px 24px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.brand-logo {
+  width: 52px;
+  height: auto;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  flex-shrink: 0;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.brand-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.brand-subtitle {
+  font-size: 1rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 0.01em;
+}
+
+/* ---- Main / Cards ---- */
+.home-main {
+  position: relative;
+  z-index: 10;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 60px 40px;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 860px;
+  width: 100%;
+}
+
+/* ---- Individual Card ---- */
+.nav-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.25s ease,
+              background 0.25s ease,
+              border-color 0.25s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+}
+
+.nav-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35),
+              0 0 0 1px rgba(255,255,255,0.15),
+              inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+.nav-card:active {
+  transform: translateY(-2px) scale(1.005);
+}
+
+/* Shine overlay on hover */
+.card-hover-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.nav-card:hover .card-hover-shine {
+  opacity: 1;
+}
+
+/* Icon area */
+.card-icon-wrapper {
+  padding: 36px 36px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Card body — lower white-ish section */
+.card-body {
+  padding: 20px 24px 28px;
+  background: rgba(255, 255, 255, 0.07);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  flex: 1;
+}
+
+.card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  margin-bottom: 12px;
+  letter-spacing: 0.01em;
+}
+
+.card-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
+  margin-bottom: 12px;
+}
+
+.card-description {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-description li {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+/* ---- Footer ---- */
+.home-footer {
+  position: relative;
+  z-index: 10;
+  padding: 20px 60px 48px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.footer-logos {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.footer-logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+}
+
+.footer-logo:hover {
+  opacity: 1;
+}
+
+.footer-logo-stiima {
+  filter: brightness(0) invert(1);
+}
+
+.footer-logo-inail {
+  filter: brightness(0) invert(1);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .home-header {
+    padding: 32px 24px 16px;
+  }
+
+  .home-main {
+    padding: 16px 24px 32px;
+  }
+
+  .cards-grid {
+    grid-template-columns: 1fr;
+    max-width: 360px;
+  }
+
+  .home-footer {
+    padding: 16px 24px 32px;
+    justify-content: center;
+  }
+
+  .brand-title {
+    font-size: 1.35rem;
+  }
+}
