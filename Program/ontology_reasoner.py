@@ -1,7 +1,5 @@
 """
-Ontologia Rientr@ (STIIMA-CNR) — Pipeline fedele al paper con Pellet reale
 ===========================================================================
-Spoladore et al. (2024), CSBJ 24, 374-392.
 
 PIPELINE CORRETTA DEL PAPER
 ----------------------------
@@ -124,15 +122,6 @@ IRI_BFQUAL      = "http://www.stiima.cnr.it/RientraHC#BFqual"
 IRI_AP1QUAL     = "http://www.stiima.cnr.it/RientraHC#AP1qual"
 IRI_FIRST_NAME  = "http://www.stiima.cnr.it/FOAF-excerpt#first_name"
 IRI_SURNAME     = "http://www.stiima.cnr.it/FOAF-excerpt#surname"
-IRI_MATCHED_JOB = "http://www.stiima.cnr.it/RientraOnt3#matchedJob"
-
-# Ancora importanza (corrispondenza regole SWRL → moltiplicatore)
-ANCHOR_MAP = {
-    IRI_IS_LESS    : 0,
-    IRI_IS_SOMEWHAT: 1,
-    IRI_IS_IMP     : 2,
-    IRI_IS_VERY_IMP: 3,
-}
 
 # Soglie Job Suitability (Fig. 4 del paper)
 JS_RED_INTERCEPT    = 21.0     # GCS = -0.5*AISA + 21
@@ -405,36 +394,17 @@ def query_gcs_aisa() -> list[dict]:
     """
     Q1 + Q2 — Calcola GCS% e AISA% per ogni (Person, Job).
 
-    ROOT CAUSE DEL BUG (valori identici per tutti i job):
-    -------------------------------------------------------
-    `hasSpecificCriticality(?skab, ?cs)` è una proprietà che lega la
-    Skill/Ability a un valore numerico, MA NON porta con sé il riferimento
-    al job per cui quel CS è stato calcolato. Le regole SWRL R1-R8 del paper
-    calcolano CS = qualifier × anchor, dove l'anchor dipende dal job
-    (via isVeryImportantFor / isImportantFor / ...). Tuttavia Pellet scrive
-    nel world UNA sola tripla per skab, usando l'ultimo CS inferito, che può
-    essere quello di un job qualunque. Navigare poi ?skab → ?jde → ?job
-    non aiuta: lo stesso ?skab può appartenere a più job, quindi la query
-    restituisce tutte le combinazioni (cartesiano) con lo stesso ?cs,
-    producendo valori GCS% e AISA% identici per ogni job.
+    NOTA: hasSpecificCriticality non è usato come sorgente primaria perché
+    Pellet scrive nel world una sola tripla per skab, senza riferimento al job
+    specifico, producendo valori CS identici tra job diversi. Il CS viene
+    invece ricalcolato in Python da hasScore (job-specific) e dal qualifier
+    ICF della persona (BFqual / AP1qual), come descritto in §5.1 del paper.
+    Il fallback su hasSpecificCriticality rimane attivo se la struttura HC
+    non è presente nell'ontologia.
 
-    SOLUZIONE:
-    -----------
-    Abbandoniamo hasSpecificCriticality come sorgente primaria e
-    ricostruiamo CS in Python direttamente dalle fonti attendibili:
-
-      1. Per ogni (person, job) recuperiamo tutti gli ?skab richiesti dal job
-         con il loro ?score (hasScore) e il qualifier della persona
-         (BFqual o AP1qual, a seconda che l'ICF code sia Body Function
-         o Activity & Participation).
-
-      2. Calcoliamo anchor = _score_to_anchor(score) e CS = qualifier × anchor.
-
-      3. Deduplicazione: se uno ?skab è tradotto con più ICF code, teniamo
-         il qualificatore massimo (comportamento del paper, §5.1).
-
-    In questo modo CS varia per job (perché hasScore varia) e per persona
-    (perché il qualifier varia). I valori GCS% e AISA% diventano distinti.
+    Passo 1: recupera (person, job, skab, score, qualifier) via SPARQL.
+    Passo 2: aggrega per (person, job, skab), max qualifier (§5.1).
+    Passo 3: calcola CS = qualifier × anchor, poi GCS% e AISA%.
     """
 
     # ── Passo 1: recupera (person, job, skab, score, qualifier) ──────────────
@@ -574,8 +544,10 @@ def _score_to_anchor(score: int) -> int:
 def _gcs_aisa_from_crit_triples(rows_crit) -> list[dict]:
     """
     Fallback: calcola GCS%/AISA% da triple hasSpecificCriticality.
-    Usato solo se la query riscritta non trova dati.
-    NOTA: questo metodo soffre del bug originale (CS non job-specific).
+    Usato solo se la query principale (basata su hasScore + qualifier ICF)
+    non trova dati. Il CS ottenuto da hasSpecificCriticality non è
+    job-specific: Pellet scrive una sola tripla per skab, quindi GCS% e
+    AISA% possono risultare identici tra job diversi.
     """
     aggregated: dict = {}
     for skab, cs_raw, job, person in rows_crit:
@@ -706,28 +678,6 @@ def query_skill_detail(person_name: str, job_name: str) -> list[dict]:
     # Ordina per CS decrescente, poi per nome
     details.sort(key=lambda x: (-x["cs"], x["skab_name"]))
     return details
-
-
-def _get_importance_label(skab, job_ind) -> str:
-    """Legge dal world di Pellet il livello di importanza per (skab, job)."""
-    job_iri = job_ind.iri
-    skab_iri = skab.iri if hasattr(skab, "iri") else str(skab)
-
-    for label, iri in [
-        ("isVeryImportantFor",    IRI_IS_VERY_IMP),
-        ("isImportantFor",        IRI_IS_IMP),
-        ("isSomewhatImportantFor",IRI_IS_SOMEWHAT),
-        ("isLessImportantFor",    IRI_IS_LESS),
-    ]:
-        rows = sparql(f"""
-            SELECT ?s WHERE {{
-                <{skab_iri}> <{iri}> <{job_iri}> .
-                BIND(<{skab_iri}> AS ?s)
-            }} LIMIT 1
-        """)
-        if rows:
-            return label
-    return "isLessImportantFor"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -880,7 +830,7 @@ def print_metrics(results: list[dict]) -> None:
 
         # ── tabella riepilogativa ─────────────────────────────────────────────
         _console.print()
-        _console.print("[bold]RIEPILOGO  —  formule (§5.1-5.2, Spoladore et al. 2024):[/bold]")
+        _console.print("[bold]RIEPILOGO  —  formule :[/bold]")
         _console.print("  [dim]CS = qualifier × anchor   │   "
                         "GCS% = [Σ(CS/12) / N] × 100   │   "
                         "AISA% = N(CS>0) / N × 100[/dim]")
@@ -1036,8 +986,7 @@ def plot_job_suitability(results: list[dict], output_path: str) -> None:
     n_persons = len(by_person)
     # 3 colonne: scatter | GCS bars | AISA bars
     fig = plt.figure(figsize=(18, 5 * n_persons), facecolor="#0f1117")
-    fig.suptitle("Rientr@ DSS — Job Suitability Dashboard\n"
-                 "Spoladore et al. 2024 · CSBJ 24:374-392",
+    fig.suptitle("Rientr@ DSS — Job Suitability Dashboard\n",
                  color="white", fontsize=13, fontweight="bold", y=1.01)
 
     outer = gridspec.GridSpec(n_persons, 1, figure=fig,
