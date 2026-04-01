@@ -1,0 +1,761 @@
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rientra: <https://www.stiima.cnr.it/rientra#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://www.stiima.cnr.it/rientra> a owl:Ontology ;
+    rdfs:label "Rientra@ Mini Ontology"@en ;
+    rdfs:comment "Versione minimale dell'ontologia Rientra@ per il tutorial RDB2RDF."@it .
+
+rientra:HCDesc_1 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 2 ;
+    rientra:involvesICFCode rientra:ICF_b130 ;
+    rientra:isDescribedBy rientra:HC_1 .
+
+rientra:HCDesc_10 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 2 ;
+    rientra:involvesICFCode rientra:ICF_b7306 ;
+    rientra:isDescribedBy rientra:HC_1 .
+
+rientra:HCDesc_11 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 2 ;
+    rientra:involvesICFCode rientra:ICF_b735 ;
+    rientra:isDescribedBy rientra:HC_1 .
+
+rientra:HCDesc_12 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 2 ;
+    rientra:involvesICFCode rientra:ICF_b760 ;
+    rientra:isDescribedBy rientra:HC_1 .
+
+rientra:HCDesc_13 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 1 ;
+    rientra:involvesICFCode rientra:ICF_b7602 ;
+    rientra:isDescribedBy rientra:HC_1 .
+
+rientra:HCDesc_14 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 4 ;
+    rientra:involvesICFCode rientra:ICF_b770 ;
+    rientra:isDescribedBy rientra:HC_1 .
+
+rientra:HCDesc_15 a rientra:HCDescriptor ;
+    rientra:activityPart1stQual 4 ;
+    rientra:involvesICFCode rientra:ICF_d450 ;
+    rientra:isDescribedBy rientra:HC_1 .
+
+rientra:HCDesc_16 a rientra:HCDescriptor ;
+    rientra:activityPart1stQual 4 ;
+    rientra:involvesICFCode rientra:ICF_d455 ;
+    rientra:isDescribedBy rientra:HC_1 .
+
+rientra:HCDesc_17 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 1 ;
+    rientra:involvesICFCode rientra:ICF_b1401 ;
+    rientra:isDescribedBy rientra:HC_2 .
+
+rientra:HCDesc_18 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 2 ;
+    rientra:involvesICFCode rientra:ICF_b1478 ;
+    rientra:isDescribedBy rientra:HC_2 .
+
+rientra:HCDesc_19 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 2 ;
+    rientra:involvesICFCode rientra:ICF_b710 ;
+    rientra:isDescribedBy rientra:HC_2 .
+
+rientra:HCDesc_2 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 1 ;
+    rientra:involvesICFCode rientra:ICF_b140 ;
+    rientra:isDescribedBy rientra:HC_1 .
+
+rientra:HCDesc_20 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 2 ;
+    rientra:involvesICFCode rientra:ICF_b730 ;
+    rientra:isDescribedBy rientra:HC_2 .
+
+rientra:HCDesc_21 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 2 ;
+    rientra:involvesICFCode rientra:ICF_b7305 ;
+    rientra:isDescribedBy rientra:HC_2 .
+
+rientra:HCDesc_22 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 2 ;
+    rientra:involvesICFCode rientra:ICF_b7306 ;
+    rientra:isDescribedBy rientra:HC_2 .
+
+rientra:HCDesc_23 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 2 ;
+    rientra:involvesICFCode rientra:ICF_b735 ;
+    rientra:isDescribedBy rientra:HC_2 .
+
+rientra:HCDesc_24 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 2 ;
+    rientra:involvesICFCode rientra:ICF_b760 ;
+    rientra:isDescribedBy rientra:HC_2 .
+
+rientra:HCDesc_25 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 2 ;
+    rientra:involvesICFCode rientra:ICF_b7602 ;
+    rientra:isDescribedBy rientra:HC_2 .
+
+rientra:HCDesc_26 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 2 ;
+    rientra:involvesICFCode rientra:ICF_b7603 ;
+    rientra:isDescribedBy rientra:HC_2 .
+
+rientra:HCDesc_27 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 3 ;
+    rientra:involvesICFCode rientra:ICF_b770 ;
+    rientra:isDescribedBy rientra:HC_2 .
+
+rientra:HCDesc_28 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 3 ;
+    rientra:involvesICFCode rientra:ICF_b789 ;
+    rientra:isDescribedBy rientra:HC_2 .
+
+rientra:HCDesc_29 a rientra:HCDescriptor ;
+    rientra:activityPart1stQual 2 ;
+    rientra:involvesICFCode rientra:ICF_d430 ;
+    rientra:isDescribedBy rientra:HC_2 .
+
+rientra:HCDesc_3 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 2 ;
+    rientra:involvesICFCode rientra:ICF_b1400 ;
+    rientra:isDescribedBy rientra:HC_1 .
+
+rientra:HCDesc_30 a rientra:HCDescriptor ;
+    rientra:activityPart1stQual 1 ;
+    rientra:involvesICFCode rientra:ICF_d440 ;
+    rientra:isDescribedBy rientra:HC_2 .
+
+rientra:HCDesc_31 a rientra:HCDescriptor ;
+    rientra:activityPart1stQual 2 ;
+    rientra:involvesICFCode rientra:ICF_d445 ;
+    rientra:isDescribedBy rientra:HC_2 .
+
+rientra:HCDesc_32 a rientra:HCDescriptor ;
+    rientra:activityPart1stQual 4 ;
+    rientra:involvesICFCode rientra:ICF_d450 ;
+    rientra:isDescribedBy rientra:HC_2 .
+
+rientra:HCDesc_33 a rientra:HCDescriptor ;
+    rientra:activityPart1stQual 4 ;
+    rientra:involvesICFCode rientra:ICF_d455 ;
+    rientra:isDescribedBy rientra:HC_2 .
+
+rientra:HCDesc_34 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 1 ;
+    rientra:involvesICFCode rientra:ICF_b1400 ;
+    rientra:isDescribedBy rientra:HC_3 .
+
+rientra:HCDesc_35 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 1 ;
+    rientra:involvesICFCode rientra:ICF_b1401 ;
+    rientra:isDescribedBy rientra:HC_3 .
+
+rientra:HCDesc_36 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 1 ;
+    rientra:involvesICFCode rientra:ICF_b710 ;
+    rientra:isDescribedBy rientra:HC_3 .
+
+rientra:HCDesc_37 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 1 ;
+    rientra:involvesICFCode rientra:ICF_b730 ;
+    rientra:isDescribedBy rientra:HC_3 .
+
+rientra:HCDesc_38 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 1 ;
+    rientra:involvesICFCode rientra:ICF_b7305 ;
+    rientra:isDescribedBy rientra:HC_3 .
+
+rientra:HCDesc_39 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 2 ;
+    rientra:involvesICFCode rientra:ICF_b7306 ;
+    rientra:isDescribedBy rientra:HC_3 .
+
+rientra:HCDesc_4 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 2 ;
+    rientra:involvesICFCode rientra:ICF_b1401 ;
+    rientra:isDescribedBy rientra:HC_1 .
+
+rientra:HCDesc_40 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 1 ;
+    rientra:involvesICFCode rientra:ICF_b735 ;
+    rientra:isDescribedBy rientra:HC_3 .
+
+rientra:HCDesc_41 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 1 ;
+    rientra:involvesICFCode rientra:ICF_b760 ;
+    rientra:isDescribedBy rientra:HC_3 .
+
+rientra:HCDesc_42 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 1 ;
+    rientra:involvesICFCode rientra:ICF_b7602 ;
+    rientra:isDescribedBy rientra:HC_3 .
+
+rientra:HCDesc_43 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 1 ;
+    rientra:involvesICFCode rientra:ICF_b7603 ;
+    rientra:isDescribedBy rientra:HC_3 .
+
+rientra:HCDesc_44 a rientra:HCDescriptor ;
+    rientra:activityPart1stQual 1 ;
+    rientra:involvesICFCode rientra:ICF_d160 ;
+    rientra:isDescribedBy rientra:HC_3 .
+
+rientra:HCDesc_45 a rientra:HCDescriptor ;
+    rientra:activityPart1stQual 1 ;
+    rientra:involvesICFCode rientra:ICF_d170 ;
+    rientra:isDescribedBy rientra:HC_3 .
+
+rientra:HCDesc_46 a rientra:HCDescriptor ;
+    rientra:activityPart1stQual 4 ;
+    rientra:involvesICFCode rientra:ICF_d450 ;
+    rientra:isDescribedBy rientra:HC_3 .
+
+rientra:HCDesc_47 a rientra:HCDescriptor ;
+    rientra:activityPart1stQual 4 ;
+    rientra:involvesICFCode rientra:ICF_d455 ;
+    rientra:isDescribedBy rientra:HC_3 .
+
+rientra:HCDesc_48 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 1 ;
+    rientra:involvesICFCode rientra:ICF_b1401 ;
+    rientra:isDescribedBy rientra:HC_4 .
+
+rientra:HCDesc_49 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 2 ;
+    rientra:involvesICFCode rientra:ICF_b710 ;
+    rientra:isDescribedBy rientra:HC_4 .
+
+rientra:HCDesc_5 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 3 ;
+    rientra:involvesICFCode rientra:ICF_b147 ;
+    rientra:isDescribedBy rientra:HC_1 .
+
+rientra:HCDesc_50 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 1 ;
+    rientra:involvesICFCode rientra:ICF_b730 ;
+    rientra:isDescribedBy rientra:HC_4 .
+
+rientra:HCDesc_51 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 1 ;
+    rientra:involvesICFCode rientra:ICF_b7305 ;
+    rientra:isDescribedBy rientra:HC_4 .
+
+rientra:HCDesc_52 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 1 ;
+    rientra:involvesICFCode rientra:ICF_b7306 ;
+    rientra:isDescribedBy rientra:HC_4 .
+
+rientra:HCDesc_53 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 1 ;
+    rientra:involvesICFCode rientra:ICF_b735 ;
+    rientra:isDescribedBy rientra:HC_4 .
+
+rientra:HCDesc_54 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 1 ;
+    rientra:involvesICFCode rientra:ICF_b760 ;
+    rientra:isDescribedBy rientra:HC_4 .
+
+rientra:HCDesc_55 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 1 ;
+    rientra:involvesICFCode rientra:ICF_b7602 ;
+    rientra:isDescribedBy rientra:HC_4 .
+
+rientra:HCDesc_56 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 2 ;
+    rientra:involvesICFCode rientra:ICF_b7603 ;
+    rientra:isDescribedBy rientra:HC_4 .
+
+rientra:HCDesc_57 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 1 ;
+    rientra:involvesICFCode rientra:ICF_b770 ;
+    rientra:isDescribedBy rientra:HC_4 .
+
+rientra:HCDesc_58 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 2 ;
+    rientra:involvesICFCode rientra:ICF_b789 ;
+    rientra:isDescribedBy rientra:HC_4 .
+
+rientra:HCDesc_59 a rientra:HCDescriptor ;
+    rientra:activityPart1stQual 1 ;
+    rientra:involvesICFCode rientra:ICF_d160 ;
+    rientra:isDescribedBy rientra:HC_4 .
+
+rientra:HCDesc_6 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 2 ;
+    rientra:involvesICFCode rientra:ICF_b1478 ;
+    rientra:isDescribedBy rientra:HC_1 .
+
+rientra:HCDesc_60 a rientra:HCDescriptor ;
+    rientra:activityPart1stQual 4 ;
+    rientra:involvesICFCode rientra:ICF_d450 ;
+    rientra:isDescribedBy rientra:HC_4 .
+
+rientra:HCDesc_61 a rientra:HCDescriptor ;
+    rientra:activityPart1stQual 4 ;
+    rientra:involvesICFCode rientra:ICF_d455 ;
+    rientra:isDescribedBy rientra:HC_4 .
+
+rientra:HCDesc_7 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 3 ;
+    rientra:involvesICFCode rientra:ICF_b710 ;
+    rientra:isDescribedBy rientra:HC_1 .
+
+rientra:HCDesc_8 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 2 ;
+    rientra:involvesICFCode rientra:ICF_b730 ;
+    rientra:isDescribedBy rientra:HC_1 .
+
+rientra:HCDesc_9 a rientra:HCDescriptor ;
+    rientra:bodyFunctionQual 1 ;
+    rientra:involvesICFCode rientra:ICF_b7305 ;
+    rientra:isDescribedBy rientra:HC_1 .
+
+rientra:JDesc_1 a rientra:Job_Descriptor ;
+    rientra:hasCategory "Skill" ;
+    rientra:hasDescriptorName "Reading Comprehension"^^xsd:string ;
+    rientra:hasImportanceAnchor 3 ;
+    rientra:hasScore 75 ;
+    rientra:isDescriptorOf rientra:Job_1 .
+
+rientra:JDesc_2 a rientra:Job_Descriptor ;
+    rientra:hasCategory "Skill" ;
+    rientra:hasDescriptorName "Writing"^^xsd:string ;
+    rientra:hasImportanceAnchor 2 ;
+    rientra:hasScore 72 ;
+    rientra:isDescriptorOf rientra:Job_1 .
+
+rientra:JDesc_3 a rientra:Job_Descriptor ;
+    rientra:hasCategory "Skill" ;
+    rientra:hasDescriptorName "Active Listening"^^xsd:string ;
+    rientra:hasImportanceAnchor 2 ;
+    rientra:hasScore 68 ;
+    rientra:isDescriptorOf rientra:Job_1 .
+
+rientra:JDesc_4 a rientra:Job_Descriptor ;
+    rientra:hasCategory "Ability" ;
+    rientra:hasDescriptorName "Information Ordering"^^xsd:string ;
+    rientra:hasImportanceAnchor 3 ;
+    rientra:hasScore 78 ;
+    rientra:isDescriptorOf rientra:Job_1 .
+
+rientra:JDesc_5 a rientra:Job_Descriptor ;
+    rientra:hasCategory "Ability" ;
+    rientra:hasDescriptorName "Written Comprehension"^^xsd:string ;
+    rientra:hasImportanceAnchor 3 ;
+    rientra:hasScore 81 ;
+    rientra:isDescriptorOf rientra:Job_1 .
+
+rientra:JDesc_6 a rientra:Job_Descriptor ;
+    rientra:hasCategory "Skill" ;
+    rientra:hasDescriptorName "Active Listening"^^xsd:string ;
+    rientra:hasImportanceAnchor 2 ;
+    rientra:hasScore 60 ;
+    rientra:isDescriptorOf rientra:Job_2 .
+
+rientra:JDesc_7 a rientra:Job_Descriptor ;
+    rientra:hasCategory "Skill" ;
+    rientra:hasDescriptorName "Speaking"^^xsd:string ;
+    rientra:hasImportanceAnchor 2 ;
+    rientra:hasScore 55 ;
+    rientra:isDescriptorOf rientra:Job_2 .
+
+rientra:JDesc_8 a rientra:Job_Descriptor ;
+    rientra:hasCategory "Ability" ;
+    rientra:hasDescriptorName "Information Ordering"^^xsd:string ;
+    rientra:hasImportanceAnchor 2 ;
+    rientra:hasScore 65 ;
+    rientra:isDescriptorOf rientra:Job_2 .
+
+rientra:JDesc_9 a rientra:Job_Descriptor ;
+    rientra:hasCategory "Ability" ;
+    rientra:hasDescriptorName "Near Vision"^^xsd:string ;
+    rientra:hasImportanceAnchor 2 ;
+    rientra:hasScore 58 ;
+    rientra:isDescriptorOf rientra:Job_2 .
+
+rientra:Job_3 a rientra:Job ;
+    rientra:hasDescription "Greet visitors, answer calls, provide information and manage bookings."^^xsd:string ;
+    rientra:hasJobNameInDB "Reception and customer service operator"^^xsd:string ;
+    rientra:hasONETCode "43-4171.00" .
+
+rientra:Job_4 a rientra:Job ;
+    rientra:hasDescription "Input and verify data using computer systems and office software."^^xsd:string ;
+    rientra:hasJobNameInDB "Data entry and document processing specialist"^^xsd:string ;
+    rientra:hasONETCode "43-9022.00" .
+
+rientra:Job_5 a rientra:Job ;
+    rientra:hasDescription "Maintain gardens, green areas and outdoor spaces."^^xsd:string ;
+    rientra:hasJobNameInDB "Outdoor maintenance worker"^^xsd:string ;
+    rientra:hasONETCode "37-3011.00" .
+
+rientra:activityPart1stQual a owl:DatatypeProperty ;
+    rdfs:label "activity participation 1st qualifier"@en ;
+    rdfs:comment "Qualificatore 1 per Activities and Participation: performance with assistance."@it ;
+    rdfs:domain rientra:HCDescriptor ;
+    rdfs:range xsd:integer .
+
+rientra:assessedOnDate a owl:DatatypeProperty ;
+    rdfs:label "assessed on date"@en ;
+    rdfs:domain rientra:HealthCondition ;
+    rdfs:range xsd:date .
+
+rientra:bodyFunctionQual a owl:DatatypeProperty ;
+    rdfs:label "body function qualifier"@en ;
+    rdfs:comment "Qualificatore ICF 1: magnitudine della compromissione (0=nessuna, 4=completa)."@it ;
+    rdfs:domain rientra:HCDescriptor ;
+    rdfs:range xsd:integer .
+
+rientra:evaluatesJob a owl:ObjectProperty ;
+    rdfs:label "evaluates job"@en ;
+    rdfs:domain rientra:JobEvaluation ;
+    rdfs:range rientra:Job .
+
+rientra:evaluatesWorker a owl:ObjectProperty ;
+    rdfs:label "evaluates worker"@en ;
+    rdfs:domain rientra:JobEvaluation ;
+    rdfs:range rientra:Wheelchair_user .
+
+rientra:evaluatorRole a owl:DatatypeProperty ;
+    rdfs:label "evaluator role"@en ;
+    rdfs:domain rientra:JobEvaluation ;
+    rdfs:range xsd:string .
+
+rientra:hasCategory a owl:DatatypeProperty ;
+    rdfs:label "has category"@en ;
+    rdfs:comment "Categoria O*NET: 'Skill' o 'Ability'."@it ;
+    rdfs:domain rientra:Job_Descriptor ;
+    rdfs:range xsd:string .
+
+rientra:hasComponent a owl:DatatypeProperty ;
+    rdfs:label "has component"@en ;
+    rdfs:comment "Componente ICF: b=body functions, s=structures, d=activities, e=environment."@it ;
+    rdfs:domain rientra:ICF_Code ;
+    rdfs:range xsd:string .
+
+rientra:hasDescription a owl:DatatypeProperty ;
+    rdfs:label "has description"@en ;
+    rdfs:domain owl:Thing ;
+    rdfs:range xsd:string .
+
+rientra:hasDescriptorName a owl:DatatypeProperty ;
+    rdfs:label "has descriptor name"@en ;
+    rdfs:domain rientra:Job_Descriptor ;
+    rdfs:range xsd:string .
+
+rientra:hasICFCode a owl:DatatypeProperty ;
+    rdfs:label "has ICF code"@en ;
+    rdfs:comment "Il codice ICF come stringa (es. 'b730')."@it ;
+    rdfs:domain rientra:ICF_Code ;
+    rdfs:range xsd:string .
+
+rientra:hasImportanceAnchor a owl:DatatypeProperty ;
+    rdfs:label "has importance anchor"@en ;
+    rdfs:comment "Anchor O*NET: 0=Not important, 1=Somewhat, 2=Important, 3=Very important."@it ;
+    rdfs:domain rientra:Job_Descriptor ;
+    rdfs:range xsd:integer .
+
+rientra:hasJobNameInDB a owl:DatatypeProperty ;
+    rdfs:label "has job name in DB"@en ;
+    rdfs:comment "Nome della professione come appare nel DB istituzionale (può differire dal nome O*NET)."@it ;
+    rdfs:domain rientra:Job ;
+    rdfs:range xsd:string .
+
+rientra:hasNotes a owl:DatatypeProperty ;
+    rdfs:label "has notes"@en ;
+    rdfs:domain owl:Thing ;
+    rdfs:range xsd:string .
+
+rientra:hasONETCode a owl:DatatypeProperty ;
+    rdfs:label "has O*NET code"@en ;
+    rdfs:comment "Codice O*NET della professione (es. '25-4011.00'). Può essere NULL se non noto."@it ;
+    rdfs:domain rientra:Job ;
+    rdfs:range xsd:string .
+
+rientra:hasScore a owl:DatatypeProperty ;
+    rdfs:label "has score"@en ;
+    rdfs:comment "Score di importanza O*NET (0-100)."@it ;
+    rdfs:domain rientra:Job_Descriptor ;
+    rdfs:range xsd:integer .
+
+rientra:hasSuitability a owl:DatatypeProperty ;
+    rdfs:label "has suitability"@en ;
+    rdfs:comment "Esito: 'suitable', 'suitable_with_precautions', 'not_suitable'."@it ;
+    rdfs:domain rientra:JobEvaluation ;
+    rdfs:range xsd:string .
+
+rientra:involvesICFCode a owl:ObjectProperty ;
+    rdfs:label "involves ICF code"@en ;
+    rdfs:comment "Collega un HCDescriptor al codice ICF corrispondente."@it ;
+    rdfs:domain rientra:HCDescriptor ;
+    rdfs:range rientra:ICF_Code .
+
+rientra:isDescribedBy a owl:ObjectProperty ;
+    rdfs:label "is described by"@en ;
+    rdfs:comment "Collega una HealthCondition ai suoi HCDescriptor."@it ;
+    rdfs:domain rientra:HealthCondition ;
+    rdfs:range rientra:HCDescriptor .
+
+rientra:isDescriptorOf a owl:ObjectProperty ;
+    rdfs:label "is descriptor of"@en ;
+    rdfs:comment "Collega un Job_Descriptor alla professione a cui appartiene."@it ;
+    rdfs:domain rientra:Job_Descriptor ;
+    rdfs:range rientra:Job .
+
+rientra:isHealthConditionOf a owl:ObjectProperty ;
+    rdfs:label "is health condition of"@en ;
+    rdfs:comment "Collega una HealthCondition al WU a cui appartiene."@it ;
+    rdfs:domain rientra:HealthCondition ;
+    rdfs:range rientra:Wheelchair_user .
+
+rientra:matchedToONETJob a owl:ObjectProperty ;
+    rdfs:label "matched to O*NET job"@en ;
+    rdfs:comment "Collega un Job del DB al corrispondente Job nell'ontologia O*NET (risultato del matching)."@it ;
+    rdfs:domain rientra:Job ;
+    rdfs:range rientra:Job .
+
+rientra:matchedViaLabel a owl:DatatypeProperty ;
+    rdfs:label "matched via label"@en ;
+    rdfs:comment "La label O*NET che ha prodotto il match migliore."@it ;
+    rdfs:domain rientra:Job ;
+    rdfs:range xsd:string .
+
+rientra:matchingScore a owl:DatatypeProperty ;
+    rdfs:label "matching score"@en ;
+    rdfs:comment "Score di similarità prodotto dall'algoritmo di matching (0-1)."@it ;
+    rdfs:domain rientra:Job ;
+    rdfs:range xsd:decimal .
+
+rientra:ICF_b130 a rientra:ICF_Code ;
+    rdfs:label "Energy and drive functions"@en ;
+    rientra:hasComponent "b" ;
+    rientra:hasDescription "General mental functions of physiological mechanisms."^^xsd:string ;
+    rientra:hasICFCode "b130" .
+
+rientra:ICF_b140 a rientra:ICF_Code ;
+    rdfs:label "Attention functions"@en ;
+    rientra:hasComponent "b" ;
+    rientra:hasDescription "Mental functions of focusing on an external stimulus."^^xsd:string ;
+    rientra:hasICFCode "b140" .
+
+rientra:ICF_b147 a rientra:ICF_Code ;
+    rdfs:label "Psychomotor functions"@en ;
+    rientra:hasComponent "b" ;
+    rientra:hasDescription "Specific mental functions of control over motor events."^^xsd:string ;
+    rientra:hasICFCode "b147" .
+
+rientra:ICF_d170 a rientra:ICF_Code ;
+    rdfs:label "Writing"@en ;
+    rientra:hasComponent "d" ;
+    rientra:hasDescription "Using symbols to convey information."^^xsd:string ;
+    rientra:hasICFCode "d170" .
+
+rientra:ICF_d430 a rientra:ICF_Code ;
+    rdfs:label "Lifting and carrying objects"@en ;
+    rientra:hasComponent "d" ;
+    rientra:hasDescription "Raising up an object or taking it from one place to another."^^xsd:string ;
+    rientra:hasICFCode "d430" .
+
+rientra:ICF_d440 a rientra:ICF_Code ;
+    rdfs:label "Fine hand use"@en ;
+    rientra:hasComponent "d" ;
+    rientra:hasDescription "Coordinated actions of handling objects with fingers."^^xsd:string ;
+    rientra:hasICFCode "d440" .
+
+rientra:ICF_d445 a rientra:ICF_Code ;
+    rdfs:label "Hand and arm use"@en ;
+    rientra:hasComponent "d" ;
+    rientra:hasDescription "Coordinated actions to move objects using hands and arms."^^xsd:string ;
+    rientra:hasICFCode "d445" .
+
+rientra:WU_1 a rientra:Wheelchair_user ;
+    foaf:birthday 1975 ;
+    foaf:gender "M" ;
+    foaf:givenName "Marco" ;
+    foaf:lastName "Bianchi" ;
+    foaf:mbox "marco.bianchi@example.it" .
+
+rientra:WU_2 a rientra:Wheelchair_user ;
+    foaf:birthday 1982 ;
+    foaf:gender "M" ;
+    foaf:givenName "Luca" ;
+    foaf:lastName "Ferretti" ;
+    foaf:mbox "luca.ferretti@example.it" .
+
+rientra:WU_3 a rientra:Wheelchair_user ;
+    foaf:birthday 1990 ;
+    foaf:gender "F" ;
+    foaf:givenName "Francesca" ;
+    foaf:lastName "Neri" ;
+    foaf:mbox "francesca.neri@example.it" .
+
+rientra:WU_4 a rientra:Wheelchair_user ;
+    foaf:birthday 1979 ;
+    foaf:gender "M" ;
+    foaf:givenName "Antonio" ;
+    foaf:lastName "Russo" ;
+    foaf:mbox "antonio.russo@example.it" .
+
+rientra:ICF_b1400 a rientra:ICF_Code ;
+    rdfs:label "Sustaining attention"@en ;
+    rientra:hasComponent "b" ;
+    rientra:hasDescription "Mental functions that produce concentration."^^xsd:string ;
+    rientra:hasICFCode "b1400" .
+
+rientra:ICF_b1478 a rientra:ICF_Code ;
+    rdfs:label "Reaction time"@en ;
+    rientra:hasComponent "b" ;
+    rientra:hasDescription "Time elapsed between stimulation and response."^^xsd:string ;
+    rientra:hasICFCode "b1478" .
+
+rientra:ICF_b789 a rientra:ICF_Code ;
+    rdfs:label "Dynamic flexibility"@en ;
+    rientra:hasComponent "b" ;
+    rientra:hasDescription "Ability to make rapid repeated flexing movements."^^xsd:string ;
+    rientra:hasICFCode "b789" .
+
+rientra:ICF_d160 a rientra:ICF_Code ;
+    rdfs:label "Focusing attention"@en ;
+    rientra:hasComponent "d" ;
+    rientra:hasDescription "Intentionally focusing on specific stimuli."^^xsd:string ;
+    rientra:hasICFCode "d160" .
+
+rientra:ICF_b7603 a rientra:ICF_Code ;
+    rdfs:label "Supportive functions of arm or leg"@en ;
+    rientra:hasComponent "b" ;
+    rientra:hasDescription "Control for bearing weight of body or object."^^xsd:string ;
+    rientra:hasICFCode "b7603" .
+
+rientra:ICF_b770 a rientra:ICF_Code ;
+    rdfs:label "Gait pattern functions"@en ;
+    rientra:hasComponent "b" ;
+    rientra:hasDescription "Movement patterns associated with walking."^^xsd:string ;
+    rientra:hasICFCode "b770" .
+
+rientra:ICF_b1401 a rientra:ICF_Code ;
+    rdfs:label "Shifting attention"@en ;
+    rientra:hasComponent "b" ;
+    rientra:hasDescription "Mental functions that permit refocusing concentration."^^xsd:string ;
+    rientra:hasICFCode "b1401" .
+
+rientra:ICF_b710 a rientra:ICF_Code ;
+    rdfs:label "Mobility of joint functions"@en ;
+    rientra:hasComponent "b" ;
+    rientra:hasDescription "Functions of the range and ease of movement of a joint."^^xsd:string ;
+    rientra:hasICFCode "b710" .
+
+rientra:ICF_b730 a rientra:ICF_Code ;
+    rdfs:label "Muscle power functions"@en ;
+    rientra:hasComponent "b" ;
+    rientra:hasDescription "Functions related to the force generated by muscles."^^xsd:string ;
+    rientra:hasICFCode "b730" .
+
+rientra:ICF_b7305 a rientra:ICF_Code ;
+    rdfs:label "Power of muscles of the trunk"@en ;
+    rientra:hasComponent "b" ;
+    rientra:hasDescription "Force generated by trunk muscles."^^xsd:string ;
+    rientra:hasICFCode "b7305" .
+
+rientra:ICF_b7306 a rientra:ICF_Code ;
+    rdfs:label "Power of all muscles of the body"@en ;
+    rientra:hasComponent "b" ;
+    rientra:hasDescription "Force generated by all body muscles."^^xsd:string ;
+    rientra:hasICFCode "b7306" .
+
+rientra:ICF_b735 a rientra:ICF_Code ;
+    rdfs:label "Muscle tone functions"@en ;
+    rientra:hasComponent "b" ;
+    rientra:hasDescription "Tension present in resting muscles."^^xsd:string ;
+    rientra:hasICFCode "b735" .
+
+rientra:ICF_b760 a rientra:ICF_Code ;
+    rdfs:label "Control of voluntary movement"@en ;
+    rientra:hasComponent "b" ;
+    rientra:hasDescription "Control over and coordination of voluntary movements."^^xsd:string ;
+    rientra:hasICFCode "b760" .
+
+rientra:ICF_b7602 a rientra:ICF_Code ;
+    rdfs:label "Coordination of voluntary movements"@en ;
+    rientra:hasComponent "b" ;
+    rientra:hasDescription "Coordination of simple and complex voluntary movements."^^xsd:string ;
+    rientra:hasICFCode "b7602" .
+
+rientra:ICF_d450 a rientra:ICF_Code ;
+    rdfs:label "Walking"@en ;
+    rientra:hasComponent "d" ;
+    rientra:hasDescription "Moving along a surface on foot, step by step."^^xsd:string ;
+    rientra:hasICFCode "d450" .
+
+rientra:ICF_d455 a rientra:ICF_Code ;
+    rdfs:label "Moving around"@en ;
+    rientra:hasComponent "d" ;
+    rientra:hasDescription "Moving the whole body by means other than walking."^^xsd:string ;
+    rientra:hasICFCode "d455" .
+
+rientra:JobEvaluation a owl:Class ;
+    rdfs:label "Job Evaluation"@en,
+        "Valutazione di idoneità"@it ;
+    rdfs:comment "Il risultato della valutazione di idoneità di un WU a una specifica professione."@it .
+
+rientra:Job_2 a rientra:Job ;
+    rientra:hasDescription "Organize, manage and retrieve office documents and correspondence."^^xsd:string ;
+    rientra:hasJobNameInDB "Office document manager"^^xsd:string ;
+    rientra:hasONETCode "43-4071.00" .
+
+rientra:Job_1 a rientra:Job ;
+    rientra:hasDescription "Evaluate and oversee preservation of permanent records and historically significant documents."^^xsd:string ;
+    rientra:hasJobNameInDB "Manager of the digital archive"^^xsd:string ;
+    rientra:hasONETCode "25-4011.00" .
+
+rientra:Wheelchair_user a owl:Class ;
+    rdfs:label "Wheelchair User"@en,
+        "Utente su sedia a rotelle"@it ;
+    rdfs:comment "Un lavoratore che usa la sedia a rotelle, candidato al processo RTW."@it .
+
+rientra:HealthCondition a owl:Class ;
+    rdfs:label "Health Condition"@en,
+        "Condizione di salute"@it ;
+    rdfs:comment "La condizione di salute di un WU, descritta con codici ICF."@it .
+
+rientra:Job a owl:Class ;
+    rdfs:label "Job"@en,
+        "Professione"@it ;
+    rdfs:comment "Una professione descritta con i descrittori O*NET."@it .
+
+rientra:HC_3 a rientra:HealthCondition ;
+    rientra:assessedOnDate "2024-02-01"^^xsd:date ;
+    rientra:hasNotes "Paraplegia post TBI. Lievi deficit cognitivi. Buona funzionalità arti superiori."^^xsd:string ;
+    rientra:isHealthConditionOf rientra:WU_3 .
+
+rientra:HC_4 a rientra:HealthCondition ;
+    rientra:assessedOnDate "2024-02-10"^^xsd:date ;
+    rientra:hasNotes "Paraplegia post SCI. Dolore cronico arti superiori. Lievi deficit cognitivi e visivi."^^xsd:string ;
+    rientra:isHealthConditionOf rientra:WU_4 .
+
+rientra:Job_Descriptor a owl:Class ;
+    rdfs:label "Job Descriptor"@en,
+        "Descrittore della professione"@it ;
+    rdfs:comment "Un descrittore O*NET (Skill o Ability) associato a una professione con il suo score."@it .
+
+rientra:HC_1 a rientra:HealthCondition ;
+    rientra:assessedOnDate "2024-01-10"^^xsd:date ;
+    rientra:hasNotes "TBI con paralisi completa arti inferiori. Problemi cognitivi aggravati. Depressione."^^xsd:string ;
+    rientra:isHealthConditionOf rientra:WU_1 .
+
+rientra:HC_2 a rientra:HealthCondition ;
+    rientra:assessedOnDate "2024-01-15"^^xsd:date ;
+    rientra:hasNotes "Tetraplegia incompleta post SCI. Paralisi arti inferiori. Limitazioni tronco e arti superiori."^^xsd:string ;
+    rientra:isHealthConditionOf rientra:WU_2 .
+
+rientra:ICF_Code a owl:Class ;
+    rdfs:label "ICF Code"@en,
+        "Codice ICF"@it ;
+    rdfs:comment "Un codice della classificazione ICF (WHO)."@it .
+
+rientra:HCDescriptor a owl:Class ;
+    rdfs:label "HC Descriptor"@en,
+        "Descrittore della condizione di salute"@it ;
+    rdfs:comment "Coppia (codice ICF + qualificatore) che descrive un aspetto della condizione di salute."@it .
+

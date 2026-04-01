@@ -1,0 +1,226 @@
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+@prefix rientra: <https://www.stiima.cnr.it/rientra#> .
+
+# ============================================================
+# Ontologia Rientra@ — versione minimale per Step 1
+# Contiene solo le classi e proprietà necessarie per testare
+# il mapping RDB2RDF con i dati del DB relazionale.
+# Apribile direttamente in Protégé.
+# ============================================================
+
+<https://www.stiima.cnr.it/rientra>
+    a owl:Ontology ;
+    rdfs:label "Rientra@ Mini Ontology"@en ;
+    rdfs:comment "Versione minimale dell'ontologia Rientra@ per il tutorial RDB2RDF."@it .
+
+# ─────────────────────────────────────────────
+# CLASSI
+# ─────────────────────────────────────────────
+
+rientra:Wheelchair_user
+    a owl:Class ;
+    rdfs:label "Wheelchair User"@en , "Utente su sedia a rotelle"@it ;
+    rdfs:comment "Un lavoratore che usa la sedia a rotelle, candidato al processo RTW."@it .
+
+rientra:HealthCondition
+    a owl:Class ;
+    rdfs:label "Health Condition"@en , "Condizione di salute"@it ;
+    rdfs:comment "La condizione di salute di un WU, descritta con codici ICF."@it .
+
+rientra:HCDescriptor
+    a owl:Class ;
+    rdfs:label "HC Descriptor"@en , "Descrittore della condizione di salute"@it ;
+    rdfs:comment "Coppia (codice ICF + qualificatore) che descrive un aspetto della condizione di salute."@it .
+
+rientra:ICF_Code
+    a owl:Class ;
+    rdfs:label "ICF Code"@en , "Codice ICF"@it ;
+    rdfs:comment "Un codice della classificazione ICF (WHO)."@it .
+
+rientra:Job
+    a owl:Class ;
+    rdfs:label "Job"@en , "Professione"@it ;
+    rdfs:comment "Una professione descritta con i descrittori O*NET."@it .
+
+rientra:Job_Descriptor
+    a owl:Class ;
+    rdfs:label "Job Descriptor"@en , "Descrittore della professione"@it ;
+    rdfs:comment "Un descrittore O*NET (Skill o Ability) associato a una professione con il suo score."@it .
+
+rientra:JobEvaluation
+    a owl:Class ;
+    rdfs:label "Job Evaluation"@en , "Valutazione di idoneità"@it ;
+    rdfs:comment "Il risultato della valutazione di idoneità di un WU a una specifica professione."@it .
+
+# ─────────────────────────────────────────────
+# OBJECT PROPERTIES
+# ─────────────────────────────────────────────
+
+rientra:isHealthConditionOf
+    a owl:ObjectProperty ;
+    rdfs:label "is health condition of"@en ;
+    rdfs:domain rientra:HealthCondition ;
+    rdfs:range  rientra:Wheelchair_user ;
+    rdfs:comment "Collega una HealthCondition al WU a cui appartiene."@it .
+
+rientra:isDescribedBy
+    a owl:ObjectProperty ;
+    rdfs:label "is described by"@en ;
+    rdfs:domain rientra:HealthCondition ;
+    rdfs:range  rientra:HCDescriptor ;
+    rdfs:comment "Collega una HealthCondition ai suoi HCDescriptor."@it .
+
+rientra:involvesICFCode
+    a owl:ObjectProperty ;
+    rdfs:label "involves ICF code"@en ;
+    rdfs:domain rientra:HCDescriptor ;
+    rdfs:range  rientra:ICF_Code ;
+    rdfs:comment "Collega un HCDescriptor al codice ICF corrispondente."@it .
+
+rientra:isDescriptorOf
+    a owl:ObjectProperty ;
+    rdfs:label "is descriptor of"@en ;
+    rdfs:domain rientra:Job_Descriptor ;
+    rdfs:range  rientra:Job ;
+    rdfs:comment "Collega un Job_Descriptor alla professione a cui appartiene."@it .
+
+rientra:evaluatesWorker
+    a owl:ObjectProperty ;
+    rdfs:label "evaluates worker"@en ;
+    rdfs:domain rientra:JobEvaluation ;
+    rdfs:range  rientra:Wheelchair_user .
+
+rientra:evaluatesJob
+    a owl:ObjectProperty ;
+    rdfs:label "evaluates job"@en ;
+    rdfs:domain rientra:JobEvaluation ;
+    rdfs:range  rientra:Job .
+
+rientra:matchedToONETJob
+    a owl:ObjectProperty ;
+    rdfs:label "matched to O*NET job"@en ;
+    rdfs:domain rientra:Job ;
+    rdfs:range  rientra:Job ;
+    rdfs:comment "Collega un Job del DB al corrispondente Job nell'ontologia O*NET (risultato del matching)."@it .
+
+# ─────────────────────────────────────────────
+# DATATYPE PROPERTIES
+# ─────────────────────────────────────────────
+
+rientra:hasICFCode
+    a owl:DatatypeProperty ;
+    rdfs:label "has ICF code"@en ;
+    rdfs:domain rientra:ICF_Code ;
+    rdfs:range  xsd:string ;
+    rdfs:comment "Il codice ICF come stringa (es. 'b730')."@it .
+
+rientra:hasComponent
+    a owl:DatatypeProperty ;
+    rdfs:label "has component"@en ;
+    rdfs:domain rientra:ICF_Code ;
+    rdfs:range  xsd:string ;
+    rdfs:comment "Componente ICF: b=body functions, s=structures, d=activities, e=environment."@it .
+
+rientra:hasDescription
+    a owl:DatatypeProperty ;
+    rdfs:label "has description"@en ;
+    rdfs:domain owl:Thing ;
+    rdfs:range  xsd:string .
+
+rientra:assessedOnDate
+    a owl:DatatypeProperty ;
+    rdfs:label "assessed on date"@en ;
+    rdfs:domain rientra:HealthCondition ;
+    rdfs:range  xsd:date .
+
+rientra:hasNotes
+    a owl:DatatypeProperty ;
+    rdfs:label "has notes"@en ;
+    rdfs:domain owl:Thing ;
+    rdfs:range  xsd:string .
+
+rientra:bodyFunctionQual
+    a owl:DatatypeProperty ;
+    rdfs:label "body function qualifier"@en ;
+    rdfs:domain rientra:HCDescriptor ;
+    rdfs:range  xsd:integer ;
+    rdfs:comment "Qualificatore ICF 1: magnitudine della compromissione (0=nessuna, 4=completa)."@it .
+
+rientra:activityPart1stQual
+    a owl:DatatypeProperty ;
+    rdfs:label "activity participation 1st qualifier"@en ;
+    rdfs:domain rientra:HCDescriptor ;
+    rdfs:range  xsd:integer ;
+    rdfs:comment "Qualificatore 1 per Activities and Participation: performance with assistance."@it .
+
+rientra:hasJobNameInDB
+    a owl:DatatypeProperty ;
+    rdfs:label "has job name in DB"@en ;
+    rdfs:domain rientra:Job ;
+    rdfs:range  xsd:string ;
+    rdfs:comment "Nome della professione come appare nel DB istituzionale (può differire dal nome O*NET)."@it .
+
+rientra:hasONETCode
+    a owl:DatatypeProperty ;
+    rdfs:label "has O*NET code"@en ;
+    rdfs:domain rientra:Job ;
+    rdfs:range  xsd:string ;
+    rdfs:comment "Codice O*NET della professione (es. '25-4011.00'). Può essere NULL se non noto."@it .
+
+rientra:hasDescriptorName
+    a owl:DatatypeProperty ;
+    rdfs:label "has descriptor name"@en ;
+    rdfs:domain rientra:Job_Descriptor ;
+    rdfs:range  xsd:string .
+
+rientra:hasCategory
+    a owl:DatatypeProperty ;
+    rdfs:label "has category"@en ;
+    rdfs:domain rientra:Job_Descriptor ;
+    rdfs:range  xsd:string ;
+    rdfs:comment "Categoria O*NET: 'Skill' o 'Ability'."@it .
+
+rientra:hasScore
+    a owl:DatatypeProperty ;
+    rdfs:label "has score"@en ;
+    rdfs:domain rientra:Job_Descriptor ;
+    rdfs:range  xsd:integer ;
+    rdfs:comment "Score di importanza O*NET (0-100)."@it .
+
+rientra:hasImportanceAnchor
+    a owl:DatatypeProperty ;
+    rdfs:label "has importance anchor"@en ;
+    rdfs:domain rientra:Job_Descriptor ;
+    rdfs:range  xsd:integer ;
+    rdfs:comment "Anchor O*NET: 0=Not important, 1=Somewhat, 2=Important, 3=Very important."@it .
+
+rientra:hasSuitability
+    a owl:DatatypeProperty ;
+    rdfs:label "has suitability"@en ;
+    rdfs:domain rientra:JobEvaluation ;
+    rdfs:range  xsd:string ;
+    rdfs:comment "Esito: 'suitable', 'suitable_with_precautions', 'not_suitable'."@it .
+
+rientra:evaluatorRole
+    a owl:DatatypeProperty ;
+    rdfs:label "evaluator role"@en ;
+    rdfs:domain rientra:JobEvaluation ;
+    rdfs:range  xsd:string .
+
+rientra:matchingScore
+    a owl:DatatypeProperty ;
+    rdfs:label "matching score"@en ;
+    rdfs:domain rientra:Job ;
+    rdfs:range  xsd:decimal ;
+    rdfs:comment "Score di similarità prodotto dall'algoritmo di matching (0-1)."@it .
+
+rientra:matchedViaLabel
+    a owl:DatatypeProperty ;
+    rdfs:label "matched via label"@en ;
+    rdfs:domain rientra:Job ;
+    rdfs:range  xsd:string ;
+    rdfs:comment "La label O*NET che ha prodotto il match migliore."@it .
