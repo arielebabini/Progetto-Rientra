@@ -1,0 +1,13 @@
+# Rientr@ Semantic Microservice — Python dependencies
+
+# ── Core API framework ─────────────────────────────────────────────────────────
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+
+# ── Data validation (response models) ─────────────────────────────────────────
+pydantic>=2.0.0
+
+# ── Ontology reasoning ────────────────────────────────────────────────────────
+# owlready2 wraps rdflib internally and manages the Pellet JVM subprocess.
+# Requires Java 11+ in PATH.
+owlready2>=0.46
