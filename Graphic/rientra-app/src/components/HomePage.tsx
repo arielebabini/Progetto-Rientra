@@ -7,6 +7,10 @@ interface NavCard {
   description: string[];
 }
 
+interface HomePageProps {
+  onNavigate?: (cardId: string) => void;
+}
+
 const WorkerIcon = () => (
   <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
     {/* Front person */}
@@ -76,7 +80,7 @@ const cards: NavCard[] = [
   },
 ];
 
-export default function HomePage() {
+export default function HomePage({ onNavigate }: HomePageProps) {
   return (
     <div className="home-page">
       {/* Animated background blobs */}
@@ -99,7 +103,7 @@ export default function HomePage() {
       <main className="home-main">
         <div className="cards-grid">
           {cards.map((card) => (
-            <button key={card.id} className="nav-card" id={card.id} aria-label={card.title}>
+            <button key={card.id} className="nav-card" id={card.id} aria-label={card.title} onClick={() => onNavigate?.(card.id)}>
               <div className="card-icon-wrapper">
                 {card.icon}
               </div>
