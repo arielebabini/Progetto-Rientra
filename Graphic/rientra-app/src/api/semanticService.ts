@@ -86,3 +86,33 @@ export function fetchHealthConditions(workerId: string): Promise<HealthCondition
 export function fetchMatchResults(workerId: string): Promise<MatchResult[]> {
   return apiFetch<MatchResult[]>(`/match/${encodeURIComponent(workerId)}`);
 }
+
+// ── Skill / Ability detail (Q3) ───────────────────────────────────────────────
+
+export interface SkillDetail {
+  id: string;
+  score: number;
+  importance_label: string;
+  anchor: number;
+  qualifier: number;
+  cs: number;
+  cs_normalized: number;
+  criticality_label: string;
+}
+
+export interface SkillDetailResponse {
+  worker_id: string;
+  job_id: string;
+  skills: SkillDetail[];
+}
+
+/** Full Skill/Ability breakdown for one (worker, job) pair — Q3. */
+export function fetchSkillDetail(
+  workerId: string,
+  jobId: string,
+): Promise<SkillDetailResponse> {
+  return apiFetch<SkillDetailResponse>('/match/detail', {
+    method: 'POST',
+    body: JSON.stringify({ worker_id: workerId, job_id: jobId }),
+  });
+}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import './WorkersPage.css';
+import JobAnalysisView from './JobAnalysisView';
 import {
   fetchStatus,
   fetchWorkers,
@@ -8,6 +9,7 @@ import {
   type Worker,
   type HealthCondition,
 } from '../api/semanticService';
+
 
 /* ─────────────────────────────────────────────
    Inline SVG icons
@@ -193,6 +195,8 @@ export default function WorkersPage({ onNavigateHome }: WorkersPageProps) {
   const [searchQuery,  setSearchQuery]  = useState('');
   const [dotsMenuOpen, setDotsMenuOpen] = useState(false);
   const [activeNav,    setActiveNav]    = useState<'workers' | 'jobs-analysis' | 'jobs-positions'>('workers');
+  const [activeTab,    setActiveTab]    = useState<'health' | 'jobs'>('health');
+
 
   // ── Polling /status until ready ────────────────────────────────────
   const poll = useCallback(async () => {
@@ -254,6 +258,13 @@ export default function WorkersPage({ onNavigateHome }: WorkersPageProps) {
 
   const displayName = (w: Worker) =>
     [w.first_name, w.surname].filter(Boolean).join(' ') || w.id;
+
+  // Reset tab when a different worker is selected
+  const handleSelectWorker = (w: Worker) => {
+    setSelectedWorker(w);
+    setActiveTab('health');
+  };
+
 
   // ── Render ─────────────────────────────────────────────────────────
   return (
@@ -320,12 +331,13 @@ export default function WorkersPage({ onNavigateHome }: WorkersPageProps) {
             {!loadingWorkers && filteredWorkers.map(w => (
               <li key={w.id}
                 className={`wp-worker-item ${selectedWorker?.id === w.id ? 'selected' : ''}`}
-                onClick={() => setSelectedWorker(w)}
+                onClick={() => handleSelectWorker(w)}
                 role="button" tabIndex={0}
-                onKeyDown={e => e.key === 'Enter' && setSelectedWorker(w)}>
+                onKeyDown={e => e.key === 'Enter' && handleSelectWorker(w)}>
                 {displayName(w)}
               </li>
             ))}
+
             {!loadingWorkers && isReady && filteredWorkers.length === 0 && (
               <li className="wp-worker-item wp-worker-item--empty">No results</li>
             )}
@@ -371,96 +383,123 @@ export default function WorkersPage({ onNavigateHome }: WorkersPageProps) {
                   </div>
                 </div>
 
-                <div className="wp-divider" />
+                {/* ── Tab bar ── */}
+                <div className="wp-tab-bar">
+                  <button
+                    id="tab-health"
+                    className={`wp-tab ${activeTab === 'health' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('health')}>
+                    Health Conditions
+                  </button>
+                  <button
+                    id="tab-jobs"
+                    className={`wp-tab ${activeTab === 'jobs' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('jobs')}>
+                    Job Analysis
+                  </button>
+                </div>
 
-                {/* Health conditions section */}
-                <div className="wp-section">
-                  <div className="wp-section-header">
-                    <h2 className="wp-section-title">Current Health Conditions</h2>
-                    <div className="wp-section-actions">
-                      <button className="wp-btn-primary" id="btn-modify-health">
-                        <EditIcon /> Modify Health Conditions
-                      </button>
-                      <div className="wp-dots-wrapper">
-                        <button className={`wp-btn-dots ${dotsMenuOpen ? 'active' : ''}`}
-                          id="btn-overflow-menu"
-                          onClick={() => setDotsMenuOpen(v => !v)}
-                          aria-label="More options">
-                          <DotsIcon />
+                {/* ── Tab: Health Conditions ── */}
+                {activeTab === 'health' && (
+                  <div className="wp-section">
+                    <div className="wp-section-header">
+                      <h2 className="wp-section-title">Current Health Conditions</h2>
+                      <div className="wp-section-actions">
+                        <button className="wp-btn-primary" id="btn-modify-health">
+                          <EditIcon /> Modify Health Conditions
                         </button>
-                        {dotsMenuOpen && (
-                          <div className="wp-dropdown" id="overflow-dropdown">
-                            <button className="wp-dropdown-item" id="btn-archive"
-                              onClick={() => setDotsMenuOpen(false)}>
-                              <ArchiveIcon /> Move to archive
-                            </button>
-                            <button className="wp-dropdown-item" id="btn-save-pdf"
-                              onClick={() => setDotsMenuOpen(false)}>
-                              <PdfIcon /> Save PDF
-                            </button>
-                          </div>
-                        )}
+                        <div className="wp-dots-wrapper">
+                          <button className={`wp-btn-dots ${dotsMenuOpen ? 'active' : ''}`}
+                            id="btn-overflow-menu"
+                            onClick={() => setDotsMenuOpen(v => !v)}
+                            aria-label="More options">
+                            <DotsIcon />
+                          </button>
+                          {dotsMenuOpen && (
+                            <div className="wp-dropdown" id="overflow-dropdown">
+                              <button className="wp-dropdown-item" id="btn-archive"
+                                onClick={() => setDotsMenuOpen(false)}>
+                                <ArchiveIcon /> Move to archive
+                              </button>
+                              <button className="wp-dropdown-item" id="btn-save-pdf"
+                                onClick={() => setDotsMenuOpen(false)}>
+                                <PdfIcon /> Save PDF
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Table */}
-                  <div className="wp-table-wrapper">
-                    {loadingConditions ? (
-                      <div className="wp-table-loading">
-                        <div className="wp-spinner" />
-                        <span>Loading health conditions…</span>
-                      </div>
-                    ) : (
-                      <table className="wp-table" id="health-conditions-table">
-                        <thead>
-                          <tr>
-                            <th>ICF Code</th>
-                            <th>BF Qualifier</th>
-                            <th>AP1 Qualifier</th>
-                            <th>Effective Qualifier</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {conditions.map((c, i) => {
-                            const eff = Math.max(c.bf_qualifier ?? 0, c.ap1_qualifier ?? 0);
-                            return (
-                              <tr key={`${c.icf_code}-${i}`}>
-                                <td><span className="wp-icf-code">{c.icf_code}</span></td>
-                                <td>
-                                  {c.bf_qualifier != null
-                                    ? <span className="wp-qualifier-badge">{c.bf_qualifier}</span>
-                                    : <span className="wp-na">—</span>}
-                                </td>
-                                <td>
-                                  {c.ap1_qualifier != null
-                                    ? <span className="wp-qualifier-badge">{c.ap1_qualifier}</span>
-                                    : <span className="wp-na">—</span>}
-                                </td>
-                                <td>
-                                  <span className={`wp-qualifier-badge wp-qualifier-badge--eff wp-eff-${eff}`}>
-                                    {eff}
-                                  </span>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    )}
+                    <div className="wp-table-wrapper">
+                      {loadingConditions ? (
+                        <div className="wp-table-loading">
+                          <div className="wp-spinner" />
+                          <span>Loading health conditions…</span>
+                        </div>
+                      ) : (
+                        <table className="wp-table" id="health-conditions-table">
+                          <thead>
+                            <tr>
+                              <th>ICF Code</th>
+                              <th>BF Qualifier</th>
+                              <th>AP1 Qualifier</th>
+                              <th>Effective Qualifier</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {conditions.map((c, i) => {
+                              const eff = Math.max(c.bf_qualifier ?? 0, c.ap1_qualifier ?? 0);
+                              return (
+                                <tr key={`${c.icf_code}-${i}`}>
+                                  <td><span className="wp-icf-code">{c.icf_code}</span></td>
+                                  <td>
+                                    {c.bf_qualifier != null
+                                      ? <span className="wp-qualifier-badge">{c.bf_qualifier}</span>
+                                      : <span className="wp-na">—</span>}
+                                  </td>
+                                  <td>
+                                    {c.ap1_qualifier != null
+                                      ? <span className="wp-qualifier-badge">{c.ap1_qualifier}</span>
+                                      : <span className="wp-na">—</span>}
+                                  </td>
+                                  <td>
+                                    <span className={`wp-qualifier-badge wp-qualifier-badge--eff wp-eff-${eff}`}>
+                                      {eff}
+                                    </span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      )}
 
-                    {!loadingConditions && conditions.length === 0 && (
-                      <div className="wp-table-empty visible">
-                        <p>No health conditions recorded for this worker.</p>
-                        <p className="wp-table-empty-hint">
-                          Data is loaded from the ontology — ensure this worker has
-                          <code> isInHealthCondition</code> triples.
-                        </p>
-                      </div>
-                    )}
+                      {!loadingConditions && conditions.length === 0 && (
+                        <div className="wp-table-empty visible">
+                          <p>No health conditions recorded for this worker.</p>
+                          <p className="wp-table-empty-hint">
+                            Data is loaded from the ontology — ensure this worker has
+                            <code> isInHealthCondition</code> triples.
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* ── Tab: Job Analysis ── */}
+                {activeTab === 'jobs' && (
+                  <JobAnalysisView
+                    workerId={selectedWorker.id}
+                    workerDisplayName={
+                      [selectedWorker.first_name, selectedWorker.surname].filter(Boolean).join(' ')
+                        || selectedWorker.id
+                    }
+                  />
+                )}
               </>
+
             ) : (
               /* ── No worker selected ── */
               <div className="wp-empty-state">

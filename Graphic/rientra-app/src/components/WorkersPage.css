@@ -571,6 +571,41 @@
 }
 
 /* ═══════════════════════════════════════════
+   TAB BAR (inside worker detail panel)
+═══════════════════════════════════════════ */
+.wp-tab-bar {
+  display:     flex;
+  gap:         4px;
+  padding:     4px;
+  background:  rgba(255,255,255,0.04);
+  border:      1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  width:       fit-content;
+}
+
+.wp-tab {
+  padding:     7px 18px;
+  background:  none;
+  border:      none;
+  border-radius: 7px;
+  font-family: 'Inter', sans-serif;
+  font-size:   0.82rem;
+  font-weight: 500;
+  color:       rgba(255,255,255,0.5);
+  cursor:      pointer;
+  transition:  background 0.18s, color 0.18s;
+}
+.wp-tab:hover {
+  background: rgba(255,255,255,0.07);
+  color:      rgba(255,255,255,0.8);
+}
+.wp-tab.active {
+  background: rgba(77,217,192,0.18);
+  color:      #4DD9C0;
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════
    EMPTY STATE (no worker selected)
 ═══════════════════════════════════════════ */
 .wp-empty-state {
