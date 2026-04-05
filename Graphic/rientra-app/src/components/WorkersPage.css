@@ -738,44 +738,62 @@
 .wp-orb-ring {
   position: absolute;
   border-radius: 50%;
-  border: 2px solid rgba(77, 217, 192, 0.25);
-  animation: orbPulse 3s ease-in-out infinite;
+  border: 2px solid transparent;
 }
 .wp-orb-ring-1 {
   width: 120px; height: 120px;
-  animation-delay: 0s;
+  border-top-color: rgba(77, 217, 192, 0.8);
+  border-left-color: rgba(77, 217, 192, 0.3);
+  animation: spinRing 3s linear infinite;
 }
 .wp-orb-ring-2 {
-  width: 88px; height: 88px;
-  border-color: rgba(77, 217, 192, 0.35);
-  animation-delay: -1s;
-  animation-duration: 2.4s;
+  width: 92px; height: 92px;
+  border-right-color: rgba(77, 217, 192, 0.9);
+  border-bottom-color: rgba(77, 217, 192, 0.5);
+  animation: spinRingReverse 2.2s linear infinite;
 }
 .wp-orb-ring-3 {
-  width: 60px; height: 60px;
-  border-color: rgba(77, 217, 192, 0.45);
-  animation-delay: -0.5s;
-  animation-duration: 1.8s;
+  width: 72px; height: 72px;
+  border-top-color: rgba(77, 217, 192, 0.6);
+  border-left-color: rgba(77, 217, 192, 0.9);
+  animation: spinRing 1.5s linear infinite;
 }
-@keyframes orbPulse {
-  0%, 100% { transform: scale(1);    opacity: 0.5; }
-  50%       { transform: scale(1.08); opacity: 1;   }
+@keyframes spinRing {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
-.wp-orb-core {
-  width: 48px;
-  height: 48px;
-  background: rgba(77, 217, 192, 0.12);
-  border: 1px solid rgba(77, 217, 192, 0.4);
+@keyframes spinRingReverse {
+  0% { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
+.wp-orb-logo-container {
+  width: 54px;
+  height: 54px;
+  background: rgba(77, 217, 192, 0.1);
   border-radius: 50%;
+  padding: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(4px);
-  animation: orbCorePulse 2s ease-in-out infinite alternate;
+  box-shadow: inset 0 0 15px rgba(77, 217, 192, 0.2);
+  animation: orbCorePulse 2.5s ease-in-out infinite alternate;
+  z-index: 5;
+}
+.wp-orb-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 6px rgba(77, 217, 192, 0.8)) brightness(0) invert(1);
+  animation: logoFloat 3s ease-in-out infinite;
 }
 @keyframes orbCorePulse {
-  from { box-shadow: 0 0 12px rgba(77,217,192,0.2); }
-  to   { box-shadow: 0 0 28px rgba(77,217,192,0.55); }
+  from { box-shadow: 0 0 12px rgba(77,217,192,0.2), inset 0 0 8px rgba(77,217,192,0.1); }
+  to   { box-shadow: 0 0 30px rgba(77,217,192,0.6), inset 0 0 20px rgba(77,217,192,0.4); }
+}
+@keyframes logoFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-3px) scale(1.04); }
 }
 
 /* Titles */

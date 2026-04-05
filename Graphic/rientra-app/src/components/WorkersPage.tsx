@@ -112,18 +112,13 @@ function LoadingScreen({ status, error, onRetry }: LoadingScreenProps) {
 
   return (
     <div className="wp-loading-screen">
-      {/* Animated brain/ontology orb */}
+      {/* Animated app logo loader */}
       <div className="wp-loading-orb">
         <div className="wp-orb-ring wp-orb-ring-1" />
         <div className="wp-orb-ring wp-orb-ring-2" />
         <div className="wp-orb-ring wp-orb-ring-3" />
-        <div className="wp-orb-core">
-          <svg width="36" height="36" viewBox="0 0 64 64" fill="none">
-            <circle cx="26" cy="18" r="9" fill="rgba(77,217,192,0.7)" />
-            <path d="M10 46c0-9 7-16 16-16s16 7 16 16" fill="rgba(77,217,192,0.7)" />
-            <circle cx="38" cy="16" r="7" fill="rgba(77,217,192,0.4)" />
-            <path d="M22 44c0-8 6-14 16-14s16 6 16 14" fill="rgba(77,217,192,0.4)" />
-          </svg>
+        <div className="wp-orb-logo-container">
+          <img src="/logo-rientra.png" alt="Loading" className="wp-orb-logo-img" />
         </div>
       </div>
 
