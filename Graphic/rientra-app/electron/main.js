@@ -1,16 +1,22 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
-const fs   = require('fs');
+const fs = require('fs');
 
 // ─── Dev vs Production ──────────────────────────────────────────────────────
 const isDev = process.env.NODE_ENV === 'development';
 
 // ─── Python microservice ─────────────────────────────────────────────────────
-const PYTHON_PORT       = 8000;
-const SERVICE_DIR       = path.join(__dirname, '..', 'python-service');
-const VENV_PYTHON       = path.join(SERVICE_DIR, '.venv', 'bin', 'python3');
-const FALLBACK_PYTHON   = 'python3';
+const PYTHON_PORT = 8000;
+const SERVICE_DIR = path.join(__dirname, '..', 'python-service');
+
+// Cross-platform venv & fallback Python resolution
+const isWindows = process.platform === 'win32';
+const VENV_PYTHON = isWindows
+  ? path.join(SERVICE_DIR, '.venv', 'Scripts', 'python.exe')
+  : path.join(SERVICE_DIR, '.venv', 'bin', 'python3');
+const FALLBACK_PYTHON = isWindows ? 'python' : 'python3';
+
 
 let pythonProcess = null;
 
