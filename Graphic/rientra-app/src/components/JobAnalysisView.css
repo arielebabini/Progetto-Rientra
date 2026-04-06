@@ -31,6 +31,7 @@
   display: flex;
   gap: 14px;
   min-height: 0;
+  flex-shrink: 0; /* doesn't grow — fixed height based on content */
 }
 
 /* ── Scatter card ── */
@@ -217,10 +218,7 @@
 }
 
 .ja-skills-table thead tr {
-  background: rgba(255,255,255,0.04);
-  position: sticky;
-  top: 0;
-  z-index: 2;
+  background: transparent;
 }
 .ja-skills-table th {
   padding: 9px 14px;
@@ -232,6 +230,11 @@
   text-align: left;
   white-space: nowrap;
   border-bottom: 1px solid rgba(255,255,255,0.08);
+  /* Sticky header pinned inside the scroll container */
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #1a2e4a; /* solid so rows don't bleed through */
 }
 .ja-th-bar { width: 110px; }
 

@@ -6,7 +6,7 @@
 /* ── Page shell ── */
 .wp-page {
   position: relative;
-  min-height: 100vh;
+  height: 100vh;
   width: 100%;
   background: linear-gradient(135deg, #1a2a4a 0%, #1e3a5f 25%, #1a4a5a 50%, #163860 75%, #102840 100%);
   display: flex;
@@ -150,13 +150,16 @@
   display: flex;
   overflow: hidden;
   min-height: 0;
+  height: 0; /* forces flex children to respect parent height */
 }
 
 /* ═══════════════════════════════════════════
    LEFT SIDEBAR
 ═══════════════════════════════════════════ */
 .wp-sidebar {
-  width: 200px;
+  width: 240px;
+  min-width: 240px;
+  max-width: 240px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -166,6 +169,7 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden; /* no sidebar-level scrollbar */
 }
 
 .wp-sidebar-header {
@@ -228,16 +232,17 @@
   margin-bottom: 4px;
 }
 
-/* Worker list */
+/* Worker list — only this element scrolls inside the sidebar */
 .wp-worker-list {
   flex: 1;
   list-style: none;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 0;
   margin: 0 0 12px;
   scrollbar-width: thin;
   scrollbar-color: rgba(255,255,255,0.15) transparent;
-  min-height: 80px;
+  min-height: 0; /* allow shrinking inside flex column */
 }
 .wp-worker-list::-webkit-scrollbar { width: 4px; }
 .wp-worker-list::-webkit-scrollbar-thumb {
@@ -263,7 +268,7 @@
   font-weight: 600;
 }
 
-/* Add Worker button */
+/* Add Worker button — always pinned at bottom of sidebar */
 .wp-add-btn {
   display: flex;
   align-items: center;
@@ -281,7 +286,8 @@
   cursor: pointer;
   transition: filter 0.2s, transform 0.2s, box-shadow 0.2s;
   box-shadow: 0 4px 14px rgba(42, 168, 200, 0.3);
-  margin-top: auto;
+  flex-shrink: 0; /* never squish this button */
+  margin-top: 0;  /* spacing handled by worker list's flex: 1 */
 }
 .wp-add-btn:hover {
   filter: brightness(1.1);
@@ -298,7 +304,7 @@
 ═══════════════════════════════════════════ */
 .wp-main {
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden; /* no outer scroll — inner sections scroll independently */
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -317,7 +323,8 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  min-height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* ── Worker header ── */
@@ -364,11 +371,28 @@
   margin: 4px 0;
 }
 
-/* ── Section (health conditions) ── */
+/* ── Section (health conditions / skills) ── */
 .wp-section {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Scrollable variant — used when the entire section content must scroll
+   (e.g. Job Analysis tab where the scatter plot + table are both visible) */
+.wp-section--scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+.wp-section--scroll::-webkit-scrollbar { width: 5px; }
+.wp-section--scroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+  border-radius: 99px;
 }
 
 .wp-section-header {
@@ -483,12 +507,21 @@
   color: #fff;
 }
 
-/* ── Table ── */
+/* ── Table — scrollable container that grows to fill remaining space ── */
 .wp-table-wrapper {
+  flex: 1;
   overflow: auto;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+  min-height: 0;
+}
+.wp-table-wrapper::-webkit-scrollbar { width: 5px; height: 5px; }
+.wp-table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+  border-radius: 99px;
 }
 
 .wp-table {
@@ -498,7 +531,6 @@
 }
 
 .wp-table thead tr {
-  background: rgba(255, 255, 255, 0.06);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -511,6 +543,11 @@
   color: rgba(255, 255, 255, 0.45);
   text-align: left;
   white-space: nowrap;
+  /* Sticky header */
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #1a2e4a; /* solid to prevent row bleed-through */
 }
 
 .wp-table td {
@@ -649,7 +686,9 @@
 ═══════════════════════════════════════════ */
 @media (max-width: 700px) {
   .wp-sidebar {
-    width: 160px;
+    width: 180px;
+    min-width: 180px;
+    max-width: 180px;
     padding: 16px 10px 12px;
   }
   .wp-panel {

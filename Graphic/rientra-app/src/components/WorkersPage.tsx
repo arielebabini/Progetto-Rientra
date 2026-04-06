@@ -485,13 +485,15 @@ export default function WorkersPage({ onNavigateHome }: WorkersPageProps) {
 
                 {/* ── Tab: Job Analysis ── */}
                 {activeTab === 'jobs' && (
-                  <JobAnalysisView
-                    workerId={selectedWorker.id}
-                    workerDisplayName={
-                      [selectedWorker.first_name, selectedWorker.surname].filter(Boolean).join(' ')
-                        || selectedWorker.id
-                    }
-                  />
+                  <div className="wp-section wp-section--scroll">
+                    <JobAnalysisView
+                      workerId={selectedWorker.id}
+                      workerDisplayName={
+                        [selectedWorker.first_name, selectedWorker.surname].filter(Boolean).join(' ')
+                          || selectedWorker.id
+                      }
+                    />
+                  </div>
                 )}
               </>
 
