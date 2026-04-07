@@ -116,3 +116,22 @@ export function fetchSkillDetail(
     body: JSON.stringify({ worker_id: workerId, job_id: jobId }),
   });
 }
+
+// ── Worker selection ──────────────────────────────────────────────────────────
+
+export interface SelectWorkerResponse {
+  previous: string | null;
+  selected: string;
+}
+
+/**
+ * Flip isSelected in the ontology: deselect the previous worker,
+ * select workerId. Must be awaited BEFORE fetching match results so
+ * the SPARQL FILTER(?selected = true) sees the correct worker.
+ */
+export function selectWorker(workerId: string): Promise<SelectWorkerResponse> {
+  return apiFetch<SelectWorkerResponse>('/workers/select', {
+    method: 'POST',
+    body: JSON.stringify({ worker_id: workerId }),
+  });
+}

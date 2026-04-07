@@ -1017,3 +1017,39 @@
   padding: 1px 5px;
   border-radius: 4px;
 }
+
+/* ═══════════════════════════════════════════
+   WORKER ITEM — SWITCHING STATE
+   Shown while POST /workers/select is in-flight
+═══════════════════════════════════════════ */
+.wp-worker-item--switching {
+  opacity: 0.6;
+  pointer-events: none;
+  animation: workerSwitchPulse 0.9s ease-in-out infinite alternate;
+}
+@keyframes workerSwitchPulse {
+  from { opacity: 0.45; }
+  to   { opacity: 0.75; }
+}
+
+.wp-worker-switching-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Animated ellipsis dot — grows in a loop while the API call runs */
+.wp-worker-switching-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #4DD9C0;
+  flex-shrink: 0;
+  animation: switchDotBlink 0.7s ease-in-out infinite alternate;
+}
+@keyframes switchDotBlink {
+  from { opacity: 0.3; transform: scale(0.7); }
+  to   { opacity: 1;   transform: scale(1.2); }
+}
+

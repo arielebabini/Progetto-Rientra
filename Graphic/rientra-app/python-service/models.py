@@ -113,3 +113,16 @@ class SkillDetailResponse(BaseModel):
 class MatchDetailRequest(BaseModel):
     worker_id: str = Field(..., examples=["Patient1"])
     job_id:    str = Field(..., examples=["Job_AssemblyWorker"])
+
+
+# ── Request / response for POST /workers/select ──────────────────────────────
+
+class SelectWorkerRequest(BaseModel):
+    worker_id: str = Field(..., examples=["Patient1"])
+
+class SelectWorkerResponse(BaseModel):
+    previous: Optional[str] = Field(
+        None,
+        description="ID of the worker that was previously selected (null if none).",
+    )
+    selected: str = Field(..., description="ID of the newly selected worker.")

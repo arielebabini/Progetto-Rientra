@@ -5,6 +5,7 @@ import {
   fetchStatus,
   fetchWorkers,
   fetchHealthConditions,
+  selectWorker,
   type ServiceStatus,
   type Worker,
   type HealthCondition,
@@ -187,10 +188,11 @@ export default function WorkersPage({ onNavigateHome }: WorkersPageProps) {
   const [loadingConditions,setLoadingConditions]= useState(false);
 
   // ── UI state ───────────────────────────────────────────────────────
-  const [searchQuery,  setSearchQuery]  = useState('');
-  const [dotsMenuOpen, setDotsMenuOpen] = useState(false);
-  const [activeNav,    setActiveNav]    = useState<'workers' | 'jobs-analysis' | 'jobs-positions'>('workers');
-  const [activeTab,    setActiveTab]    = useState<'health' | 'jobs'>('health');
+  const [searchQuery,      setSearchQuery]      = useState('');
+  const [dotsMenuOpen,     setDotsMenuOpen]     = useState(false);
+  const [activeNav,        setActiveNav]        = useState<'workers' | 'jobs-analysis' | 'jobs-positions'>('workers');
+  const [activeTab,        setActiveTab]        = useState<'health' | 'jobs'>('health');
+  const [switchingWorkerId,setSwitchingWorkerId] = useState<string | null>(null);
 
 
   // ── Polling /status until ready ────────────────────────────────────
@@ -254,10 +256,29 @@ export default function WorkersPage({ onNavigateHome }: WorkersPageProps) {
   const displayName = (w: Worker) =>
     [w.first_name, w.surname].filter(Boolean).join(' ') || w.id;
 
-  // Reset tab when a different worker is selected
-  const handleSelectWorker = (w: Worker) => {
-    setSelectedWorker(w);
-    setActiveTab('health');
+  // Await the selection API so the ontology is flipped BEFORE JobAnalysisView
+  // fires its /match request. Without this, the SPARQL FILTER(?selected = true)
+  // would still point to the old worker and return empty results.
+  const handleSelectWorker = async (w: Worker) => {
+    if (w.id === selectedWorker?.id || switchingWorkerId) return;
+    setSwitchingWorkerId(w.id);
+    try {
+      await selectWorker(w.id);   // POST /workers/select — flips isSelected
+      // Optimistically update the is_selected flag in the local list
+      setWorkers(prev =>
+        prev.map(x => ({ ...x, is_selected: x.id === w.id }))
+      );
+      setSelectedWorker({ ...w, is_selected: true });
+      setActiveTab('health');
+    } catch (e) {
+      console.error('selectWorker failed:', e);
+      // Even on API error, still show the worker (health tab works fine;
+      // Job Analysis will display its own error message if /match fails).
+      setSelectedWorker(w);
+      setActiveTab('health');
+    } finally {
+      setSwitchingWorkerId(null);
+    }
   };
 
 
@@ -323,15 +344,22 @@ export default function WorkersPage({ onNavigateHome }: WorkersPageProps) {
                 <span className="wp-skeleton-line" />
               </li>
             )}
-            {!loadingWorkers && filteredWorkers.map(w => (
-              <li key={w.id}
-                className={`wp-worker-item ${selectedWorker?.id === w.id ? 'selected' : ''}`}
-                onClick={() => handleSelectWorker(w)}
-                role="button" tabIndex={0}
-                onKeyDown={e => e.key === 'Enter' && handleSelectWorker(w)}>
-                {displayName(w)}
-              </li>
-            ))}
+            {!loadingWorkers && filteredWorkers.map(w => {
+              const isSwitching = switchingWorkerId === w.id;
+              return (
+                <li key={w.id}
+                  className={`wp-worker-item ${selectedWorker?.id === w.id ? 'selected' : ''} ${isSwitching ? 'wp-worker-item--switching' : ''}`}
+                  onClick={() => handleSelectWorker(w)}
+                  role="button" tabIndex={0}
+                  aria-busy={isSwitching}
+                  onKeyDown={e => e.key === 'Enter' && handleSelectWorker(w)}>
+                  {isSwitching
+                    ? <span className="wp-worker-switching-label">{displayName(w)}<span className="wp-worker-switching-dot" /></span>
+                    : displayName(w)
+                  }
+                </li>
+              );
+            })}
 
             {!loadingWorkers && isReady && filteredWorkers.length === 0 && (
               <li className="wp-worker-item wp-worker-item--empty">No results</li>

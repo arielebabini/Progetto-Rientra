@@ -120,6 +120,9 @@ class ReasonerState:
 # Module-level singleton — imported by main.py
 state = ReasonerState()
 
+# Lock that serialises any in-memory isSelected mutations
+_selection_lock = threading.Lock()
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  Utility functions
@@ -642,3 +645,33 @@ def get_skill_detail(worker_id: str, job_id: str) -> dict:
         "job_id"   : job_id,
         "skills"   : skills,
     }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Mutation — Flip isSelected for a given worker  (called by POST /workers/select)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def set_selected_worker(worker_id: str) -> dict:
+    """
+    Atomically deselect the currently selected worker and select the given one.
+    Uses a threading.Lock so concurrent requests cannot corrupt the state.
+    Returns {"previous": old_id_or_None, "selected": worker_id}.
+    """
+    sel_prop = default_world.search_one(iri=IRI_IS_SELECTED)
+    if sel_prop is None:
+        raise KeyError("isSelected property not found in ontology.")
+
+    target = default_world.search_one(iri=f"*#{worker_id}")
+    if target is None:
+        raise KeyError(f"Worker '{worker_id}' not found in ontology.")
+
+    with _selection_lock:
+        old_id: Optional[str] = None
+        for ind in default_world.individuals():
+            vals = sel_prop[ind]
+            if vals and bool(vals[0]):
+                old_id = local_name(ind)
+                sel_prop[ind] = [False]
+        sel_prop[target] = [True]
+
+    return {"previous": old_id, "selected": worker_id}

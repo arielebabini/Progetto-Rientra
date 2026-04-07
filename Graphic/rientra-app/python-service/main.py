@@ -33,6 +33,7 @@ from reasoner import (
     get_importance_summary,
     get_match_results,
     get_skill_detail,
+    set_selected_worker,
 )
 from models import (
     StatusResponse,
@@ -45,6 +46,8 @@ from models import (
     MatchResult,
     MatchDetailRequest,
     SkillDetailResponse,
+    SelectWorkerRequest,
+    SelectWorkerResponse,
 )
 
 
@@ -371,6 +374,32 @@ def match_detail(body: MatchDetailRequest) -> SkillDetailResponse:
     try:
         data = get_skill_detail(body.worker_id, body.job_id)
         return SkillDetailResponse(**data)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+# ═ POST /workers/select ────────────────────────────────────────────────────────────────────
+
+@app.post(
+    "/workers/select",
+    response_model=SelectWorkerResponse,
+    summary="Select a worker (flip isSelected in the ontology)",
+    tags=["Workers"],
+)
+def select_worker(body: SelectWorkerRequest) -> SelectWorkerResponse:
+    """
+    Deselects the previously active worker and marks `worker_id` as selected
+    by mutating the owlready2 in-memory ontology.
+    Must be awaited by the frontend **before** calling `/match/{worker_id}`,
+    otherwise the SPARQL filter `FILTER(?selected = true)` will still match
+    the old worker.
+    """
+    _require_ready()
+    try:
+        data = set_selected_worker(body.worker_id)
+        return SelectWorkerResponse(**data)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except Exception as exc:

@@ -18293,7 +18293,7 @@ Inclusions: impairments such as phantom limb and feeling too fat or too thin</IC
         <RientraOnt3:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#WordProcessors"/>
         <FOAF-excerpt:first_name>Jack</FOAF-excerpt:first_name>
         <FOAF-excerpt:surname>C</FOAF-excerpt:surname>
-        <isSelected rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</isSelected>
+        <isSelected rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</isSelected>
         <rdfs:comment>Third Test Person - FrancaNeri.
 Associated Health Condition: HCFrancaNeri.</rdfs:comment>
     </owl:NamedIndividual>
@@ -18800,7 +18800,7 @@ Associated Health Condition: HCPaoloBianchi.</rdfs:comment>
         <RientraOnt3:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#WordProcessors"/>
         <FOAF-excerpt:first_name>Jane</FOAF-excerpt:first_name>
         <FOAF-excerpt:surname>A</FOAF-excerpt:surname>
-        <isSelected rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</isSelected>
+        <isSelected rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</isSelected>
         <rdfs:comment>First Test Person - SandraVerdi.
 Associated Health Condition: HCSandraVerdi.</rdfs:comment>
     </owl:NamedIndividual>
@@ -23726,28 +23726,28 @@ Associated Health Condition: HCSandraVerdi.</rdfs:comment>
         <SkAb:isTranslatedWithICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d345"/>
     </owl:NamedIndividual>
     <rdf:Description>
-        <rdfs:comment>Important (2) - Activity&amp;part</rdfs:comment>
-    </rdf:Description>
-    <rdf:Description>
-        <rdfs:comment>LessImport (0) - BodyFunct</rdfs:comment>
+        <rdfs:comment>Important (2) - BodyFunct</rdfs:comment>
     </rdf:Description>
     <rdf:Description>
         <rdfs:comment>VeryImp (3) - Activity&amp;partBodyFunct</rdfs:comment>
     </rdf:Description>
     <rdf:Description>
-        <rdfs:comment>Important (2) - BodyFunct</rdfs:comment>
+        <rdfs:comment>LessImport (0) - BodyFunct</rdfs:comment>
     </rdf:Description>
     <rdf:Description>
-        <rdfs:comment>SomewhatImp(1) - BodyFunct</rdfs:comment>
+        <rdfs:comment>Important (2) - Activity&amp;part</rdfs:comment>
     </rdf:Description>
     <rdf:Description>
-        <rdfs:comment>SomewhatImp(1) - Activity&amp;part</rdfs:comment>
+        <rdfs:comment>VeryImp (3) - Activity&amp;part</rdfs:comment>
     </rdf:Description>
     <rdf:Description>
         <rdfs:comment>LessImport (0) - Activity&amp;part</rdfs:comment>
     </rdf:Description>
     <rdf:Description>
-        <rdfs:comment>VeryImp (3) - Activity&amp;part</rdfs:comment>
+        <rdfs:comment>SomewhatImp(1) - Activity&amp;part</rdfs:comment>
+    </rdf:Description>
+    <rdf:Description>
+        <rdfs:comment>SomewhatImp(1) - BodyFunct</rdfs:comment>
     </rdf:Description>
     
 
