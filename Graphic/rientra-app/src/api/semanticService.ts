@@ -28,6 +28,7 @@ export interface Worker {
 
 export interface HealthCondition {
   icf_code: string;
+  icf_name: string;
   bf_qualifier: number | null;
   ap1_qualifier: number | null;
 }
@@ -135,3 +136,44 @@ export function selectWorker(workerId: string): Promise<SelectWorkerResponse> {
     body: JSON.stringify({ worker_id: workerId }),
   });
 }
+
+// ── ICF catalogue (HC wizard) ─────────────────────────────────────────────────
+
+export interface IcfCodeEntry {
+  icf_code: string;
+  icf_name: string;
+  category: string;
+  iri: string;
+}
+
+/** All ICF codes in the ontology — used in the Modify Health Conditions wizard. */
+export function fetchAllIcfCodes(): Promise<IcfCodeEntry[]> {
+  return apiFetch<IcfCodeEntry[]>('/icf-codes');
+}
+
+// ── HC mutation ───────────────────────────────────────────────────────────────
+
+export interface HcChangeItem {
+  icf_code: string;
+  action: 'add' | 'remove' | 'modify';
+  qualifier: number | null;
+}
+
+export interface UpdateHcResponse {
+  worker_id: string;
+  added: number;
+  removed: number;
+  modified: number;
+}
+
+/** Apply a batch of add/remove/modify changes to a worker's health conditions. */
+export function updateHealthConditions(
+  workerId: string,
+  changes: HcChangeItem[],
+): Promise<UpdateHcResponse> {
+  return apiFetch<UpdateHcResponse>(`/health-conditions/${encodeURIComponent(workerId)}/update`, {
+    method: 'POST',
+    body: JSON.stringify({ worker_id: workerId, changes }),
+  });
+}
+

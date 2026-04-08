@@ -53,6 +53,7 @@ class JobSummary(BaseModel):
 
 class HealthCondition(BaseModel):
     icf_code:      str
+    icf_name:      str = ""
     bf_qualifier:  Optional[int] = None
     ap1_qualifier: Optional[int] = None
 
@@ -126,3 +127,31 @@ class SelectWorkerResponse(BaseModel):
         description="ID of the worker that was previously selected (null if none).",
     )
     selected: str = Field(..., description="ID of the newly selected worker.")
+
+
+# ── ICF Codes catalogue  (for HC wizard Step 1) ──────────────────────────────
+
+class IcfCodeEntry(BaseModel):
+    icf_code: str
+    icf_name: str = ""
+    category: str = ""
+    iri:      str = ""
+
+
+# ── HC update request / response ─────────────────────────────────────────────
+
+class HcChangeItem(BaseModel):
+    icf_code:  str
+    action:    str = Field(..., examples=["add", "remove", "modify"])
+    qualifier: Optional[int] = Field(None, ge=0, le=4)
+
+class UpdateHealthConditionsRequest(BaseModel):
+    worker_id: str
+    changes:   list[HcChangeItem]
+
+class UpdateHealthConditionsResponse(BaseModel):
+    worker_id: str
+    added:     int
+    removed:   int
+    modified:  int
+

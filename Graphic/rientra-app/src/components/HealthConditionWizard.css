@@ -1,0 +1,491 @@
+.hc-wizard-overlay {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hc-wizard-modal {
+  /* No background/border/shadow since it's displayed directly inside the page .wp-panel now */
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  color: var(--text-base, #fff);
+  overflow: hidden;
+  animation: hc-modal-in 0.2s ease-out;
+}
+
+@keyframes hc-modal-in {
+  from { opacity: 0; transform: scale(0.96) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.hc-wizard-header {
+  padding: 0 0 16px 0;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.hc-wizard-title {
+  margin: 0 0 8px 0;
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.hc-wizard-subtitle {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.hc-wizard-close-btn {
+  all: unset;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hc-wizard-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-base);
+}
+
+.hc-wizard-error {
+  margin: 20px 32px 0;
+  padding: 12px 16px;
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+/* ─────────────────────────────────────────────
+   Step 1: Selection Table
+───────────────────────────────────────────── */
+
+.hc-wizard-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.hc-wizard-search-bar {
+  padding: 16px 0;
+}
+
+.hc-wizard-search-bar input {
+  width: 300px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  color: var(--text-base);
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.hc-wizard-search-bar input:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--brand-teal);
+}
+
+.hc-wizard-table-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 0 24px 0;
+}
+
+.hc-wizard-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.hc-wizard-table th {
+  position: sticky;
+  top: 0;
+  background: #1a2e4a; /* solid to prevent row bleed-through */
+  padding: 12px 16px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-color);
+  z-index: 10;
+}
+
+.hc-wizard-table th::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: var(--border-color);
+}
+
+.hc-wizard-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.95rem;
+  color: var(--text-base);
+  cursor: pointer;
+}
+
+.hc-wizard-table tr {
+  transition: background-color 0.15s;
+}
+
+.hc-wizard-table tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.hc-wizard-table tr.selected-row {
+  background: rgba(77, 217, 192, 0.08);
+}
+
+.hc-table-code {
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  font-size: 0.9em;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.selected-row .hc-table-code {
+  color: var(--brand-teal);
+}
+
+.hc-table-category {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.hc-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  transition: all 0.2s;
+  pointer-events: none; /* Let the row click handle it */
+}
+
+.hc-checkbox.checked {
+  background: var(--brand-teal);
+  border-color: var(--brand-teal);
+  color: var(--bg-surface-1);
+}
+
+.hc-table-empty {
+  text-align: center;
+  padding: 48px;
+  color: var(--text-muted);
+}
+
+.hc-wizard-loading {
+  display: flex;
+  justify-content: center;
+  padding: 60px;
+  color: var(--text-muted);
+}
+
+/* ─────────────────────────────────────────────
+   Step 2: Review & Qualifiers
+───────────────────────────────────────────── */
+
+.hc-wizard-review-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 0 24px 0;
+}
+
+.hc-review-table-header {
+  display: flex;
+  padding: 12px 16px;
+  background: #1a2e4a; /* solid like the table header */
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.hc-review-table-header > div,
+.hc-review-row > div {
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+}
+
+.col-code { width: 120px; flex-shrink: 0; }
+.col-name { flex: 1; min-width: 0; }
+.col-status { width: 140px; flex-shrink: 0; }
+.col-qualifier { width: 220px; flex-shrink: 0; justify-content: center; }
+.col-prev { width: 140px; flex-shrink: 0; justify-content: center; text-align: center; }
+
+.hc-review-group {
+  margin-bottom: 40px;
+}
+
+.hc-group-title {
+  margin: 0 0 16px 0;
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--text-base);
+}
+
+.hc-review-row {
+  display: flex;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  transition: background 0.2s;
+}
+
+.hc-review-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.hc-row-dimmed {
+  opacity: 0.6;
+}
+
+/* Badges */
+.hc-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.hc-badge-modify {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.hc-badge-add {
+  background: rgba(77, 217, 192, 0.15);
+  color: var(--brand-teal);
+}
+
+.hc-badge-remove {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+/* Qualifier selector */
+.hc-qualifier-group {
+  display: flex;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.hc-qualifier-btn {
+  all: unset;
+  width: 32px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.hc-qualifier-btn:last-child {
+  border-right: none;
+}
+
+.hc-qualifier-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-base);
+}
+
+.hc-qualifier-btn.active {
+  background: var(--brand-teal);
+  color: var(--bg-surface-1);
+}
+
+.hc-review-empty {
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 16px;
+}
+
+/* ─────────────────────────────────────────────
+   Saving / Done state
+───────────────────────────────────────────── */
+
+.hc-wizard-saving {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+.hc-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--brand-teal);
+  border-radius: 50%;
+  animation: hc-spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes hc-spin {
+  to { transform: rotate(360deg); }
+}
+
+.hc-success-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(77, 217, 192, 0.15);
+  color: var(--brand-teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.hc-success-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* ─────────────────────────────────────────────
+   Footer
+───────────────────────────────────────────── */
+
+.hc-wizard-footer {
+  padding: 16px 0 0 0;
+  border-top: 1px solid var(--border-color);
+  background: transparent;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+}
+
+.hc-footer-left {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.hc-btn-primary {
+  all: unset;
+  background: var(--bg-surface-2);
+  color: var(--text-base);
+  border: 1px solid var(--border-color);
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.hc-btn-primary:hover:not(:disabled) {
+  background: var(--brand-teal);
+  border-color: var(--brand-teal);
+  color: var(--bg-surface-1);
+}
+
+.hc-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hc-btn-secondary {
+  all: unset;
+  color: var(--text-base);
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.hc-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ─────────────────────────────────────────────
+   Qualifier Selectors
+───────────────────────────────────────────── */
+
+.hc-qualifier-group {
+  display: flex;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hc-qualifier-btn {
+  all: unset;
+  flex: 1;
+  text-align: center;
+  padding: 6px 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 32px;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.hc-qualifier-btn:last-child {
+  border-right: none;
+}
+
+.hc-qualifier-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-base);
+}
+
+.hc-qualifier-btn.active {
+  background: var(--brand-teal, #4DD9C0);
+  color: #111e30;
+  font-weight: 600;
+  pointer-events: none;
+}

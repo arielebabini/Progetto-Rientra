@@ -371,7 +371,6 @@
   margin: 4px 0;
 }
 
-/* ── Section (health conditions / skills) ── */
 .wp-section {
   display: flex;
   flex-direction: column;
@@ -379,6 +378,11 @@
   flex: 1;
   min-height: 0;
   overflow: hidden;
+}
+
+.wp-section--wizard {
+  gap: 0;
+  margin: 0;
 }
 
 /* Scrollable variant — used when the entire section content must scroll
@@ -564,6 +568,46 @@
 }
 .wp-table tbody tr:hover {
   background: rgba(77, 217, 192, 0.06);
+}
+
+/* ── Sortable column headers ── */
+.wp-th-sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s, background-color 0.15s;
+}
+.wp-th-sortable:hover {
+  color: rgba(255, 255, 255, 0.75);
+  background-color: #223856; /* solid slightly lighter than #1a2e4a to prevent bleed-through */
+}
+.wp-th-sorted {
+  color: #4DD9C0 !important;
+}
+.wp-sort-icon {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 0.7rem;
+  opacity: 0.35;
+  vertical-align: middle;
+  transition: opacity 0.15s;
+}
+.wp-th-sortable:hover .wp-sort-icon {
+  opacity: 0.7;
+}
+.wp-sort-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 5px;
+  padding: 1px 5px;
+  background: rgba(77, 217, 192, 0.18);
+  color: #4DD9C0;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  vertical-align: middle;
+  line-height: 1.4;
 }
 
 /* qualifier badge */

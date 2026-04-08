@@ -34,6 +34,8 @@ from reasoner import (
     get_match_results,
     get_skill_detail,
     set_selected_worker,
+    get_all_icf_codes,
+    update_health_conditions,
 )
 from models import (
     StatusResponse,
@@ -48,6 +50,10 @@ from models import (
     SkillDetailResponse,
     SelectWorkerRequest,
     SelectWorkerResponse,
+    IcfCodeEntry,
+    HcChangeItem,
+    UpdateHealthConditionsRequest,
+    UpdateHealthConditionsResponse,
 )
 
 
@@ -400,6 +406,67 @@ def select_worker(body: SelectWorkerRequest) -> SelectWorkerResponse:
     try:
         data = set_selected_worker(body.worker_id)
         return SelectWorkerResponse(**data)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+# ─ GET /icf-codes ─────────────────────────────────────────────────────────────
+
+@app.get(
+    "/icf-codes",
+    response_model=list[IcfCodeEntry],
+    summary="All ICF code individuals from the ontology",
+    tags=["Health Conditions"],
+)
+def list_icf_codes() -> list[IcfCodeEntry]:
+    """
+    Returns every ICF code that appears in any health-condition descriptor
+    (`involvesICFCode` triples).  Used to populate the selection table in
+    the Modify Health Condition wizard.
+    """
+    _require_ready()
+    try:
+        codes = get_all_icf_codes()
+        return [IcfCodeEntry(**c) for c in codes]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+# ─ POST /health-conditions/{worker_id}/update ─────────────────────────────────
+
+@app.post(
+    "/health-conditions/{worker_id}/update",
+    response_model=UpdateHealthConditionsResponse,
+    summary="Apply ICF health-condition changes for a worker",
+    tags=["Health Conditions"],
+)
+def update_worker_health_conditions(
+    worker_id: str,
+    body: UpdateHealthConditionsRequest,
+) -> UpdateHealthConditionsResponse:
+    """
+    Applies a batch of `add`, `remove`, or `modify` actions to the worker’s
+    health-condition profile (in-memory only; no RDF file is re-saved).
+
+    **Request body**:
+    ```json
+    {
+      "worker_id": "Patient1",
+      "changes": [
+        { "icf_code": "b1408", "action": "add",    "qualifier": 2 },
+        { "icf_code": "d410",  "action": "modify", "qualifier": 3 },
+        { "icf_code": "b280",  "action": "remove", "qualifier": null }
+      ]
+    }
+    ```
+    """
+    _require_ready()
+    try:
+        changes_raw = [c.model_dump() for c in body.changes]
+        data = update_health_conditions(worker_id, changes_raw)
+        return UpdateHealthConditionsResponse(**data)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except Exception as exc:

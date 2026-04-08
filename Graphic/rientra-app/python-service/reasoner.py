@@ -394,13 +394,30 @@ def get_health_conditions(worker_id: str) -> dict:
     conditions = []
     seen_icf   = set()
     for icf, bfq_raw, ap1q_raw in rows:
-        icf_code = local_name(icf)
-        if icf_code in seen_icf:
+        full_id  = local_name(icf)
+        if full_id in seen_icf:
             continue
-        seen_icf.add(icf_code)
+        seen_icf.add(full_id)
+
+        # Split compound identifiers like "b1408-AuditoryAttention"
+        # into pure code ("b1408") and embedded name ("AuditoryAttention").
+        if '-' in full_id:
+            icf_code, embedded_name = full_id.split('-', 1)
+            # Add spaces before capital letters for readability: "AuditoryAttention" → "Auditory Attention"
+            import re as _re
+            embedded_name = _re.sub(r'(?<=[a-z0-9])(?=[A-Z])', ' ', embedded_name)
+        else:
+            icf_code      = full_id
+            embedded_name = ""
+
+        # Prefer explicit ontology rdfs:label; fall back to the embedded name part
+        labels   = getattr(icf, "label", [])
+        icf_name = str(labels[0]) if labels else embedded_name
+
         conditions.append({
-            "icf_code"    : icf_code,
-            "bf_qualifier": int(bfq_raw)  if bfq_raw  is not None else None,
+            "icf_code"     : icf_code,
+            "icf_name"     : icf_name,
+            "bf_qualifier" : int(bfq_raw)  if bfq_raw  is not None else None,
             "ap1_qualifier": int(ap1q_raw) if ap1q_raw is not None else None,
         })
 
@@ -675,3 +692,214 @@ def set_selected_worker(worker_id: str) -> dict:
         sel_prop[target] = [True]
 
     return {"previous": old_id, "selected": worker_id}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Query — All ICF codes in the ontology  (feeds the HC wizard Step 1)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def get_all_icf_codes() -> list[dict]:
+    """
+    Return every ICF code individual that appears in any health-condition
+    descriptor (involvesICFCode triples).  Used to populate the selection
+    table in the Modify-Health-Condition wizard.
+    """
+    import re as _re
+
+    rows = _sparql(f"""
+        SELECT DISTINCT ?icf WHERE {{
+            ?des <{IRI_INVOLVES_ICF}> ?icf .
+        }}
+    """)
+
+    result = []
+    seen   = set()
+    for (icf,) in rows:
+        full_id = local_name(icf)
+        if full_id in seen:
+            continue
+        seen.add(full_id)
+
+        # Split "b1408-AuditoryAttention" → code + name
+        if '-' in full_id:
+            icf_code, embedded = full_id.split('-', 1)
+            embedded_name = _re.sub(r'(?<=[a-z0-9])(?=[A-Z])', ' ', embedded)
+        else:
+            icf_code      = full_id
+            embedded_name = ""
+
+        labels   = getattr(icf, "label", [])
+        icf_name = str(labels[0]) if labels else embedded_name
+
+        # ICF category: b* → Body Functions, d* → Activities & Participation
+        prefix = icf_code[0].lower() if icf_code else ""
+        if prefix == 'b':
+            category = "Body Functions"
+        elif prefix == 'd':
+            category = "Activities and Participation"
+        elif prefix == 's':
+            category = "Body Structures"
+        elif prefix == 'e':
+            category = "Environmental Factors"
+        else:
+            category = "Other"
+
+        result.append({
+            "icf_code" : icf_code,
+            "icf_name" : icf_name,
+            "category" : category,
+            "iri"      : str(icf.iri),
+        })
+
+    result.sort(key=lambda x: x["icf_code"])
+    return result
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Mutation — Update health conditions for a worker
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Lock for HC mutations (shared with selection lock to be safe)
+_hc_lock = threading.Lock()
+
+
+def update_health_conditions(worker_id: str, changes: list[dict]) -> dict:
+    """
+    Apply a list of health-condition changes for the given worker.
+
+    Each change dict has:
+        { "icf_code": str, "action": "add"|"remove"|"modify", "qualifier": int|None }
+
+    Implementation strategy (owlready2 in-memory only, no RDF save):
+    - "add"    : create a new descriptor individual under the worker's HC,
+                 set involvesICFCode + BFqual.
+    - "remove" : find the descriptor whose involvesICFCode matches, destroy it.
+    - "modify" : find the descriptor and update BFqual.
+    """
+    person_ind = default_world.search_one(iri=f"*#{worker_id}")
+    if person_ind is None:
+        raise KeyError(f"Worker '{worker_id}' not found in ontology.")
+
+    # Resolve property objects once
+    is_in_hc_prop   = default_world.search_one(iri=IRI_IS_IN_HC)
+    is_described_by = default_world.search_one(iri=IRI_IS_DESCRIBED_BY)
+    involves_icf    = default_world.search_one(iri=IRI_INVOLVES_ICF)
+    bfqual_prop     = default_world.search_one(iri=IRI_BFQUAL)
+
+    if None in (is_in_hc_prop, is_described_by, involves_icf, bfqual_prop):
+        raise RuntimeError(
+            "Cannot find required ontology properties "
+            "(isInHealthCondition, isDescribedBy, involvesICFCode, BFqual)."
+        )
+
+    added = removed = modified = 0
+
+    with _hc_lock:
+        # ── Collect existing (hc_ind, des_ind, icf_local_name) triples ──────
+        # Build a map: icf_code_prefix → descriptor individual
+        # (we strip the camelCase suffix so "b1408-AuditoryAttention" → "b1408")
+        desc_map: dict[str, object] = {}   # icf_code → descriptor_individual
+
+        hc_inds = is_in_hc_prop[person_ind] or []
+        for hc_ind in hc_inds:
+            des_inds = is_described_by[hc_ind] or []
+            for des_ind in des_inds:
+                icf_inds = involves_icf[des_ind] or []
+                for icf_ind in icf_inds:
+                    raw = local_name(icf_ind)
+                    code = raw.split('-')[0]   # strip camelCase suffix
+                    desc_map[code] = des_ind
+
+        # ── Ensure there is at least one HC individual ───────────────────────
+        if not hc_inds:
+            # Create a bare HC individual of the first available HC class
+            hc_classes = list(default_world.search(iri=f"*#HealthCondition"))
+            if not hc_classes:
+                hc_classes = [c for c in default_world.classes()
+                              if "HealthCondition" in local_name(c)]
+            if not hc_classes:
+                raise RuntimeError("Cannot find HealthCondition class in ontology.")
+            hc_class = hc_classes[0]
+            hc_ind   = hc_class()
+            is_in_hc_prop[person_ind].append(hc_ind)
+        else:
+            hc_ind = hc_inds[0]   # use existing HC
+
+        # ── Collect descriptor class (for creating new ones) ─────────────────
+        des_classes = [c for c in default_world.classes()
+                       if "Descriptor" in local_name(c) or "descriptor" in local_name(c).lower()]
+        des_class = des_classes[0] if des_classes else None
+
+        # ── Apply each change ────────────────────────────────────────────────
+        for change in changes:
+            icf_code = change["icf_code"]
+            action   = change["action"]
+            qualifier = change.get("qualifier")
+
+            if action == "remove":
+                des_ind = desc_map.get(icf_code)
+                if des_ind is not None:
+                    # Remove descriptor from HC's isDescribedBy list
+                    des_list = is_described_by[hc_ind]
+                    if des_list and des_ind in des_list:
+                        des_list.remove(des_ind)
+                        is_described_by[hc_ind] = des_list
+                    # Destroy the descriptor individual
+                    try:
+                        owlready2.destroy_entity(des_ind)
+                    except Exception:
+                        pass
+                    removed += 1
+
+            elif action == "modify":
+                des_ind = desc_map.get(icf_code)
+                if des_ind is not None and qualifier is not None:
+                    bfqual_prop[des_ind] = [int(qualifier)]
+                    modified += 1
+
+            elif action == "add":
+                if icf_code in desc_map:
+                    # Code already exists — treat as modify
+                    if qualifier is not None:
+                        bfqual_prop[desc_map[icf_code]] = [int(qualifier)]
+                        modified += 1
+                    continue
+
+                # Find the ICF individual by local name prefix
+                icf_ind = default_world.search_one(iri=f"*#{icf_code}*")
+                if icf_ind is None:
+                    # Try exact match
+                    icf_ind = default_world.search_one(iri=f"*#{icf_code}")
+                if icf_ind is None:
+                    # Try substring search among all known ICF codes
+                    for ind in default_world.individuals():
+                        if local_name(ind).startswith(icf_code):
+                            icf_ind = ind
+                            break
+                if icf_ind is None:
+                    continue   # skip unknown code
+
+                # Create descriptor
+                if des_class:
+                    des_ind = des_class()
+                else:
+                    # Fallback: just instantiate Thing
+                    des_ind = Thing()
+
+                involves_icf[des_ind] = [icf_ind]
+                if qualifier is not None:
+                    bfqual_prop[des_ind] = [int(qualifier)]
+
+                # Link descriptor to HC
+                cur_des_list = is_described_by[hc_ind] or []
+                cur_des_list.append(des_ind)
+                is_described_by[hc_ind] = cur_des_list
+                added += 1
+
+    return {
+        "worker_id": worker_id,
+        "added"    : added,
+        "removed"  : removed,
+        "modified" : modified,
+    }
+
