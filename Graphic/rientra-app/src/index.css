@@ -15,4 +15,18 @@ body {
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Preventa la selezione globale del testo */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Consente la selezione del testo dove necessario (input e textarea) */
+input, textarea {
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+
+/* Evita il trascinamento delle immagini */
+img {
+  -webkit-user-drag: none;
 }

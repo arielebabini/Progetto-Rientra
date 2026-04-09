@@ -33,29 +33,48 @@ const JobAnalysisIcon = () => (
     <circle cx="18" cy="22" r="8" fill="#4DD9C0" />
     <path d="M6 44c0-7.5 5.5-12 12-12s12 4.5 12 12" fill="#4DD9C0" />
     {/* Presentation board */}
-    <rect x="28" y="10" width="30" height="26" rx="3" fill="white" opacity="0.9" />
-    <line x1="43" y1="36" x2="43" y2="44" stroke="white" strokeWidth="2" opacity="0.8" />
-    <line x1="36" y1="44" x2="50" y2="44" stroke="white" strokeWidth="2" opacity="0.8" />
-    {/* Chart line going up */}
-    <polyline points="32,30 38,22 45,26 54,14" stroke="#4DD9C0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    {/* Arrow head */}
-    <polyline points="50,11 54,14 51,18" stroke="#4DD9C0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <rect x="28" y="10" width="32" height="26" rx="3" fill="white" opacity="0.95" />
+    {/* Stand */}
+    <line x1="44" y1="36" x2="44" y2="44" stroke="white" strokeWidth="2.5" opacity="0.9" />
+    <line x1="37" y1="44" x2="51" y2="44" stroke="white" strokeWidth="2.5" strokeLinecap="round" opacity="0.9" />
+    {/* Chart Axes */}
+    <path d="M32 14 V32 H54" stroke="#CBD5E1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    {/* Chart Line */}
+    <path d="M32 30 L39 21 L45 25 L53 14" stroke="#4DD9C0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    {/* Point Markers */}
+    <circle cx="32" cy="30" r="2" fill="#1E293B" />
+    <circle cx="39" cy="21" r="2" fill="#1E293B" />
+    <circle cx="45" cy="25" r="2" fill="#1E293B" />
+    <circle cx="53" cy="14" r="2" fill="#1E293B" />
   </svg>
 );
 
 const JobPositionsIcon = () => (
   <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    {/* Briefcase body */}
-    <rect x="8" y="22" width="48" height="34" rx="4" fill="none" stroke="white" strokeWidth="2.5" />
-    {/* Briefcase handle */}
-    <path d="M22 22V18a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v4" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-    {/* Center divider */}
-    <line x1="8" y1="38" x2="56" y2="38" stroke="white" strokeWidth="2" opacity="0.6" />
-    {/* Latch */}
-    <rect x="27" y="33" width="10" height="10" rx="2" fill="none" stroke="white" strokeWidth="2" />
-    {/* Plus symbol inside */}
-    <line x1="32" y1="35.5" x2="32" y2="40.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-    <line x1="29.5" y1="38" x2="34.5" y2="38" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+    {/* Person standing next to the briefcase */}
+    <circle cx="18" cy="22" r="8" fill="#4DD9C0" />
+    <path d="M6 44c0-7.5 5.5-12 12-12s12 4.5 12 12" fill="#4DD9C0" />
+    
+    {/* Briefcase Handle */}
+    <path d="M37 20V16a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v4" fill="none" stroke="white" strokeWidth="2.5" opacity="0.9" strokeLinecap="round" />
+    
+    {/* Briefcase Body */}
+    <rect x="28" y="20" width="32" height="24" rx="3" fill="white" opacity="0.95" />
+    
+    {/* Briefcase horizontal seam */}
+    <line x1="28" y1="28" x2="60" y2="28" stroke="#E2E8F0" strokeWidth="1" />
+    
+    {/* Briefcase Latch */}
+    <rect x="41" y="25" width="6" height="6" rx="1.5" fill="#1E293B" />
+    <rect x="43" y="27" width="2" height="2" rx="0.5" fill="white" />
+    
+    {/* Decorative details inside the briefcase */}
+    <rect x="33" y="34" width="9" height="2" rx="1" fill="#CBD5E1" />
+    <rect x="33" y="38" width="5" height="2" rx="1" fill="#CBD5E1" />
+    
+    {/* Plus badge representing "Import new jobs" */}
+    <circle cx="51" cy="35" r="4.5" fill="#4DD9C0" />
+    <path d="M49 35h4M51 33v4" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 );
 

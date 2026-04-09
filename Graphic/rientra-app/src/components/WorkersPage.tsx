@@ -114,11 +114,8 @@ function LoadingScreen({ status, error, onRetry }: LoadingScreenProps) {
 
   return (
     <div className="wp-loading-screen">
-      {/* Animated app logo loader */}
+      {/* Static larger logo loader */}
       <div className="wp-loading-orb">
-        <div className="wp-orb-ring wp-orb-ring-1" />
-        <div className="wp-orb-ring wp-orb-ring-2" />
-        <div className="wp-orb-ring wp-orb-ring-3" />
         <div className="wp-orb-logo-container">
           <img src="/logo-rientra.png" alt="Loading" className="wp-orb-logo-img" />
         </div>
@@ -195,6 +192,7 @@ export default function WorkersPage({ onNavigateHome }: WorkersPageProps) {
   const [activeTab,        setActiveTab]        = useState<'health' | 'jobs'>('health');
   const [switchingWorkerId,setSwitchingWorkerId] = useState<string | null>(null);
   const [isWizardOpen,     setIsWizardOpen]     = useState(false);
+  const [isSidebarOpen,    setIsSidebarOpen]    = useState(true);
 
   // ── Table sort state ───────────────────────────────────────────────
   // icf_code cycles: 'b-asc' → 'b-desc' → 'd-asc' → 'd-desc' → null
@@ -350,10 +348,22 @@ export default function WorkersPage({ onNavigateHome }: WorkersPageProps) {
 
       {/* ── Top Navigation Bar ── */}
       <nav className="wp-navbar">
-        <div className="wp-nav-brand" onClick={onNavigateHome} role="button" tabIndex={0}
-          onKeyDown={e => e.key === 'Enter' && onNavigateHome()}>
-          <img src="/logo-rientra.png" alt="Rientra Logo" className="wp-nav-logo" />
-          <span className="wp-nav-title">RIENTR@</span>
+        <div className="wp-nav-brand-container">
+          {!isSidebarOpen && (
+            <button 
+              className="wp-nav-home-btn" 
+              style={{ marginRight: '16px', padding: '6px 8px' }} 
+              onClick={() => setIsSidebarOpen(true)} 
+              aria-label="Open sidebar"
+            >
+              <ListIcon />
+            </button>
+          )}
+          <div className="wp-nav-brand" onClick={onNavigateHome} role="button" tabIndex={0}
+            onKeyDown={e => e.key === 'Enter' && onNavigateHome()}>
+            <img src="/logo-rientra.png" alt="Rientra Logo" className="wp-nav-logo" />
+            <span className="wp-nav-title">RIENTR@</span>
+          </div>
         </div>
         <div className="wp-nav-links">
           {(['workers', 'jobs-analysis', 'jobs-positions'] as const).map(n => (
@@ -384,10 +394,12 @@ export default function WorkersPage({ onNavigateHome }: WorkersPageProps) {
       <div className="wp-body">
 
         {/* ── Left Sidebar ── */}
-        <aside className="wp-sidebar">
+        <aside className={`wp-sidebar ${isSidebarOpen ? '' : 'wp-sidebar--closed'}`}>
           <div className="wp-sidebar-header">
             <span className="wp-sidebar-title">Workers</span>
-            <ListIcon />
+            <button className="wp-icon-button" onClick={() => setIsSidebarOpen(false)} aria-label="Close sidebar">
+              <ListIcon />
+            </button>
           </div>
           <div className="wp-search-wrapper">
             <span className="wp-search-icon"><SearchIcon /></span>

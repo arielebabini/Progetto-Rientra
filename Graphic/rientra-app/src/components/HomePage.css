@@ -123,8 +123,8 @@
 /* ---- Individual Card ---- */
 .nav-card {
   position: relative;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08); /* Reverted to before */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Reverted to before */
   border-radius: 12px;
   padding: 0;
   cursor: pointer;
@@ -136,9 +136,10 @@
               box-shadow 0.25s ease,
               background 0.25s ease,
               border-color 0.25s ease;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+  min-height: 420px; /* Kept from new version */
+  backdrop-filter: blur(10px); /* Reverted to before */
+  -webkit-backdrop-filter: blur(10px); /* Reverted to before */
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25); /* Reverted to before */
 }
 
 .nav-card:hover {
@@ -171,18 +172,18 @@
 
 /* Icon area */
 .card-icon-wrapper {
-  padding: 36px 36px 28px;
+  flex: 1.2;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* Card body — lower white-ish section */
+/* Card body — lower section */
 .card-body {
+  flex: 1;
   padding: 20px 24px 28px;
   background: rgba(255, 255, 255, 0.07);
   border-top: 1px solid rgba(255, 255, 255, 0.15);
-  flex: 1;
 }
 
 .card-title {

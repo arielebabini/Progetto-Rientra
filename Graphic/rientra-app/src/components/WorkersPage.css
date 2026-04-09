@@ -60,7 +60,7 @@
   display: flex;
   align-items: center;
   gap: 0;
-  padding: 0 28px;
+  padding: 0 28px 0 0;
   height: 56px;
   background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(16px);
@@ -69,13 +69,20 @@
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
 }
 
+.wp-nav-brand-container {
+  width: 240px;
+  display: flex;
+  align-items: center;
+  padding-left: 28px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
 .wp-nav-brand {
   display: flex;
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  margin-right: 40px;
-  flex-shrink: 0;
 }
 .wp-nav-brand:hover .wp-nav-title { color: #4DD9C0; }
 
@@ -95,31 +102,41 @@
 
 .wp-nav-links {
   display: flex;
-  align-items: center;
-  gap: 4px;
+  align-items: flex-end;
+  align-self: stretch;
+  gap: 6px;
   flex: 1;
+  margin-left: 20px;
 }
 
 .wp-nav-link {
   background: none;
-  border: none;
+  border: 1px solid transparent;
+  border-bottom: none;
   cursor: pointer;
   font-family: 'Inter', sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.6);
-  padding: 6px 14px;
-  border-radius: 6px;
+  padding: 10px 16px 12px;
+  border-radius: 12px 12px 0 0;
   transition: color 0.2s, background 0.2s;
+  margin-bottom: -1px; /* pulled down to sit on the navbar border */
+  position: relative;
+  z-index: 1;
 }
 .wp-nav-link:hover {
   color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
 }
 .wp-nav-link.active {
   color: #4DD9C0;
-  background: rgba(77, 217, 192, 0.12);
+  background: transparent; /* Lets the navbar's precise glass effect show through cleanly */
   font-weight: 600;
+  border: 1px solid rgba(77, 217, 192, 0.35); /* Stesso esatto bordo del pannello sottostante */
+  border-bottom: 2px solid #1c3654; /* Colore sfumato per mascherare la linea senza stacchi piatti */
+  border-radius: 12px 12px 0 0;
+  z-index: 2;
 }
 
 .wp-nav-home-btn {
@@ -170,6 +187,18 @@
   -webkit-backdrop-filter: blur(12px);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   overflow: hidden; /* no sidebar-level scrollbar */
+  transition: width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), min-width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), max-width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), padding 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.35s ease;
+}
+
+.wp-sidebar--closed {
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  border-right: none !important;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .wp-sidebar-header {
@@ -178,6 +207,23 @@
   justify-content: space-between;
   margin-bottom: 14px;
   color: rgba(255, 255, 255, 0.85);
+}
+
+.wp-icon-button {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.wp-icon-button:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
 }
 
 .wp-sidebar-title {
@@ -303,6 +349,7 @@
    MAIN PANEL
 ═══════════════════════════════════════════ */
 .wp-main {
+  position: relative;
   flex: 1;
   overflow: hidden; /* no outer scroll — inner sections scroll independently */
   padding: 20px;
@@ -811,72 +858,33 @@
 /* Orb */
 .wp-loading-orb {
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: 140px;
+  height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 8px;
 }
-.wp-orb-ring {
-  position: absolute;
-  border-radius: 50%;
-  border: 2px solid transparent;
-}
-.wp-orb-ring-1 {
-  width: 120px; height: 120px;
-  border-top-color: rgba(77, 217, 192, 0.8);
-  border-left-color: rgba(77, 217, 192, 0.3);
-  animation: spinRing 3s linear infinite;
-}
-.wp-orb-ring-2 {
-  width: 92px; height: 92px;
-  border-right-color: rgba(77, 217, 192, 0.9);
-  border-bottom-color: rgba(77, 217, 192, 0.5);
-  animation: spinRingReverse 2.2s linear infinite;
-}
-.wp-orb-ring-3 {
-  width: 72px; height: 72px;
-  border-top-color: rgba(77, 217, 192, 0.6);
-  border-left-color: rgba(77, 217, 192, 0.9);
-  animation: spinRing 1.5s linear infinite;
-}
-@keyframes spinRing {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-@keyframes spinRingReverse {
-  0% { transform: rotate(360deg); }
-  100% { transform: rotate(0deg); }
-}
+
 .wp-orb-logo-container {
-  width: 54px;
-  height: 54px;
+  width: 100px;
+  height: 100px;
   background: rgba(77, 217, 192, 0.1);
   border-radius: 50%;
-  padding: 10px;
+  padding: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(4px);
-  box-shadow: inset 0 0 15px rgba(77, 217, 192, 0.2);
-  animation: orbCorePulse 2.5s ease-in-out infinite alternate;
+  box-shadow: 0 0 20px rgba(77, 217, 192, 0.3), inset 0 0 10px rgba(77, 217, 192, 0.15);
   z-index: 5;
 }
+
 .wp-orb-logo-img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   filter: drop-shadow(0 0 6px rgba(77, 217, 192, 0.8)) brightness(0) invert(1);
-  animation: logoFloat 3s ease-in-out infinite;
-}
-@keyframes orbCorePulse {
-  from { box-shadow: 0 0 12px rgba(77,217,192,0.2), inset 0 0 8px rgba(77,217,192,0.1); }
-  to   { box-shadow: 0 0 30px rgba(77,217,192,0.6), inset 0 0 20px rgba(77,217,192,0.4); }
-}
-@keyframes logoFloat {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-3px) scale(1.04); }
 }
 
 /* Titles */
@@ -921,25 +929,30 @@
   letter-spacing: 0.05em;
 }
 
-/* Indeterminate progress bar */
+/* Completing progress bar */
 .wp-loading-bar-track {
   width: 280px;
   max-width: 90%;
-  height: 4px;
-  background: rgba(255,255,255,0.08);
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 99px;
   overflow: hidden;
 }
+
 .wp-loading-bar-fill {
   height: 100%;
-  width: 45%;
+  width: 0%;
   border-radius: 99px;
-  background: linear-gradient(90deg, transparent, #4DD9C0, transparent);
-  animation: barSlide 1.8s ease-in-out infinite;
+  background: #4DD9C0;
+  box-shadow: 0 0 10px rgba(77, 217, 192, 0.6);
+  animation: barFill 4s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
 }
-@keyframes barSlide {
-  0%   { transform: translateX(-150%); }
-  100% { transform: translateX(330%);  }
+
+@keyframes barFill {
+  0%   { width: 0%; opacity: 1; }
+  85%  { width: 100%; opacity: 1; }
+  95%  { width: 100%; opacity: 0; }
+  100% { width: 0%; opacity: 0; }
 }
 
 /* Footer hints */
