@@ -166,12 +166,13 @@ function LoadingScreen({ status, error, onRetry }: LoadingScreenProps) {
 ───────────────────────────────────────────── */
 interface WorkersPageProps {
   onNavigateHome: () => void;
+  initialNav?: 'workers' | 'jobs-analysis' | 'jobs-positions';
 }
 
 /* ─────────────────────────────────────────────
    Main component
 ───────────────────────────────────────────── */
-export default function WorkersPage({ onNavigateHome }: WorkersPageProps) {
+export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: WorkersPageProps) {
   // ── service state ──────────────────────────────────────────────────
   const [serviceStatus, setServiceStatus]   = useState<ServiceStatus | null>(null);
   const [serviceError,  setServiceError]    = useState<string | null>(null);
@@ -188,8 +189,8 @@ export default function WorkersPage({ onNavigateHome }: WorkersPageProps) {
   // ── UI state ───────────────────────────────────────────────────────
   const [searchQuery,      setSearchQuery]      = useState('');
   const [dotsMenuOpen,     setDotsMenuOpen]     = useState(false);
-  const [activeNav,        setActiveNav]        = useState<'workers' | 'jobs-analysis' | 'jobs-positions'>('workers');
-  const [activeTab,        setActiveTab]        = useState<'health' | 'jobs'>('health');
+  const [activeNav,        setActiveNav]        = useState<'workers' | 'jobs-analysis' | 'jobs-positions'>(initialNav);
+
   const [switchingWorkerId,setSwitchingWorkerId] = useState<string | null>(null);
   const [isWizardOpen,     setIsWizardOpen]     = useState(false);
   const [isSidebarOpen,    setIsSidebarOpen]    = useState(true);
@@ -326,13 +327,11 @@ export default function WorkersPage({ onNavigateHome }: WorkersPageProps) {
         prev.map(x => ({ ...x, is_selected: x.id === w.id }))
       );
       setSelectedWorker({ ...w, is_selected: true });
-      setActiveTab('health');
     } catch (e) {
       console.error('selectWorker failed:', e);
       // Even on API error, still show the worker (health tab works fine;
       // Job Analysis will display its own error message if /match fails).
       setSelectedWorker(w);
-      setActiveTab('health');
     } finally {
       setSwitchingWorkerId(null);
     }
@@ -455,178 +454,9 @@ export default function WorkersPage({ onNavigateHome }: WorkersPageProps) {
               />
             ) : selectedWorker ? (
               /* ── Selected worker view ── */
-              <>
-                {/* Worker header & Tab Bar hide when Wizard is active */}
-                {!isWizardOpen && (
-                  <>
-                    <div className="wp-worker-header">
-                      <div className="wp-worker-id">
-                        <span className="wp-worker-id-label">ID Number:</span>
-                        <span className="wp-worker-id-value">{selectedWorker.id}</span>
-                      </div>
-                      <div className="wp-worker-meta">
-                        {(selectedWorker.first_name || selectedWorker.surname) && (
-                          <span>
-                            Name: <strong>
-                              {[selectedWorker.first_name, selectedWorker.surname].filter(Boolean).join(' ')}
-                            </strong>
-                          </span>
-                        )}
-                        <span>Jobs evaluated: <strong>{selectedWorker.evaluated_for_jobs.length}</strong></span>
-                        <span className={`wp-selected-badge ${selectedWorker.is_selected ? 'active' : ''}`}>
-                          {selectedWorker.is_selected ? '● Selected' : '○ Not selected'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* ── Tab bar ── */}
-                    <div className="wp-tab-bar">
-                      <button
-                        id="tab-health"
-                        className={`wp-tab ${activeTab === 'health' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('health')}>
-                        Health Conditions
-                      </button>
-                      <button
-                        id="tab-jobs"
-                        className={`wp-tab ${activeTab === 'jobs' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('jobs')}>
-                        Job Analysis
-                      </button>
-                    </div>
-                  </>
-                )}
-
-                {/* ── Tab: Health Conditions ── */}
-                {activeTab === 'health' && (
-                  isWizardOpen ? (
-                    <div className="wp-section wp-section--wizard">
-                      <HealthConditionWizard 
-                        workerId={selectedWorker.id}
-                        workerDisplayName={displayName(selectedWorker)}
-                        currentConditions={conditions}
-                        onClose={() => setIsWizardOpen(false)}
-                        onSaved={() => {
-                          setLoadingConditions(true);
-                          fetchHealthConditions(selectedWorker.id)
-                            .then(r => setConditions(r.conditions))
-                            .catch(e => console.error('fetchHealthConditions:', e))
-                            .finally(() => setLoadingConditions(false));
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    <div className="wp-section">
-                      <div className="wp-section-header">
-                        <h2 className="wp-section-title">Current Health Conditions</h2>
-                        <div className="wp-section-actions">
-                          <button className="wp-btn-primary" id="btn-modify-health" onClick={() => setIsWizardOpen(true)}>
-                            <EditIcon /> Modify Health Conditions
-                          </button>
-                          <div className="wp-dots-wrapper">
-                            <button className={`wp-btn-dots ${dotsMenuOpen ? 'active' : ''}`}
-                              id="btn-overflow-menu"
-                              onClick={() => setDotsMenuOpen(v => !v)}
-                              aria-label="More options">
-                              <DotsIcon />
-                            </button>
-                            {dotsMenuOpen && (
-                              <div className="wp-dropdown" id="overflow-dropdown">
-                                <button className="wp-dropdown-item" id="btn-archive"
-                                  onClick={() => setDotsMenuOpen(false)}>
-                                  <ArchiveIcon /> Move to archive
-                                </button>
-                                <button className="wp-dropdown-item" id="btn-save-pdf"
-                                  onClick={() => setDotsMenuOpen(false)}>
-                                  <PdfIcon /> Save PDF
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="wp-table-wrapper">
-                        {loadingConditions ? (
-                          <div className="wp-table-loading">
-                            <div className="wp-spinner" />
-                            <span>Loading health conditions…</span>
-                          </div>
-                        ) : (
-                          <table className="wp-table" id="health-conditions-table">
-                            <thead>
-                              <tr>
-                                <th
-                                  className={`wp-th-sortable${sortCol === 'icf_code' ? ' wp-th-sorted' : ''}`}
-                                  onClick={() => handleSort('icf_code')}
-                                  title="Sort by ICF Code (cycles: b↑ → b↓ → d↑ → d↓ → unsorted)"
-                                >
-                                  ICF Code {sortIcon('icf_code')}
-                                </th>
-                                <th
-                                  className={`wp-th-sortable${sortCol === 'name' ? ' wp-th-sorted' : ''}`}
-                                  onClick={() => handleSort('name')}
-                                  title="Sort by Name"
-                                >
-                                  Name {sortIcon('name')}
-                                </th>
-                                <th>BF Qualifier</th>
-                                <th>AP1 Qualifier</th>
-                                <th
-                                  className={`wp-th-sortable${sortCol === 'eff_qualifier' ? ' wp-th-sorted' : ''}`}
-                                  onClick={() => handleSort('eff_qualifier')}
-                                  title="Sort by Effective Qualifier"
-                                >
-                                  Effective Qualifier {sortIcon('eff_qualifier')}
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {sortedConditions.map((c, i) => {
-                                const eff = Math.max(c.bf_qualifier ?? 0, c.ap1_qualifier ?? 0);
-                                return (
-                                  <tr key={`${c.icf_code}-${i}`}>
-                                    <td><span className="wp-icf-code">{c.icf_code}</span></td>
-                                    <td><span className="wp-icf-name">{c.icf_name || '—'}</span></td>
-                                    <td>
-                                      {c.bf_qualifier != null
-                                        ? <span className="wp-qualifier-badge">{c.bf_qualifier}</span>
-                                        : <span className="wp-na">—</span>}
-                                    </td>
-                                    <td>
-                                      {c.ap1_qualifier != null
-                                        ? <span className="wp-qualifier-badge">{c.ap1_qualifier}</span>
-                                        : <span className="wp-na">—</span>}
-                                    </td>
-                                    <td>
-                                      <span className={`wp-qualifier-badge wp-qualifier-badge--eff wp-eff-${eff}`}>
-                                        {eff}
-                                      </span>
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                        )}
-
-                        {!loadingConditions && conditions.length === 0 && (
-                          <div className="wp-table-empty visible">
-                            <p>No health conditions recorded for this worker.</p>
-                            <p className="wp-table-empty-hint">
-                              Data is loaded from the ontology — ensure this worker has
-                              <code> isInHealthCondition</code> triples.
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )
-                )}
-
-
-                {/* ── Tab: Job Analysis ── */}
-                {activeTab === 'jobs' && (
+              <div key={activeNav} className="wp-content-fade">
+                {/* ── Jobs Analysis nav: show JobAnalysisView (no tab bar) ── */}
+                {activeNav === 'jobs-analysis' ? (
                   <div className="wp-section wp-section--scroll">
                     <JobAnalysisView
                       workerId={selectedWorker.id}
@@ -636,8 +466,164 @@ export default function WorkersPage({ onNavigateHome }: WorkersPageProps) {
                       }
                     />
                   </div>
+                ) : (
+                  /* ── Workers nav: Health Conditions only ── */
+                  <>
+                    {/* Worker header — hidden when Wizard is active */}
+                    {!isWizardOpen && (
+                      <div className="wp-worker-header">
+                        <div className="wp-worker-id">
+                          <span className="wp-worker-id-label">ID Number:</span>
+                          <span className="wp-worker-id-value">{selectedWorker.id}</span>
+                        </div>
+                        <div className="wp-worker-meta">
+                          {(selectedWorker.first_name || selectedWorker.surname) && (
+                            <span>
+                              Name: <strong>
+                                {[selectedWorker.first_name, selectedWorker.surname].filter(Boolean).join(' ')}
+                              </strong>
+                            </span>
+                          )}
+                          <span>Jobs evaluated: <strong>{selectedWorker.evaluated_for_jobs.length}</strong></span>
+                          <span className={`wp-selected-badge ${selectedWorker.is_selected ? 'active' : ''}`}>
+                            {selectedWorker.is_selected ? '● Selected' : '○ Not selected'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Health Conditions */}
+                    {isWizardOpen ? (
+                      <div className="wp-section wp-section--wizard">
+                        <HealthConditionWizard
+                          workerId={selectedWorker.id}
+                          workerDisplayName={displayName(selectedWorker)}
+                          currentConditions={conditions}
+                          onClose={() => setIsWizardOpen(false)}
+                          onSaved={() => {
+                            setLoadingConditions(true);
+                            fetchHealthConditions(selectedWorker.id)
+                              .then(r => setConditions(r.conditions))
+                              .catch(e => console.error('fetchHealthConditions:', e))
+                              .finally(() => setLoadingConditions(false));
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="wp-section">
+                        <div className="wp-section-header">
+                          <h2 className="wp-section-title">Current Health Conditions</h2>
+                          <div className="wp-section-actions">
+                            <button className="wp-btn-primary" id="btn-modify-health" onClick={() => setIsWizardOpen(true)}>
+                              <EditIcon /> Modify Health Conditions
+                            </button>
+                            <div className="wp-dots-wrapper">
+                              <button className={`wp-btn-dots ${dotsMenuOpen ? 'active' : ''}`}
+                                id="btn-overflow-menu"
+                                onClick={() => setDotsMenuOpen(v => !v)}
+                                aria-label="More options">
+                                <DotsIcon />
+                              </button>
+                              {dotsMenuOpen && (
+                                <div className="wp-dropdown" id="overflow-dropdown">
+                                  <button className="wp-dropdown-item" id="btn-archive"
+                                    onClick={() => setDotsMenuOpen(false)}>
+                                    <ArchiveIcon /> Move to archive
+                                  </button>
+                                  <button className="wp-dropdown-item" id="btn-save-pdf"
+                                    onClick={() => setDotsMenuOpen(false)}>
+                                    <PdfIcon /> Save PDF
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="wp-table-wrapper" style={{ position: 'relative' }}>
+                          {loadingConditions && conditions.length > 0 && (
+                            <div className="wp-table-loading" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(26, 42, 74, 0.4)', zIndex: 10 }}>
+                              <div className="wp-spinner" />
+                            </div>
+                          )}
+                          {loadingConditions && conditions.length === 0 ? (
+                            <div className="wp-table-loading">
+                              <div className="wp-spinner" />
+                              <span>Loading health conditions…</span>
+                            </div>
+                          ) : (
+                            <table className="wp-table" id="health-conditions-table" style={{ opacity: loadingConditions ? 0.6 : 1, transition: 'opacity 0.2s' }}>
+                              <thead>
+                                <tr>
+                                  <th
+                                    className={`wp-th-sortable${sortCol === 'icf_code' ? ' wp-th-sorted' : ''}`}
+                                    onClick={() => handleSort('icf_code')}
+                                    title="Sort by ICF Code (cycles: b↑ → b↓ → d↑ → d↓ → unsorted)"
+                                  >
+                                    ICF Code {sortIcon('icf_code')}
+                                  </th>
+                                  <th
+                                    className={`wp-th-sortable${sortCol === 'name' ? ' wp-th-sorted' : ''}`}
+                                    onClick={() => handleSort('name')}
+                                    title="Sort by Name"
+                                  >
+                                    Name {sortIcon('name')}
+                                  </th>
+                                  <th>BF Qualifier</th>
+                                  <th>AP1 Qualifier</th>
+                                  <th
+                                    className={`wp-th-sortable${sortCol === 'eff_qualifier' ? ' wp-th-sorted' : ''}`}
+                                    onClick={() => handleSort('eff_qualifier')}
+                                    title="Sort by Effective Qualifier"
+                                  >
+                                    Effective Qualifier {sortIcon('eff_qualifier')}
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {sortedConditions.map((c, i) => {
+                                  const eff = Math.max(c.bf_qualifier ?? 0, c.ap1_qualifier ?? 0);
+                                  return (
+                                    <tr key={`${c.icf_code}-${i}`}>
+                                      <td><span className="wp-icf-code">{c.icf_code}</span></td>
+                                      <td><span className="wp-icf-name">{c.icf_name || '—'}</span></td>
+                                      <td>
+                                        {c.bf_qualifier != null
+                                          ? <span className="wp-qualifier-badge">{c.bf_qualifier}</span>
+                                          : <span className="wp-na">—</span>}
+                                      </td>
+                                      <td>
+                                        {c.ap1_qualifier != null
+                                          ? <span className="wp-qualifier-badge">{c.ap1_qualifier}</span>
+                                          : <span className="wp-na">—</span>}
+                                      </td>
+                                      <td>
+                                        <span className={`wp-qualifier-badge wp-qualifier-badge--eff wp-eff-${eff}`}>
+                                          {eff}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          )}
+
+                          {!loadingConditions && conditions.length === 0 && (
+                            <div className="wp-table-empty visible">
+                              <p>No health conditions recorded for this worker.</p>
+                              <p className="wp-table-empty-hint">
+                                Data is loaded from the ontology — ensure this worker has
+                                <code> isInHealthCondition</code> triples.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
-              </>
+              </div>
 
             ) : (
               /* ── No worker selected ── */

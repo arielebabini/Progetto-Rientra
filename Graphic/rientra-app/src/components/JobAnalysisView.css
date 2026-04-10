@@ -87,9 +87,9 @@
   display: block;
 }
 
-/* Dot hover animation */
+/* Dot hover and movement animation */
 .ja-dot {
-  transition: r 0.18s ease, opacity 0.18s ease;
+  transition: r 0.2s ease, opacity 0.2s ease, cx 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), cy 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), fill 0.4s ease;
 }
 
 /* Active dot pulse rings */

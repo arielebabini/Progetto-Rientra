@@ -94,9 +94,6 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
   useEffect(() => {
     setLoadingMatch(true);
     setMatchError(null);
-    setMatchResults([]);
-    setJobA(null);
-    setSkillDataA(null);
 
     fetchMatchResults(workerId)
       .then(results => {
@@ -110,7 +107,6 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
   /* ── Fetch skills for Panel A ── */
   useEffect(() => {
     if (!jobA) return;
-    setSkillDataA(null);
     setLoadingA(true);
     fetchSkillDetail(workerId, jobA)
       .then(setSkillDataA)
@@ -121,7 +117,6 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
   /* ── Fetch skills for Panel B ── */
   useEffect(() => {
     if (!jobB) return;
-    setSkillDataB(null);
     setLoadingB(true);
     fetchSkillDetail(workerId, jobB)
       .then(setSkillDataB)
@@ -289,14 +284,19 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
         </div>
 
         {/* Skills table */}
-        <div className="ja-skills-wrapper">
-          {loadingSkills ? (
+        <div className="ja-skills-wrapper" style={{ position: 'relative' }}>
+          {loadingSkills && skillData && (
+            <div className="ja-center" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(26, 42, 74, 0.4)', zIndex: 10, minHeight: 80 }}>
+              <div className="wp-spinner" />
+            </div>
+          )}
+          {loadingSkills && !skillData ? (
             <div className="ja-center" style={{ minHeight: 80 }}>
               <div className="wp-spinner" />
               <span className="ja-status-text">Loading skills…</span>
             </div>
           ) : skillData && skillData.skills.length > 0 ? (
-            <table className="ja-skills-table">
+            <table className="ja-skills-table" style={{ opacity: loadingSkills ? 0.6 : 1, transition: 'opacity 0.2s' }}>
               <thead>
                 <tr>
                   <th>Skill / Ability</th>
@@ -363,7 +363,7 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
   };
 
   /* ── Guards ── */
-  if (loadingMatch) return (
+  if (loadingMatch && matchResults.length === 0) return (
     <div className="ja-center">
       <div className="wp-spinner" />
       <span className="ja-status-text">Loading job analysis…</span>
