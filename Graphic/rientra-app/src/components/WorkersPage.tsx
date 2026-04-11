@@ -457,7 +457,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
               <div key={activeNav} className="wp-content-fade">
                 {/* ── Jobs Analysis nav: show JobAnalysisView (no tab bar) ── */}
                 {activeNav === 'jobs-analysis' ? (
-                  <div className="wp-section wp-section--scroll">
+                  <div className="wp-section" style={{ gap: 0, padding: 0 }}>
                     <JobAnalysisView
                       workerId={selectedWorker.id}
                       workerDisplayName={

@@ -1,142 +1,192 @@
-/* ============================================
+/* ============================================================
    JobAnalysisView — Rientr@ DSS
-   Dark glassmorphism, teal accent palette
-   ============================================ */
+   Matches the WorkersPage glass aesthetic exactly.
+   No neon. Fills the available panel space.
+   ============================================================ */
 
-/* ── Root layout ── */
+/* ── Root: fills the wp-section flex container ── */
 .ja-root {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-}
-
-/* ── Shared card ── */
-.ja-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(20, 35, 60, 0.4) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-}
-
-/* ── Top row: scatter + jobs ── */
-.ja-top-row {
-  display: flex;
-  gap: 14px;
+  flex: 1;
   min-height: 0;
-  flex-shrink: 0; /* doesn't grow — fixed height based on content */
+  gap: 0;
 }
 
-/* ── Scatter card ── */
-.ja-scatter-card {
+/* ═══════════════════════════════════════════
+   KPI STRIP  (compact, same style as table header)
+═══════════════════════════════════════════ */
+.ja-kpi-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+.ja-kpi {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 8px;
+  gap: 2px;
+  border-right: 1px solid rgba(255,255,255,0.07);
+}
+.ja-kpi:last-child { border-right: none; }
+.ja-kpi-val {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.90);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.ja-kpi-lbl {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════
+   TAB BAR  (same pill style as .wp-tab-bar)
+═══════════════════════════════════════════ */
+.ja-tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 16px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+.ja-tab {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 7px 14px 9px;
+  border-radius: 8px 8px 0 0;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.45);
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  position: relative;
+  bottom: -1px;
+  letter-spacing: 0.01em;
+}
+.ja-tab:hover {
+  color: rgba(255,255,255,0.75);
+  background: rgba(255,255,255,0.04);
+}
+.ja-tab.active {
+  color: #4DD9C0;
+  font-weight: 600;
+  border-bottom-color: #4DD9C0;
+}
+.ja-tab-spacer { flex: 1; }
+.ja-worker-chip {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.38);
+  padding: 3px 10px;
+  border-radius: 99px;
+  border: 1px solid rgba(255,255,255,0.10);
+  letter-spacing: 0.02em;
+  margin-bottom: 4px;
+}
+
+/* ── Tab content wrapper fills remaining height ── */
+.ja-tab-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: ja-fadein 0.2s ease;
+}
+@keyframes ja-fadein {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════
+   MAP TAB
+═══════════════════════════════════════════ */
+.ja-map-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Scatter area */
+.ja-scatter-area {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  padding: 12px 0 0 0;
 }
-
-.ja-card-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 10px 14px 8px;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
-}
-
-.ja-card-title {
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: rgba(255,255,255,0.9);
-}
-.ja-card-sub {
-  font-size: 0.74rem;
-  color: rgba(255,255,255,0.38);
-  margin-top: 2px;
-}
-
-/* Legend */
-.ja-legend {
+.ja-scatter-legend {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 0.72rem;
-  color: rgba(255,255,255,0.55);
+  gap: 16px;
+  padding: 0 14px 8px;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.45);
   flex-wrap: wrap;
 }
 .ja-legend-item {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 .ja-legend-dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
+  width: 8px; height: 8px;
+  border-radius: 50%; flex-shrink: 0;
 }
-
-/* SVG scatter */
 .ja-scatter-svg {
+  flex: 1;
   width: 100%;
-  height: auto;
   display: block;
+  min-height: 0;
 }
 
-/* Dot hover and movement animation */
-.ja-dot {
-  transition: r 0.2s ease, opacity 0.2s ease, cx 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), cy 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), fill 0.4s ease;
-}
-
-/* Active dot pulse rings */
-.ja-dot-ring-outer {
-  animation: jaRingPulse 2s ease-in-out infinite;
-  transform-box: fill-box;
-  transform-origin: center;
-}
-.ja-dot-ring-inner {
-  animation: jaRingPulse 2s ease-in-out infinite 0.4s;
-  transform-box: fill-box;
-  transform-origin: center;
-}
-@keyframes jaRingPulse {
-  0%   { opacity: 0.5; transform: scale(0.85); }
-  50%  { opacity: 0.15; transform: scale(1.1); }
-  100% { opacity: 0.5; transform: scale(0.85); }
-}
-
-/* ── Jobs list card ── */
-.ja-jobs-card {
-  width: 220px;
+/* Jobs sidebar */
+.ja-jobs-sidebar {
+  width: 190px;
   flex-shrink: 0;
+  border-left: 1px solid rgba(255,255,255,0.08);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
-
-.ja-jobs-header {
-  padding: 8px 12px 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: rgba(255,255,255,0.6);
+.ja-jobs-sidebar-hdr {
+  padding: 12px 14px 8px;
+  font-size: 0.70rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.35);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.09em;
   border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
 }
-
 .ja-jobs-list {
   list-style: none;
-  margin:  0;
-  padding: 6px 0;
+  margin: 0;
+  padding: 4px 0;
   overflow-y: auto;
   flex: 1;
   scrollbar-width: thin;
   scrollbar-color: rgba(255,255,255,0.12) transparent;
 }
-.ja-jobs-list::-webkit-scrollbar       { width: 4px; }
+.ja-jobs-list::-webkit-scrollbar { width: 4px; }
 .ja-jobs-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
 
 .ja-job-item {
@@ -146,387 +196,399 @@
   padding: 8px 14px;
   cursor: pointer;
   border-left: 2px solid transparent;
-  transition: background 0.15s, border-color 0.15s;
+  font-size: 0.80rem;
+  color: rgba(255,255,255,0.60);
+  transition: background 0.12s, border-color 0.15s, color 0.12s;
 }
-.ja-job-item:hover {
-  background: rgba(255,255,255,0.06);
-}
+.ja-job-item:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.85); }
 .ja-job-item.selected {
-  background:   rgba(77, 217, 192, 0.1);
   border-left-color: #4DD9C0;
+  background: rgba(77,217,192,0.08);
+  color: rgba(255,255,255,0.92);
+  font-weight: 600;
 }
 .ja-job-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
+  width: 8px; height: 8px;
+  border-radius: 50%; flex-shrink: 0;
 }
 .ja-job-label {
-  font-size: 0.8rem;
-  color: rgba(255,255,255,0.72);
-  line-height: 1.3;
-}
-.ja-job-item.selected .ja-job-label {
-  color: rgba(255,255,255,0.95);
-  font-weight: 500;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* ── Detail row (wraps one or two panels) ── */
-.ja-detail-row {
+/* dot animation */
+.ja-dot { transition: r 0.15s, opacity 0.15s; }
+.ja-ring-pulse {
+  animation: jaRingPulse 2s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes jaRingPulse {
+  0%,100% { opacity: 0.45; transform: scale(0.88); }
+  50%      { opacity: 0.10; transform: scale(1.12); }
+}
+
+/* ═══════════════════════════════════════════
+   RADAR TAB
+═══════════════════════════════════════════ */
+.ja-radar-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+.ja-radar-chart-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  gap: 12px;
+}
+.ja-radar-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-self: flex-start;
+  width: 100%;
+}
+.ja-radar-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 0.73rem;
+  color: rgba(255,255,255,0.45);
+  flex-wrap: wrap;
+  align-self: flex-start;
+}
+.ja-radar-svg-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Breakdown sidebar */
+.ja-radar-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  border-left: 1px solid rgba(255,255,255,0.08);
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-}
-.ja-detail-row--split {
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 12px;
-}
-.ja-detail-row--split .ja-detail-card {
-  flex: 1;
-  min-width: 0;
-}
-
-/* ── Detail card ── */
-.ja-detail-card {
-  display: flex;
-  flex-direction: column;
-}
-
-/* Split panel inner wrapper */
-.ja-detail-panel {
-  display: flex;
-  flex-direction: column;
-}
-.ja-detail-panel--split .ja-skills-wrapper {
-  max-height: 240px;
-}
-
-/* Split label badge (A / B) */
-.ja-split-label {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 5px;
-  background: rgba(77,217,192,0.18);
-  color: #4DD9C0;
-  font-size: 0.72rem;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-/* Split toggle button */
-.ja-split-btn {
-  all: unset;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  cursor: pointer;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: rgba(255,255,255,0.5);
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.12);
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.ja-split-btn:hover {
-  background: rgba(77,217,192,0.1);
-  color: #4DD9C0;
-  border-color: rgba(77,217,192,0.3);
-}
-
-.ja-split-close-icon {
-  all: unset;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  cursor: pointer;
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: #ef4444;
-  background: rgba(239,68,68,0.1);
-  border-radius: 6px;
-  transition: background 0.15s, color 0.15s;
-  flex-shrink: 0;
-  margin-left: auto;
-}
-.ja-split-close-icon:hover {
-  background: rgba(239,68,68,0.25);
-  color: #f87171;
-}
-
-
-.ja-detail-header {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  flex-wrap: wrap;
-  padding: 12px 18px;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
-  background: rgba(255,255,255,0.03);
-}
-
-.ja-detail-job-name {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: rgba(255,255,255,0.9);
-  flex: 1;
-  min-width: 140px;
-}
-
-/* ── Job picker ── */
-.ja-job-picker-wrapper {
-  position: relative;
-  flex: 1;
-  min-width: 140px;
-}
-
-.ja-detail-job-btn {
-  all: unset;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  cursor: pointer;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: rgba(255,255,255,0.9);
-  padding: 4px 8px 4px 4px;
-  border-radius: 6px;
-  border: 1px solid transparent;
-  transition: background 0.15s, border-color 0.15s;
-  white-space: nowrap;
-}
-.ja-detail-job-btn:hover {
-  background: rgba(255,255,255,0.06);
-  border-color: rgba(255,255,255,0.1);
-}
-
-.ja-job-picker-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  display: inline-block;
-}
-.ja-job-picker-chevron {
-  font-size: 0.6rem;
-  color: rgba(255,255,255,0.4);
-  margin-left: 2px;
-}
-
-.ja-job-picker-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  z-index: 100;
-  min-width: 200px;
-  background: #0e1e38;
-  border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 10px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.55);
-  padding: 5px 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  animation: jaMenuIn 0.12s ease;
-}
-@keyframes jaMenuIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.ja-job-picker-item {
-  all: unset;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 8px 14px;
-  font-size: 0.82rem;
-  color: rgba(255,255,255,0.72);
-  cursor: pointer;
-  transition: background 0.12s;
-  border-left: 2px solid transparent;
-}
-.ja-job-picker-item:hover {
-  background: rgba(255,255,255,0.06);
-}
-.ja-job-picker-item.active {
-  color: rgba(255,255,255,0.95);
-  font-weight: 600;
-  border-left-color: #4DD9C0;
-  background: rgba(77,217,192,0.08);
-}
-
-/* ── Skills table sortable headers ── */
-.ja-th-sort {
-  cursor: pointer;
-  user-select: none;
-  transition: color 0.15s, background-color 0.15s;
-  white-space: nowrap;
-}
-.ja-th-sort:hover {
-  color: rgba(255,255,255,0.75);
-  background-color: #1e3254;
-}
-.ja-th-sort.active {
-  color: #4DD9C0;
-}
-.ja-sort-icon {
-  opacity: 0.35;
-  font-size: 0.7em;
-  margin-left: 3px;
-}
-.ja-sort-badge {
-  display: inline-block;
-  background: rgba(77,217,192,0.2);
-  color: #4DD9C0;
-  font-size: 0.7em;
-  font-weight: 700;
-  padding: 0 3px;
-  border-radius: 3px;
-  margin-left: 3px;
-}
-
-
-.ja-detail-metric {
-  font-size: 0.8rem;
-  color: rgba(255,255,255,0.5);
-  white-space: nowrap;
-}
-.ja-detail-metric strong {
-  color: rgba(255,255,255,0.88);
-  font-weight: 600;
-}
-
-.ja-suit-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px solid;
-  font-size: 0.76rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-/* ── Skills table wrapper ── */
-.ja-skills-wrapper {
-  overflow-x: auto;
   overflow-y: auto;
-  max-height: 210px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.12) transparent;
+  scrollbar-color: rgba(255,255,255,0.10) transparent;
 }
-.ja-skills-wrapper::-webkit-scrollbar       { width: 4px; height: 4px; }
-.ja-skills-wrapper::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
-
-.ja-skills-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.82rem;
-}
-
-.ja-skills-table thead tr {
-  background: transparent;
-}
-.ja-skills-table th {
-  padding: 9px 14px;
+.ja-radar-sidebar::-webkit-scrollbar { width: 4px; }
+.ja-radar-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 99px; }
+.ja-radar-sidebar-title {
   font-size: 0.68rem;
-  font-weight: 600;
+  font-weight: 700;
+  color: rgba(255,255,255,0.32);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: rgba(255,255,255,0.38);
-  text-align: left;
-  white-space: nowrap;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  /* Sticky header pinned inside the scroll container */
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background: #1a2e4a; /* solid so rows don't bleed through */
+  letter-spacing: 0.09em;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
 }
-.ja-th-bar { width: 110px; }
-
-.ja-skills-table td {
-  padding: 8px 14px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  vertical-align: middle;
+.ja-breakdown-ds-name {
+  font-size: 0.77rem;
+  font-weight: 600;
+  margin-bottom: 6px;
 }
-.ja-skills-table tbody tr:last-child td { border-bottom: none; }
-.ja-skills-table tbody tr {
-  transition: background 0.12s;
+.ja-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
 }
-.ja-skills-table tbody tr:hover {
-  background: rgba(77,217,192,0.05);
-}
-
-.ja-td-skill { color: rgba(255,255,255,0.78); font-size: 0.82rem; }
-.ja-td-num   { text-align: center; color: rgba(255,255,255,0.6); font-size: 0.82rem; }
-.ja-td-crit  { font-size: 0.74rem; white-space: nowrap; }
-.ja-td-bar   { width: 110px; padding-right: 18px; }
-
-/* Importance anchor badge */
-.ja-anchor {
-  display: inline-block;
-  font-size: 0.75rem;
+.ja-bar-row-lbl {
+  width: 62px;
+  font-size: 0.69rem;
   color: rgba(255,255,255,0.45);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
 }
-.ja-anchor-3 { color: #4ade80; font-weight: 700; }
-.ja-anchor-2 { color: #fbbf24; font-weight: 600; }
-.ja-anchor-1 { color: rgba(255,255,255,0.6); }
-
-/* CS bar */
 .ja-bar-track {
-  width: 100%;
+  flex: 1;
   height: 5px;
-  background: rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.08);
   border-radius: 99px;
   overflow: hidden;
 }
 .ja-bar-fill {
   height: 100%;
   border-radius: 99px;
-  transition: width 0.4s ease;
+  transition: width 0.55s cubic-bezier(0.22,1,0.36,1);
+}
+.ja-bar-pct {
+  width: 26px;
+  font-size: 0.67rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.40);
+  text-align: right;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
 }
 
-/* ── Generic centre / state helpers ── */
+/* ═══════════════════════════════════════════
+   DETAIL TAB  (skills table)
+═══════════════════════════════════════════ */
+.ja-detail-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.ja-detail-split {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+.ja-detail-pane {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid rgba(255,255,255,0.07);
+}
+.ja-detail-pane:last-child { border-right: none; }
+
+/* Panel header */
+.ja-detail-hdr {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.02);
+}
+
+/* Job picker */
+.ja-picker-wrap { position: relative; }
+.ja-picker-btn {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.88);
+  padding: 4px 8px 4px 4px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  transition: background 0.13s, border-color 0.13s;
+  white-space: nowrap;
+}
+.ja-picker-btn:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.10); }
+.ja-picker-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
+.ja-picker-chevron { font-size: 0.56rem; color: rgba(255,255,255,0.30); margin-left: 2px; }
+
+.ja-picker-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 100;
+  min-width: 200px;
+  background: #1a2e4a;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  box-shadow: 0 10px 36px rgba(0,0,0,0.5);
+  padding: 5px 0;
+  display: flex;
+  flex-direction: column;
+  animation: jaMenuIn 0.12s ease;
+}
+@keyframes jaMenuIn {
+  from { opacity:0; transform:translateY(-4px) scale(0.98); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+.ja-picker-item {
+  all: unset;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 14px;
+  font-size: 0.81rem;
+  color: rgba(255,255,255,0.65);
+  cursor: pointer;
+  transition: background 0.11s;
+  border-left: 2px solid transparent;
+}
+.ja-picker-item:hover { background: rgba(255,255,255,0.05); }
+.ja-picker-item.active { color: rgba(255,255,255,0.93); font-weight: 600; border-left-color: #4DD9C0; background: rgba(77,217,192,0.07); }
+
+/* Metrics */
+.ja-metric { font-size: 0.78rem; color: rgba(255,255,255,0.40); white-space: nowrap; }
+.ja-metric strong { color: rgba(255,255,255,0.85); font-weight: 600; }
+
+/* Suit badge */
+.ja-suit-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid;
+  font-size: 0.70rem;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Split label */
+.ja-split-lbl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px; height: 20px;
+  border-radius: 5px;
+  background: rgba(77,217,192,0.14);
+  color: #4DD9C0;
+  font-size: 0.70rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+/* Action buttons */
+.ja-btn-split {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.40);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.10);
+  transition: background 0.14s, color 0.14s, border-color 0.14s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.ja-btn-split:hover {
+  background: rgba(77,217,192,0.09);
+  color: #4DD9C0;
+  border-color: rgba(77,217,192,0.28);
+}
+.ja-btn-close-split {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px; height: 26px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: rgba(239,68,68,0.75);
+  background: rgba(239,68,68,0.08);
+  border-radius: 6px;
+  border: 1px solid rgba(239,68,68,0.14);
+  transition: background 0.13s, color 0.13s;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.ja-btn-close-split:hover { background: rgba(239,68,68,0.18); color: #f87171; }
+
+/* Skills table wrapper — scrollable */
+.ja-skills-wrap {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.12) transparent;
+  position: relative;
+}
+.ja-skills-wrap::-webkit-scrollbar { width: 5px; height: 5px; }
+.ja-skills-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
+
+.ja-skills-tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.83rem;
+}
+.ja-skills-tbl th {
+  padding: 9px 14px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: rgba(255,255,255,0.40);
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  position: sticky; top: 0; z-index: 2;
+  background: #1a2e4a;
+}
+.ja-th-sort { cursor: pointer; user-select: none; transition: color 0.12s, background 0.12s; }
+.ja-th-sort:hover { color: rgba(255,255,255,0.68); background: #223856; }
+.ja-th-sort.active { color: #4DD9C0; }
+.ja-sort-icon  { opacity: 0.28; font-size: 0.68em; margin-left: 3px; }
+.ja-sort-badge { display:inline-block; background:rgba(77,217,192,0.18); color:#4DD9C0; font-size:0.68em; font-weight:700; padding:0 3px; border-radius:3px; margin-left:3px; }
+.ja-th-bar { width: 110px; }
+
+.ja-skills-tbl td {
+  padding: 9px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  vertical-align: middle;
+  color: rgba(255,255,255,0.78);
+}
+.ja-skills-tbl tbody tr:last-child td { border-bottom: none; }
+.ja-skills-tbl tbody tr { transition: background 0.11s; }
+.ja-skills-tbl tbody tr:hover { background: rgba(77,217,192,0.05); }
+
+.ja-td-skill { font-size: 0.82rem; }
+.ja-td-num   { text-align: center; color: rgba(255,255,255,0.58); font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+.ja-td-crit  { font-size: 0.70rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+.ja-td-bar   { width: 110px; padding-right: 16px; }
+
+.ja-anchor   { font-size: 0.76rem; font-weight: 600; color: rgba(255,255,255,0.38); display: inline-block; }
+.ja-anchor-3 { color: #5bbf82; font-weight: 700; }
+.ja-anchor-2 { color: #c9a847; font-weight: 700; }
+.ja-anchor-1 { color: rgba(255,255,255,0.55); }
+
+.ja-cs-bar-track {
+  width: 100%; height: 5px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 99px; overflow: hidden;
+}
+.ja-cs-bar-fill {
+  height: 100%; border-radius: 99px;
+  transition: width 0.45s ease;
+}
+
+/* ═══════════════════════════════════════════
+   SHARED HELPERS
+═══════════════════════════════════════════ */
 .ja-center {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
   padding: 40px 20px;
   text-align: center;
-  flex: 1;
 }
-.ja-status-text {
-  font-size: 0.85rem;
-  color: rgba(255,255,255,0.4);
-}
-.ja-status-hint {
-  font-size: 0.75rem;
-  color: rgba(255,255,255,0.22);
-  max-width: 340px;
-  line-height: 1.55;
-}
-.ja-status-hint code {
-  font-family: 'Courier New', monospace;
-  font-size: 0.8em;
-  background: rgba(77,217,192,0.1);
-  color: #4DD9C0;
-  padding: 1px 4px;
-  border-radius: 3px;
-}
-.ja-error-icon {
-  font-size: 2rem;
-  color: rgba(239,68,68,0.7);
-}
+.ja-status-txt  { font-size: 0.83rem; color: rgba(255,255,255,0.35); }
+.ja-status-hint { font-size: 0.74rem; color: rgba(255,255,255,0.20); max-width: 340px; line-height: 1.6; }
+.ja-status-hint code { font-family: monospace; font-size: 0.82em; background: rgba(77,217,192,0.10); color: #4DD9C0; padding: 1px 4px; border-radius: 3px; }
+.ja-err-icon    { font-size: 2rem; color: rgba(239,68,68,0.65); }

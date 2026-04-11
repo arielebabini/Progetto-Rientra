@@ -8,21 +8,22 @@ Dataset in ingresso:
     → creare con: psql -U postgres -d rientra_db -f rientra_ext_jobs.sql
   - Ontologia           : Rientra.rdf  (namespace http://www.stiima.cnr.it/JobList#)
 
-Fasi eseguite:
-  1. Lettura di ext_job da PostgreSQL
-  2. Estrazione dinamica del vocabolario professioni dall'ontologia via rdflib
-  3. Strategia 1 — String Matching  (Jaccard + Overlap + Levenshtein)
-  4. Strategia 2 — NLP Similarity
-       - Preferenziale: sentence-transformers (all-MiniLM-L6-v2)
-       - Fallback:      scikit-learn TF-IDF + cosine similarity
-  5. Arricchimento del grafo RDF con i risultati del matching
-  6. Serializzazione in Turtle e RDF/XML
+Strategie di matching:
+  S1 — String Matching   : Jaccard + Overlap + Levenshtein (baseline lessicale)
+  S2 — BERT base         : bert-base-uncased, embedding [CLS], cosine similarity
+  S3 — BioBERT           : dmis-lab/biobert-base-cased-v1.2, embedding [CLS], cosine similarity
+  S4 — MiniLM            : all-MiniLM-L6-v2 via sentence-transformers (riferimento)
 
-Requisiti minimi:
-    pip install psycopg2-binary rdflib scikit-learn rich
+Nota sui modelli BERT "raw":
+  BERT base e BioBERT non sono modelli sentence-level nativi come MiniLM.
+  Per ricavare un embedding di frase si usa il token [CLS] dell'ultimo hidden
+  state — tecnica standard per task di classificazione e similarità con BERT.
+  BioBERT è BERT fine-tuned su letteratura biomedica (PubMed + PMC): non è
+  il dominio ideale per job matching, ma è incluso per confronto metodologico.
 
-Requisiti per NLP ottimale:
-    pip install sentence-transformers
+Requisiti:
+    pip install psycopg2-binary rdflib rich transformers torch scikit-learn
+    pip install sentence-transformers   # per S4 (MiniLM)
 
 Uso:
     python rdb2rdf_step2.py
@@ -65,9 +66,18 @@ OUTPUT_DIR    = "output"
 JOBLIST = Namespace("http://www.stiima.cnr.it/JobList#")
 RIENTRA = Namespace("https://www.stiima.cnr.it/rientra#")
 
-S1_THRESHOLD = 0.12
-S2_THRESHOLD = 0.50   # alzata: sotto questa soglia il match non è affidabile
-S2_TFIDF_THR = 0.05
+# Soglie cosine similarity per i modelli NLP
+# (i modelli BERT raw tendono a score più bassi di MiniLM per sentence similarity)
+S1_THRESHOLD    = 0.12
+BERT_THRESHOLD  = 0.70   # BERT base e BioBERT: soglia più alta perché [CLS] è meno discriminante
+MINILM_THRESHOLD = 0.50  # MiniLM: fine-tuned per sentence similarity, score più affidabili
+
+# Modelli da usare
+MODELS = {
+    "S2_BERT":    "bert-base-uncased",
+    "S3_BioBERT": "dmis-lab/biobert-base-cased-v1.2",
+    "S4_MiniLM":  "all-MiniLM-L6-v2",   # via sentence-transformers
+}
 
 
 # ─────────────────────────────────────────────────────────────
@@ -75,9 +85,10 @@ S2_TFIDF_THR = 0.05
 # ─────────────────────────────────────────────────────────────
 
 def score_color(score: float) -> str:
-    if score >= 0.70: return "bold green"
-    if score >= 0.40: return "yellow"
-    if score >= 0.20: return "orange3"
+    if score >= 0.85: return "bold green"
+    if score >= 0.70: return "green"
+    if score >= 0.50: return "yellow"
+    if score >= 0.30: return "orange3"
     return "red"
 
 def score_bar(score: float, width: int = 8) -> str:
@@ -138,15 +149,24 @@ def extract_ontology_jobs(onto_graph: Graph) -> list[dict]:
 
         display = label or local.replace("_", " ")
         jobs.append({
-            "uri":        str(s),
-            "local_name": local,
-            "label":      display,
-            "titles":     titles,
+            "uri":         str(s),
+            "local_name":  local,
+            "label":       display,
+            "titles":      titles,
             "description": desc,
         })
 
     jobs.sort(key=lambda x: x["label"])
     return jobs
+
+def _build_onto_text(j: dict) -> str:
+    """Testo composito per l'ontologia: label + titoli alternativi + descrizione."""
+    parts = [j["label"]]
+    if j["titles"]:
+        parts.append(j["titles"])
+    if j["description"]:
+        parts.append(j["description"])
+    return " ".join(parts)
 
 
 # ═════════════════════════════════════════════════════════════
@@ -196,105 +216,195 @@ def s1_match_one(title: str, onto_jobs: list[dict]) -> dict | None:
 
 def run_string_matching(db_jobs: list[dict], onto_jobs: list[dict]) -> list[dict]:
     results = []
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        BarColumn(),
-        TaskProgressColumn(),
-        console=console,
-        transient=True,
-    ) as progress:
-        task = progress.add_task("  Calcolo string matching...", total=len(db_jobs))
+    with Progress(SpinnerColumn(), TextColumn("{task.description}"),
+                  BarColumn(), TaskProgressColumn(),
+                  console=console, transient=True) as p:
+        task = p.add_task("  Calcolo...", total=len(db_jobs))
         for r in db_jobs:
-            results.append({
-                "id":       r["id"],
-                "title":    r["title"],
-                "match_s1": s1_match_one(r["title"], onto_jobs),
-            })
-            progress.advance(task)
+            results.append({"id": r["id"], "title": r["title"],
+                            "match_s1": s1_match_one(r["title"], onto_jobs)})
+            p.advance(task)
     return results
 
 
 # ═════════════════════════════════════════════════════════════
-# STRATEGIA 2 — NLP
+# COSINE SIMILARITY — funzione centrale condivisa da S2 e S3
 # ═════════════════════════════════════════════════════════════
 
-def _build_onto_text(j: dict) -> str:
-    parts = [j["label"]]
-    if j["titles"]:
-        parts.append(j["titles"])
-    if j["description"]:
-        parts.append(j["description"])
-    return " ".join(parts)
+def cosine_similarity_matrix(query_emb: np.ndarray,
+                              corpus_embs: np.ndarray) -> np.ndarray:
+    """
+    Calcola la cosine similarity tra un vettore query e una matrice di vettori corpus.
 
-def run_nlp_matching(db_jobs: list[dict], onto_jobs: list[dict]) -> tuple[list[dict], str]:
-    onto_texts = [_build_onto_text(j) for j in onto_jobs]
-    db_texts   = [f"{r['title']}. {r.get('description','')}" for r in db_jobs]
+    Formula:
+        cos(θ) = (A · B) / (‖A‖ · ‖B‖)
 
-    # ── Tenta sentence-transformers ───────────────────────────
+    dove A è il vettore del job nel DB e B è il vettore di una professione O*NET.
+
+    Il risultato è compreso tra -1 e 1:
+      1.0  → testi identici nel significato
+      0.0  → testi ortogonali (nessuna relazione semantica)
+     -1.0  → testi opposti (raro con embedding linguistici)
+
+    Per embedding BERT non negativi il range effettivo è [0, 1].
+    """
+    query_norm  = query_emb / (np.linalg.norm(query_emb) + 1e-9)
+    corpus_norm = corpus_embs / (np.linalg.norm(corpus_embs, axis=1, keepdims=True) + 1e-9)
+    return corpus_norm.dot(query_norm)
+
+
+# ═════════════════════════════════════════════════════════════
+# EMBEDDING CON BERT RAW (BERT base e BioBERT)
+# ═════════════════════════════════════════════════════════════
+
+def get_bert_embedding(text: str, tokenizer, model,
+                       max_length: int = 512) -> np.ndarray:
+    """
+    Calcola l'embedding di una frase con un modello BERT raw.
+
+    Strategia: estrae il vettore del token [CLS] dall'ultimo hidden state.
+    Il token [CLS] (Classification) è il primo token di ogni sequenza BERT
+    ed è stato progettato per catturare una rappresentazione aggregata
+    dell'intera sequenza — per questo è la scelta standard per embedding
+    di frasi con BERT non fine-tuned su sentence similarity.
+
+    Alternativa possibile: mean pooling su tutti i token non-padding,
+    che spesso produce embedding leggermente più stabili ma richiede
+    la gestione della attention mask.
+    """
+    import torch
+    inputs = tokenizer(
+        text,
+        return_tensors="pt",
+        truncation=True,
+        max_length=max_length,
+        padding=True,
+    )
+    with torch.no_grad():
+        outputs = model(**inputs)
+    # outputs.last_hidden_state: shape [batch, seq_len, hidden_size]
+    # [:, 0, :] → token [CLS], primo token della sequenza
+    cls_embedding = outputs.last_hidden_state[:, 0, :].squeeze().numpy()
+    return cls_embedding
+
+
+def run_bert_matching(db_jobs: list[dict],
+                      onto_jobs: list[dict],
+                      model_name: str,
+                      strategy_key: str,
+                      threshold: float) -> tuple[list[dict], str]:
+    """
+    Esegue il matching con un modello BERT raw (bert-base o biobert).
+    Restituisce (risultati, nome_modello) oppure (None, None) se il modello
+    non è disponibile.
+    """
     try:
-        from sentence_transformers import SentenceTransformer
+        from transformers import AutoTokenizer, AutoModel
 
-        with console.status("  Caricamento modello sentence-transformers...", spinner="dots"):
-            model = SentenceTransformer("all-MiniLM-L6-v2")
-        console.print("  [bold green]✓[/] Modello: [cyan]sentence-transformers/all-MiniLM-L6-v2[/]")
+        with console.status(f"  Caricamento [cyan]{model_name}[/]...", spinner="dots"):
+            tokenizer = AutoTokenizer.from_pretrained(model_name)
+            model     = AutoModel.from_pretrained(model_name)
+            model.eval()
+        console.print(f"  [bold green]✓[/] Modello caricato: [cyan]{model_name}[/]")
 
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            TaskProgressColumn(),
-            console=console,
-            transient=True,
-        ) as progress:
-            t1 = progress.add_task("  Encoding ontologia...", total=1)
-            onto_embs = model.encode(onto_texts, convert_to_numpy=True)
-            progress.advance(t1)
+        onto_texts = [_build_onto_text(j) for j in onto_jobs]
+        db_texts   = [f"{r['title']}. {r.get('description', '')}" for r in db_jobs]
 
-            results = []
-            t2 = progress.add_task("  Calcolo similarità...", total=len(db_jobs))
+        # Pre-calcola embedding O*NET (una volta sola)
+        with Progress(SpinnerColumn(), TextColumn("{task.description}"),
+                      BarColumn(), TaskProgressColumn(),
+                      console=console, transient=True) as p:
+            t1 = p.add_task("  Encoding O*NET...", total=len(onto_texts))
+            onto_embs = []
+            for txt in onto_texts:
+                onto_embs.append(get_bert_embedding(txt, tokenizer, model))
+                p.advance(t1)
+        onto_embs = np.vstack(onto_embs)   # shape: [n_onto, hidden_size]
+
+        # Calcola embedding per ogni job del DB e cosine similarity
+        results = []
+        with Progress(SpinnerColumn(), TextColumn("{task.description}"),
+                      BarColumn(), TaskProgressColumn(),
+                      console=console, transient=True) as p:
+            t2 = p.add_task("  Cosine similarity...", total=len(db_jobs))
             for i, row in enumerate(db_jobs):
-                q_emb = model.encode(db_texts[i], convert_to_numpy=True)
-                norms = np.linalg.norm(onto_embs, axis=1) * np.linalg.norm(q_emb)
-                sims  = onto_embs.dot(q_emb) / np.where(norms == 0, 1, norms)
+                q_emb = get_bert_embedding(db_texts[i], tokenizer, model)
+                sims  = cosine_similarity_matrix(q_emb, onto_embs)
                 idx   = int(np.argmax(sims))
                 sc    = float(sims[idx])
-                m = {"job": onto_jobs[idx], "score": sc} if sc >= S2_THRESHOLD else None
+                m = {"job": onto_jobs[idx], "score": sc} if sc >= threshold else None
                 results.append({
                     "id":        row["id"],
                     "title":     row["title"],
-                    "match_s2":  m,
+                    "match":     m,
                     "score_raw": sc,
+                    "strategy":  strategy_key,
                 })
-                progress.advance(t2)
+                p.advance(t2)
 
-        return results, "sentence-transformers"
+        return results, model_name
 
-    except Exception:
-        pass
+    except Exception as e:
+        console.print(f"  [yellow]⚠[/] {model_name} non disponibile: [dim]{e}[/]")
+        return None, None
 
-    # ── Fallback: TF-IDF ─────────────────────────────────────
-    console.print("  [yellow]⚠[/] sentence-transformers non disponibile → [yellow]fallback TF-IDF[/]")
-    from sklearn.feature_extraction.text import TfidfVectorizer
-    from sklearn.metrics.pairwise import cosine_similarity
 
-    all_texts = onto_texts + db_texts
-    vec   = TfidfVectorizer(ngram_range=(1, 2), min_df=1)
-    tfidf = vec.fit_transform(all_texts)
-    sims  = cosine_similarity(tfidf[len(onto_texts):], tfidf[:len(onto_texts)])
+# ═════════════════════════════════════════════════════════════
+# EMBEDDING CON SENTENCE-TRANSFORMERS (MiniLM — S4)
+# ═════════════════════════════════════════════════════════════
 
-    results = []
-    for i, row in enumerate(db_jobs):
-        idx = int(sims[i].argmax())
-        sc  = float(sims[i][idx])
-        m = {"job": onto_jobs[idx], "score": sc} if sc >= S2_TFIDF_THR else None
-        results.append({
-            "id":        row["id"],
-            "title":     row["title"],
-            "match_s2":  m,
-            "score_raw": sc,
-        })
-    return results, "TF-IDF (fallback)"
+def run_minilm_matching(db_jobs: list[dict],
+                        onto_jobs: list[dict],
+                        threshold: float) -> tuple[list[dict], str]:
+    """
+    Esegue il matching con sentence-transformers/all-MiniLM-L6-v2.
+    A differenza di BERT raw, MiniLM è fine-tuned per sentence similarity:
+    il suo .encode() produce già embedding ottimizzati per cosine similarity,
+    senza bisogno di estrarre manualmente il token [CLS].
+    La cosine similarity viene comunque calcolata esplicitamente con la
+    nostra funzione cosine_similarity_matrix per uniformità metodologica.
+    """
+    try:
+        from sentence_transformers import SentenceTransformer
+
+        model_name = MODELS["S4_MiniLM"]
+        with console.status(f"  Caricamento [cyan]{model_name}[/]...", spinner="dots"):
+            model = SentenceTransformer(model_name)
+        console.print(f"  [bold green]✓[/] Modello caricato: [cyan]{model_name}[/]")
+
+        onto_texts = [_build_onto_text(j) for j in onto_jobs]
+        db_texts   = [f"{r['title']}. {r.get('description', '')}" for r in db_jobs]
+
+        with Progress(SpinnerColumn(), TextColumn("{task.description}"),
+                      BarColumn(), TaskProgressColumn(),
+                      console=console, transient=True) as p:
+            t1 = p.add_task("  Encoding O*NET...", total=1)
+            onto_embs = model.encode(onto_texts, convert_to_numpy=True)
+            p.advance(t1)
+
+            results = []
+            t2 = p.add_task("  Cosine similarity...", total=len(db_jobs))
+            for i, row in enumerate(db_jobs):
+                q_emb = model.encode(db_texts[i], convert_to_numpy=True)
+                # Cosine similarity calcolata esplicitamente (stessa formula di S2/S3)
+                sims  = cosine_similarity_matrix(q_emb, onto_embs)
+                idx   = int(np.argmax(sims))
+                sc    = float(sims[idx])
+                m = {"job": onto_jobs[idx], "score": sc} if sc >= threshold else None
+                results.append({
+                    "id":        row["id"],
+                    "title":     row["title"],
+                    "match":     m,
+                    "score_raw": sc,
+                    "strategy":  "S4_MiniLM",
+                })
+                p.advance(t2)
+
+        return results, model_name
+
+    except Exception as e:
+        console.print(f"  [yellow]⚠[/] MiniLM non disponibile: [dim]{e}[/]")
+        return None, None
 
 
 # ═════════════════════════════════════════════════════════════
@@ -302,163 +412,239 @@ def run_nlp_matching(db_jobs: list[dict], onto_jobs: list[dict]) -> tuple[list[d
 # ═════════════════════════════════════════════════════════════
 
 def print_ontology_table(onto_jobs: list[dict]):
-    t = Table(
-        title="Professioni O*NET nell'ontologia",
-        box=box.ROUNDED,
-        header_style="bold cyan",
-        title_style="bold white",
-        show_lines=False,
-    )
-    t.add_column("#",              style="dim",        width=3,  justify="right")
-    t.add_column("URI locale",     style="cyan",        width=46)
-    t.add_column("Label O*NET",    style="bold white",  width=38)
-    t.add_column("Desc.",          justify="center",    width=6)
-
+    t = Table(title="Professioni O*NET nell'ontologia",
+              box=box.ROUNDED, header_style="bold cyan",
+              title_style="bold white", show_lines=False)
+    t.add_column("#",           style="dim",       width=3,  justify="right")
+    t.add_column("URI locale",  style="cyan",       width=46)
+    t.add_column("Label O*NET", style="bold white", width=38)
+    t.add_column("Desc.",       justify="center",   width=6)
     for i, j in enumerate(onto_jobs, 1):
-        has_desc = "[green]✓[/]" if j["description"] else "[red]✗[/]"
-        t.add_row(str(i), j["local_name"], j["label"], has_desc)
-
+        t.add_row(str(i), j["local_name"], j["label"],
+                  "[green]✓[/]" if j["description"] else "[red]✗[/]")
     console.print(t)
 
 
 def print_db_table(db_jobs: list[dict]):
-    t = Table(
-        title="Lavori nel DB esterno (ext_job)",
-        box=box.ROUNDED,
-        header_style="bold magenta",
-        title_style="bold white",
-        show_lines=False,
-    )
-    t.add_column("ID",                style="bold magenta", width=6)
-    t.add_column("Titolo",                                  width=30)
-    t.add_column("Descrizione (estratto)",                  width=62)
-
+    t = Table(title="Lavori nel DB esterno (ext_job)",
+              box=box.ROUNDED, header_style="bold magenta",
+              title_style="bold white", show_lines=False)
+    t.add_column("ID",    style="bold magenta", width=6)
+    t.add_column("Titolo",                      width=30)
+    t.add_column("Descrizione (estratto)",      width=62)
     for r in db_jobs:
-        desc_short = (r.get("description") or "")[:60] + "…"
-        t.add_row(r["id"], r["title"], f"[dim]{desc_short}[/]")
-
+        desc = (r.get("description") or "")[:60] + "…"
+        t.add_row(r["id"], r["title"], f"[dim]{desc}[/]")
     console.print(t)
 
 
-def print_matching_detail(s1_res: list[dict], s2_res: list[dict], method: str):
-    s2_idx = {r["id"]: r for r in s2_res}
+def _score_cell(score: float | None, raw: float = 0.0) -> tuple[Text, Text]:
+    """Restituisce (cella_label_aggiuntiva, cella_score) per la tabella."""
+    if score is not None:
+        bar = Text()
+        bar.append(f"{score:.3f}\n", style=score_color(score))
+        bar.append(score_bar(score),  style=score_color(score))
+        return Text(""), bar
+    else:
+        lbl = Text(f"(raw: {raw:.3f})", style="dim red")
+        bar = Text()
+        bar.append(f"{raw:.3f}\n", style="dim red")
+        bar.append(score_bar(raw),  style="dim red")
+        return lbl, bar
 
+
+def print_full_comparison(s1_res: list[dict],
+                          nlp_results: dict[str, list[dict]],
+                          model_names: dict[str, str]):
+    """
+    Tabella unica con S1 + tutti i modelli NLP disponibili, una colonna per modello.
+    nlp_results: { "S2_BERT": [...], "S3_BioBERT": [...], "S4_MiniLM": [...] }
+    model_names: { "S2_BERT": "bert-base-uncased", ... }
+    """
+    # Indici per lookup rapido per ogni strategia
+    idx = {key: {r["id"]: r for r in res}
+           for key, res in nlp_results.items() if res}
+
+    available_strategies = [k for k in ["S2_BERT", "S3_BioBERT", "S4_MiniLM"]
+                            if k in idx]
+
+    # Costruisce header dinamico
+    title_parts = ["S1 String"] + [
+        model_names.get(k, k).split("/")[-1][:18]
+        for k in available_strategies
+    ]
     t = Table(
-        title=f"Confronto S1 (String Matching) vs S2 (NLP · {method})",
+        title="Confronto strategie di matching · cosine similarity",
         box=box.SIMPLE_HEAD,
         show_lines=True,
         header_style="bold white on dark_blue",
         title_style="bold white",
         expand=True,
     )
-    t.add_column("ID",         style="bold",     width=6,  justify="center")
-    t.add_column("Titolo DB",                    width=28)
-    t.add_column("S1 — Match",                   width=30)
-    t.add_column("Score S1",   justify="center", width=16)
-    t.add_column("S2 — Match",                   width=30)
-    t.add_column("Score S2",   justify="center", width=16)
-    t.add_column("Esito",      justify="center", width=8)
+    t.add_column("ID",       style="bold", width=6,  justify="center")
+    t.add_column("Titolo DB",              width=26)
+    t.add_column("S1 — Match",             width=28)
+    t.add_column("Score S1", justify="center", width=14)
+
+    for k in available_strategies:
+        short = model_names.get(k, k).split("/")[-1][:20]
+        t.add_column(f"{k[:2]} — {short}", width=28)
+        t.add_column(f"Score {k[:2]}", justify="center", width=14)
+
+    t.add_column("Verdetto", justify="center", width=10)
 
     for r in s1_res:
-        rid     = r["id"]
-        m1      = r.get("match_s1")
-        r2      = s2_idx.get(rid, {})
-        m2      = r2.get("match_s2")
-        sc2_raw = r2.get("score_raw", 0.0)
+        rid = r["id"]
+        m1  = r.get("match_s1")
 
-        # ── S1 ───────────────────────────────────────────────
+        # S1
         if m1:
             s1_cell = Text()
             s1_cell.append(m1["job"]["label"] + "\n")
-            s1_cell.append(f"via: {m1['via'][:28]}", style="dim")
-            s1_score = Text()
-            s1_score.append(f"{m1['score']:.3f}\n", style=score_color(m1["score"]))
-            s1_score.append(score_bar(m1["score"]),  style=score_color(m1["score"]))
+            s1_cell.append(f"via: {m1['via'][:24]}", style="dim")
+            s1_sc = Text()
+            s1_sc.append(f"{m1['score']:.3f}\n", style=score_color(m1["score"]))
+            s1_sc.append(score_bar(m1["score"]),  style=score_color(m1["score"]))
         else:
-            s1_cell  = Text("— nessun match —", style="dim")
-            s1_score = Text("—", style="dim")
+            s1_cell = Text("— nessun match —", style="dim")
+            s1_sc   = Text("—", style="dim")
 
-        # ── S2 ───────────────────────────────────────────────
-        if m2:
-            s2_label = m2["job"]["label"]
-            s2_score = Text()
-            s2_score.append(f"{m2['score']:.3f}\n", style=score_color(m2["score"]))
-            s2_score.append(score_bar(m2["score"]),  style=score_color(m2["score"]))
+        row_cells = [rid, r["title"], s1_cell, s1_sc]
+
+        # NLP strategies
+        nlp_matches = []
+        for k in available_strategies:
+            r2   = idx[k].get(rid, {})
+            m2   = r2.get("match")
+            raw  = r2.get("score_raw", 0.0)
+            if m2:
+                cell = Text(m2["job"]["label"])
+                sc   = Text()
+                sc.append(f"{m2['score']:.3f}\n", style=score_color(m2["score"]))
+                sc.append(score_bar(m2["score"]),  style=score_color(m2["score"]))
+                nlp_matches.append(m2["job"]["uri"])
+            else:
+                cell = Text()
+                cell.append("— sotto soglia —\n", style="dim")
+                cell.append(f"(raw: {raw:.3f})", style="dim red")
+                sc   = Text()
+                sc.append(f"{raw:.3f}\n", style="dim red")
+                sc.append(score_bar(raw),  style="dim red")
+                nlp_matches.append(None)
+            row_cells += [cell, sc]
+
+        # Verdetto: consensus tra i modelli che hanno trovato un match
+        valid = [u for u in nlp_matches if u]
+        if not valid and not m1:
+            verdetto = Text("✗ no", style="bold red")
+        elif len(set(valid)) == 1 and len(valid) == len(available_strategies):
+            verdetto = Text("✓ tutti", style="bold green")
+        elif len(set(valid)) == 1 and valid:
+            verdetto = Text("~ parz.", style="yellow")
+        elif valid:
+            verdetto = Text("≠ div.", style="orange3")
         else:
-            s2_label = Text()
-            s2_label.append("— sotto soglia —\n", style="dim")
-            s2_label.append(f"(raw: {sc2_raw:.3f})", style="dim red")
-            s2_score = Text()
-            s2_score.append(f"{sc2_raw:.3f}\n", style="dim red")
-            s2_score.append(score_bar(sc2_raw),  style="dim red")
+            verdetto = Text("S1 only", style="magenta")
 
-        # ── Esito ─────────────────────────────────────────────
-        if m1 and m2 and m1["job"]["uri"] == m2["job"]["uri"]:
-            esito = Text("✓ acc.", style="bold green")
-        elif m1 and m2:
-            esito = Text("~ div.", style="yellow")
-        elif m2 and not m1:
-            esito = Text("S2 only", style="cyan")
-        elif m1 and not m2:
-            esito = Text("S1 only", style="magenta")
-        else:
-            esito = Text("✗ no", style="bold red")
-
-        t.add_row(rid, r["title"], s1_cell, s1_score, s2_label, s2_score, esito)
+        row_cells.append(verdetto)
+        t.add_row(*row_cells)
 
     console.print(t)
     console.print(
-        "  [bold green]✓ acc.[/] concordano  "
-        "[yellow]~ div.[/] risultati diversi  "
-        "[cyan]S2 only[/] solo NLP  "
-        "[magenta]S1 only[/] solo String  "
-        "[bold red]✗ no[/] nessun match affidabile\n"
+        "  [bold green]✓ tutti[/] tutti i modelli NLP concordano  "
+        "[yellow]~ parz.[/] accordo parziale  "
+        "[orange3]≠ div.[/] modelli divergono  "
+        "[magenta]S1 only[/] solo string match  "
+        "[bold red]✗ no[/] nessun match\n"
     )
 
 
-def print_summary(s1_res: list[dict], s2_res: list[dict]):
-    s2_idx  = {r["id"]: r for r in s2_res}
-    total   = len(s1_res)
+def print_cosine_detail(nlp_results: dict[str, list[dict]],
+                        model_names: dict[str, str],
+                        onto_jobs: list[dict]):
+    """
+    Tabella dettaglio cosine similarity: per ogni job DB mostra lo score
+    con TUTTE le professioni O*NET, per ogni modello disponibile.
+    Utile per capire la distribuzione degli score e validare le soglie.
+    """
+    console.print(Rule("[dim]Dettaglio score cosine per tutti i candidati O*NET[/]", style="dim"))
+    console.print("[dim]  (i valori in verde sono quelli scelti come match migliore)[/]\n")
+
+    available = [k for k in ["S2_BERT", "S3_BioBERT", "S4_MiniLM"]
+                 if k in nlp_results and nlp_results[k]]
+
+    for strategy_key in available:
+        res_list = nlp_results[strategy_key]
+        mname    = model_names.get(strategy_key, strategy_key)
+        console.print(f"  [bold cyan]{strategy_key}[/] · [dim]{mname}[/]")
+
+        t = Table(box=box.MINIMAL, show_header=True,
+                  header_style="dim", show_lines=False)
+        t.add_column("Professione O*NET", width=38)
+        for r in res_list:
+            t.add_column(r["title"][:14], justify="right", width=10)
+
+        # Nota: il dettaglio per O*NET richiede gli score completi
+        # che non sono salvati nella struttura corrente.
+        # Mostriamo solo il best match per job.
+        idx_map = {r["id"]: r for r in res_list}
+        for j in onto_jobs:
+            row_vals = [j["label"][:37]]
+            for r in res_list:
+                m   = r.get("match")
+                raw = r.get("score_raw", 0.0)
+                if m and m["job"]["uri"] == j["uri"]:
+                    row_vals.append(f"[bold green]{m['score']:.3f}[/]")
+                elif not m and r.get("score_raw", 0) > 0:
+                    # Se questo è il candidato con score più alto (anche sotto soglia)
+                    row_vals.append(f"[dim]{raw:.3f}[/]")
+                else:
+                    row_vals.append("[dim]—[/]")
+            t.add_row(*row_vals)
+
+        console.print(t)
+        console.print()
+
+
+def print_summary_multi(s1_res: list[dict],
+                        nlp_results: dict[str, list[dict]],
+                        model_names: dict[str, str]):
+    n_total = len(s1_res)
     n_s1    = sum(1 for r in s1_res if r.get("match_s1"))
-    n_s2    = sum(1 for r in s2_res if r.get("match_s2"))
-    n_both  = sum(1 for r in s1_res
-                  if r.get("match_s1") and s2_idx.get(r["id"], {}).get("match_s2"))
-    n_agree = sum(
-        1 for r in s1_res
-        if r.get("match_s1")
-        and s2_idx.get(r["id"], {}).get("match_s2")
-        and r["match_s1"]["job"]["uri"] == s2_idx[r["id"]]["match_s2"]["job"]["uri"]
-    )
 
-    lines = [
-        f"  Job totali nel DB              : [bold]{total}[/]",
-        f"  Match trovati da S1            : [bold {'green' if n_s1 else 'red'}]{n_s1}/{total}[/]",
-        f"  Match trovati da S2 (≥ {S2_THRESHOLD}) : [bold {'green' if n_s2 else 'red'}]{n_s2}/{total}[/]",
-        f"  Match in entrambe le strategie : [bold]{n_both}/{total}[/]",
-    ]
-    if n_both:
+    lines = [f"  Job totali nel DB  : [bold]{n_total}[/]",
+             f"  Match da S1        : [bold {'green' if n_s1 else 'red'}]{n_s1}/{n_total}[/]  [dim](soglia {S1_THRESHOLD})[/]"]
+
+    for key in ["S2_BERT", "S3_BioBERT", "S4_MiniLM"]:
+        res = nlp_results.get(key)
+        if not res:
+            lines.append(f"  Match da {key[:2]}         : [dim]— modello non disponibile —[/]")
+            continue
+        thr = BERT_THRESHOLD if key in ("S2_BERT", "S3_BioBERT") else MINILM_THRESHOLD
+        n   = sum(1 for r in res if r.get("match"))
+        mname = model_names.get(key, key).split("/")[-1]
         lines.append(
-            f"  Accordo S1 = S2                : [bold green]{n_agree}/{n_both}[/]"
+            f"  Match da {key[:2]}         : [bold {'green' if n else 'red'}]{n}/{n_total}[/]"
+            f"  [dim](soglia {thr} · {mname})[/]"
         )
+
     lines += [
         "",
-        f"  [dim]Soglia S1: {S1_THRESHOLD}  |  Soglia S2: {S2_THRESHOLD}[/]",
-        f"  [dim]Score S2 sotto soglia: registrato come score_raw, non inserito nel grafo come triple di matching[/]",
+        "  [dim]Nota: BERT base e BioBERT usano embedding [CLS] — non fine-tuned per sentence",
+        "  similarity. Score tendenzialmente più bassi di MiniLM ma confrontabili tra loro.[/]",
     ]
 
-    console.print(Panel(
-        "\n".join(lines),
-        title="[bold white]Riepilogo",
-        border_style="cyan",
-        padding=(1, 2),
-    ))
+    console.print(Panel("\n".join(lines),
+                        title="[bold white]Riepilogo",
+                        border_style="cyan", padding=(1, 2)))
 
 
 # ═════════════════════════════════════════════════════════════
 # ARRICCHIMENTO GRAFO RDF
 # ═════════════════════════════════════════════════════════════
 
-def build_enriched_graph(onto_graph, db_jobs, s1_res, s2_res):
+def build_enriched_graph(onto_graph, db_jobs, s1_res,
+                         nlp_results: dict) -> Graph:
     g = Graph()
     g.bind("rientra", RIENTRA)
     g.bind("joblist", JOBLIST)
@@ -469,7 +655,16 @@ def build_enriched_graph(onto_graph, db_jobs, s1_res, s2_res):
     for triple in onto_graph:
         g.add(triple)
 
-    s2_idx = {r["id"]: r for r in s2_res}
+    # Indici per lookup
+    nlp_idx = {key: {r["id"]: r for r in res}
+               for key, res in nlp_results.items() if res}
+
+    # Mapping chiave → nome proprietà RDF
+    prop_map = {
+        "S2_BERT":    ("matchedToONETJob_BERT",    "matchingScore_BERT"),
+        "S3_BioBERT": ("matchedToONETJob_BioBERT", "matchingScore_BioBERT"),
+        "S4_MiniLM":  ("matchedToONETJob_MiniLM",  "matchingScore_MiniLM"),
+    }
 
     for row in db_jobs:
         rid  = row["id"]
@@ -482,6 +677,7 @@ def build_enriched_graph(onto_graph, db_jobs, s1_res, s2_res):
             g.add((subj, RIENTRA.hasDescription,
                    Literal(row["description"], datatype=XSD.string)))
 
+        # S1 — String Matching
         m1 = next((r.get("match_s1") for r in s1_res if r["id"] == rid), None)
         if m1:
             g.add((subj, RIENTRA.matchedToONETJob_S1, URIRef(m1["job"]["uri"])))
@@ -490,11 +686,14 @@ def build_enriched_graph(onto_graph, db_jobs, s1_res, s2_res):
             g.add((subj, RIENTRA.matchedViaLabel_S1,
                    Literal(m1["via"], datatype=XSD.string)))
 
-        m2 = s2_idx.get(rid, {}).get("match_s2")
-        if m2:
-            g.add((subj, RIENTRA.matchedToONETJob_S2, URIRef(m2["job"]["uri"])))
-            g.add((subj, RIENTRA.matchingScore_S2,
-                   Literal(round(m2["score"], 4), datatype=XSD.decimal)))
+        # S2 / S3 / S4 — NLP
+        for key, (prop_match, prop_score) in prop_map.items():
+            r2 = nlp_idx.get(key, {}).get(rid, {})
+            m  = r2.get("match")
+            if m:
+                g.add((subj, RIENTRA[prop_match], URIRef(m["job"]["uri"])))
+                g.add((subj, RIENTRA[prop_score],
+                       Literal(round(m["score"], 4), datatype=XSD.decimal)))
 
     return g
 
@@ -510,8 +709,8 @@ def save_graph(g: Graph, name: str):
     t.add_column(style="dim")
     t.add_column(style="cyan")
     t.add_column(style="dim", justify="right")
-    t.add_row("Turtle",       ttl, f"{os.path.getsize(ttl):,} bytes")
-    t.add_row("RDF/XML",      rdf, f"{os.path.getsize(rdf):,} bytes")
+    t.add_row("Turtle",        ttl, f"{os.path.getsize(ttl):,} bytes")
+    t.add_row("RDF/XML",       rdf, f"{os.path.getsize(rdf):,} bytes")
     t.add_row("Triple totali", "",  str(len(g)))
     console.print(t)
 
@@ -524,9 +723,9 @@ def main():
     console.print()
     console.print(Panel(
         f"[bold white]Rientra@[/] — Step 2: RDB2RDF + String Matching + NLP\n"
+        f"[dim]Modelli: BERT base · BioBERT · MiniLM  |  Metrica: cosine similarity[/]\n"
         f"[dim]{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}[/]",
-        border_style="blue",
-        padding=(0, 2),
+        border_style="blue", padding=(0, 2),
     ))
     console.print()
 
@@ -540,7 +739,7 @@ def main():
     with console.status(f"  Caricamento ontologia [cyan]{ONTOLOGY_FILE}[/]...", spinner="dots"):
         onto_graph = Graph()
         onto_graph.parse(ONTOLOGY_FILE, format="xml")
-    console.print(f"  [bold green]✓[/] Ontologia: [bold]{len(onto_graph)}[/] triple caricate")
+    console.print(f"  [bold green]✓[/] Ontologia: [bold]{len(onto_graph)}[/] triple")
 
     onto_jobs = extract_ontology_jobs(onto_graph)
     console.print(f"  [bold green]✓[/] Professioni O*NET estratte: [bold]{len(onto_jobs)}[/]")
@@ -552,38 +751,82 @@ def main():
     console.print(Rule("[bold magenta]1 · Lettura DB esterno[/]", style="magenta"))
     console.print()
     db_jobs = fetch_all("SELECT id, title, description FROM ext_job ORDER BY id")
-    console.print(f"  [bold green]✓[/] [bold]{len(db_jobs)}[/] lavori dalla tabella [cyan]ext_job[/]")
+    console.print(f"  [bold green]✓[/] [bold]{len(db_jobs)}[/] lavori da [cyan]ext_job[/]")
     console.print()
     print_db_table(db_jobs)
     console.print()
 
-    # ── [2] Strategia 1 ───────────────────────────────────────
+    # ── [2] Strategia 1 — String Matching ─────────────────────
     console.print(Rule("[bold yellow]2 · Strategia 1 — String Matching[/]", style="yellow"))
-    console.print("  [dim]Metriche: Jaccard (peso 0.5) + Overlap (0.3) + Levenshtein (0.2)[/]")
+    console.print("  [dim]Jaccard (0.5) + Overlap (0.3) + Levenshtein (0.2)[/]")
     console.print()
     s1_res = run_string_matching(db_jobs, onto_jobs)
     console.print(f"  [bold green]✓[/] Completato\n")
 
-    # ── [3] Strategia 2 ───────────────────────────────────────
-    console.print(Rule("[bold green]3 · Strategia 2 — NLP Similarity[/]", style="green"))
-    console.print("  [dim]Modello: sentence-transformers/all-MiniLM-L6-v2  |  fallback: TF-IDF[/]")
+    # ── [3] Strategia 2 — BERT base ───────────────────────────
+    console.print(Rule("[bold blue]3 · Strategia 2 — BERT base · cosine similarity[/]", style="blue"))
+    console.print(f"  [dim]Modello: {MODELS['S2_BERT']}  |  Embedding: token [CLS]  |  Soglia: {BERT_THRESHOLD}[/]")
     console.print()
-    s2_res, method = run_nlp_matching(db_jobs, onto_jobs)
-    console.print(f"  [bold green]✓[/] Completato con: [cyan]{method}[/]\n")
+    s2_res, s2_name = run_bert_matching(
+        db_jobs, onto_jobs,
+        model_name=MODELS["S2_BERT"],
+        strategy_key="S2_BERT",
+        threshold=BERT_THRESHOLD,
+    )
+    if s2_res:
+        console.print(f"  [bold green]✓[/] Completato\n")
+    else:
+        console.print(f"  [yellow]⚠[/] Saltato — installa [cyan]transformers torch[/]\n")
 
-    # ── [4] Confronto ─────────────────────────────────────────
-    console.print(Rule("[bold white]4 · Confronto S1 vs S2[/]", style="white"))
+    # ── [4] Strategia 3 — BioBERT ─────────────────────────────
+    console.print(Rule("[bold magenta]4 · Strategia 3 — BioBERT · cosine similarity[/]", style="magenta"))
+    console.print(f"  [dim]Modello: {MODELS['S3_BioBERT']}  |  Embedding: token [CLS]  |  Soglia: {BERT_THRESHOLD}[/]")
+    console.print(f"  [dim]Fine-tuned su: PubMed abstracts + PMC full-text articles (dominio biomedico)[/]")
     console.print()
-    print_matching_detail(s1_res, s2_res, method)
-    print_summary(s1_res, s2_res)
+    s3_res, s3_name = run_bert_matching(
+        db_jobs, onto_jobs,
+        model_name=MODELS["S3_BioBERT"],
+        strategy_key="S3_BioBERT",
+        threshold=BERT_THRESHOLD,
+    )
+    if s3_res:
+        console.print(f"  [bold green]✓[/] Completato\n")
+    else:
+        console.print(f"  [yellow]⚠[/] Saltato\n")
+
+    # ── [5] Strategia 4 — MiniLM ──────────────────────────────
+    console.print(Rule("[bold green]5 · Strategia 4 — MiniLM · cosine similarity[/]", style="green"))
+    console.print(f"  [dim]Modello: {MODELS['S4_MiniLM']}  |  Fine-tuned per sentence similarity  |  Soglia: {MINILM_THRESHOLD}[/]")
+    console.print()
+    s4_res, s4_name = run_minilm_matching(db_jobs, onto_jobs, threshold=MINILM_THRESHOLD)
+    if s4_res:
+        console.print(f"  [bold green]✓[/] Completato\n")
+    else:
+        console.print(f"  [yellow]⚠[/] Saltato — installa [cyan]sentence-transformers[/]\n")
+
+    # Raccoglie tutti i risultati disponibili
+    nlp_results  = {}
+    model_names  = {}
+    if s2_res: nlp_results["S2_BERT"]    = s2_res;  model_names["S2_BERT"]    = s2_name
+    if s3_res: nlp_results["S3_BioBERT"] = s3_res;  model_names["S3_BioBERT"] = s3_name
+    if s4_res: nlp_results["S4_MiniLM"]  = s4_res;  model_names["S4_MiniLM"]  = s4_name
+
+    # ── [6] Confronto ─────────────────────────────────────────
+    console.print(Rule("[bold white]6 · Confronto strategie[/]", style="white"))
+    console.print()
+    if nlp_results:
+        print_full_comparison(s1_res, nlp_results, model_names)
+        print_summary_multi(s1_res, nlp_results, model_names)
+    else:
+        console.print("  [yellow]Nessun modello NLP disponibile — solo S1 (string matching)[/]")
     console.print()
 
-    # ── [5] Grafo RDF ─────────────────────────────────────────
-    console.print(Rule("[bold blue]5 · Costruzione e serializzazione grafo RDF[/]", style="blue"))
+    # ── [7] Grafo RDF ─────────────────────────────────────────
+    console.print(Rule("[bold blue]7 · Costruzione e serializzazione grafo RDF[/]", style="blue"))
     console.print()
     with console.status("  Costruzione grafo A-Box...", spinner="dots"):
-        g_final = build_enriched_graph(onto_graph, db_jobs, s1_res, s2_res)
-    console.print(f"  [bold green]✓[/] {len(db_jobs)} ExtJob individuali aggiunti al grafo\n")
+        g_final = build_enriched_graph(onto_graph, db_jobs, s1_res, nlp_results)
+    console.print(f"  [bold green]✓[/] {len(db_jobs)} ExtJob aggiunti al grafo\n")
 
     with console.status("  Serializzazione...", spinner="dots"):
         save_graph(g_final, "rientra_ext_jobs")
@@ -593,9 +836,9 @@ def main():
     console.print(Panel(
         f"[bold green]Step 2 completato.[/]\n\n"
         f"Output → [cyan]{os.path.abspath(OUTPUT_DIR)}/[/]\n\n"
+        f"[dim]Modelli usati: {', '.join(model_names.values()) or 'solo S1'}[/]\n"
         f"[dim]Prossimo step: Strategia 3 — ESCO come ponte ontologico[/]",
-        border_style="green",
-        padding=(0, 2),
+        border_style="green", padding=(0, 2),
     ))
     console.print()
 
