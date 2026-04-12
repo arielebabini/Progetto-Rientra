@@ -76,13 +76,13 @@ interface RadarDataset { label: string; color: string; values: number[]; }
 
 function RadarChart({ datasets }: { datasets: RadarDataset[] }) {
   const n = RADAR_AXES.length;
-  const size = 260, cx = size / 2, cy = size / 2, R = size * 0.36;
+  const size = 260, cx = size / 2, cy = (size / 2) + 8, R = size * 0.36;
   const levels = 4;
   const ang = (i: number) => (Math.PI * 2 * i) / n - Math.PI / 2;
   const pt = (i: number, r: number) => ({ x: cx + r * Math.cos(ang(i)), y: cy + r * Math.sin(ang(i)) });
 
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} style={{ width: '100%', maxWidth: size, display: 'block' }}>
+    <svg viewBox={`-15 -15 ${size + 30} ${size + 30}`} style={{ width: '100%', maxWidth: 480, maxHeight: '100%', display: 'block', margin: '0 auto', overflow: 'visible' }}>
       {/* level rings */}
       {Array.from({ length: levels }, (_, k) => {
         const r = R * ((k + 1) / levels);
@@ -389,16 +389,28 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
           <span className="ja-metric">GCS <strong>{result.gcs_pct.toFixed(2)}%</strong></span>
           <span className="ja-metric">AISA <strong>{result.aisa_pct.toFixed(2)}%</strong></span>
           <span className="ja-metric">N skills <strong>{result.n_total}</strong></span>
-          <span className="ja-suit-badge"
-            style={{ color: result.suitability_color, borderColor: result.suitability_color + '45', background: result.suitability_color + '12' }}>
-            {result.suitability === 'SUITABLE' ? '✔' : result.suitability === 'SUITABLE WITH PRECAUTIONS' ? '⚠' : '✘'}{' '}
-            {result.suitability}
-          </span>
-          {panelId === 'A' && !splitMode && (
-            <button className="ja-btn-split" onClick={toggleSplit}>⊞ Compare</button>
-          )}
-          {panelId === 'B' && (
-            <button className="ja-btn-close-split" onClick={toggleSplit} title="Close compare">✕</button>
+          {splitMode ? (
+            <div style={{ flexBasis: '100%', display: 'flex', alignItems: 'center', gap: '12px', minHeight: '32px' }}>
+              <span className="ja-suit-badge"
+                style={{ color: result.suitability_color, borderColor: result.suitability_color + '45', background: result.suitability_color + '12' }}>
+                {result.suitability === 'SUITABLE' ? '✔' : result.suitability === 'SUITABLE WITH PRECAUTIONS' ? '⚠' : '✘'}{' '}
+                {result.suitability}
+              </span>
+              {panelId === 'B' && (
+                <button className="ja-btn-close-split" onClick={toggleSplit} title="Close compare">✕</button>
+              )}
+            </div>
+          ) : (
+            <>
+              <span className="ja-suit-badge"
+                style={{ color: result.suitability_color, borderColor: result.suitability_color + '45', background: result.suitability_color + '12' }}>
+                {result.suitability === 'SUITABLE' ? '✔' : result.suitability === 'SUITABLE WITH PRECAUTIONS' ? '⚠' : '✘'}{' '}
+                {result.suitability}
+              </span>
+              {panelId === 'A' && (
+                <button className="ja-btn-split" onClick={toggleSplit}>⊞ Compare</button>
+              )}
+            </>
           )}
         </div>
         <div className="ja-skills-wrap" style={{ position: 'relative' }}>
