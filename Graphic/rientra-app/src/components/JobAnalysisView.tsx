@@ -3,9 +3,10 @@ import './JobAnalysisView.css';
 import {
   fetchMatchResults,
   fetchSkillDetail,
+  fetchJobProfile,
   type MatchResult,
   type SkillDetailResponse,
-  type SkillDetail,
+  type JobSkillEntry,
 } from '../api/semanticService';
 
 /* ═══════════════════════════════════════════════════════════════
@@ -60,6 +61,11 @@ const SKILL_AREAS = [
 ];
 const RADAR_AXES = [...SKILL_AREAS.map(a => a.label), 'Other'];
 const RADAR_COLORS = ['#4DD9C0', '#f59e0b', '#818cf8'];
+
+const ALL_JOBS_COLORS = [
+  '#ef4444', '#f97316', '#eab308', '#22c55e', 
+  '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#f43f5e'
+];
 
 function classifySkill(id: string): string {
   const name = id.toLowerCase();
@@ -160,6 +166,15 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
   const [sortColB, setSortColB] = useState<SortCol>(null);
   const [sortDirB, setSortDirB] = useState<SortDir>(null);
 
+  /* job demand profiles (worker-independent, for radar) */
+  const [profileA, setProfileA] = useState<JobSkillEntry[]>([]);
+  const [profileB, setProfileB] = useState<JobSkillEntry[]>([]);
+  const [loadingProfileA, setLoadingProfileA] = useState(false);
+  const [loadingProfileB, setLoadingProfileB] = useState(false);
+
+  const [allProfiles, setAllProfiles] = useState<Record<string, JobSkillEntry[]>>({});
+  const [loadingAllProfiles, setLoadingAllProfiles] = useState(false);
+
   /* fetch */
   useEffect(() => {
     setLoadingMatch(true); setMatchError(null);
@@ -170,15 +185,40 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
   }, [workerId]);
 
   useEffect(() => {
+    if (matchResults.length === 0) return;
+    const fetchAll = async () => {
+      setLoadingAllProfiles(true);
+      const newProfiles: Record<string, JobSkillEntry[]> = {};
+      await Promise.all(matchResults.map(async (mr) => {
+        try {
+          const prof = await fetchJobProfile(mr.job_id);
+          newProfiles[mr.job_id] = prof;
+        } catch (e) {
+          console.error(e);
+        }
+      }));
+      setAllProfiles(newProfiles);
+      setLoadingAllProfiles(false);
+    };
+    fetchAll();
+  }, [matchResults]);
+
+  useEffect(() => {
     if (!jobA) return;
     setLoadingA(true);
     fetchSkillDetail(workerId, jobA).then(setSkillDataA).catch(console.error).finally(() => setLoadingA(false));
+    // Also fetch the job's own demand profile for the radar
+    setLoadingProfileA(true);
+    fetchJobProfile(jobA).then(setProfileA).catch(console.error).finally(() => setLoadingProfileA(false));
   }, [workerId, jobA]);
 
   useEffect(() => {
     if (!jobB) return;
     setLoadingB(true);
     fetchSkillDetail(workerId, jobB).then(setSkillDataB).catch(console.error).finally(() => setLoadingB(false));
+    // Also fetch the job's own demand profile for the radar
+    setLoadingProfileB(true);
+    fetchJobProfile(jobB).then(setProfileB).catch(console.error).finally(() => setLoadingProfileB(false));
   }, [workerId, jobB]);
 
   const toggleSplit = () => {
@@ -210,25 +250,61 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
     avgAISA: matchResults.length ? matchResults.reduce((s, r) => s + r.aisa_pct, 0) / matchResults.length : 0,
   }), [matchResults]);
 
-  /* radar */
+  /* ── Radar datasets — built from the job's O*NET scores (score/100), NOT from
+     the worker's cs_normalized.  This shows what each job DEMANDS (its
+     inclination), so a Carpenter will always score high on Physical regardless
+     of which worker is selected. ── */
   const radarDatasets = useMemo<RadarDataset[]>(() => {
-    return (splitMode ? [{ sd: skillDataA, id: jobA }, { sd: skillDataB, id: jobB }] : [{ sd: skillDataA, id: jobA }])
-      .flatMap(({ sd, id }, di) => {
-        if (!sd || !id) return [];
-        const buckets: Record<string, number[]> = {};
-        RADAR_AXES.forEach(a => { buckets[a] = []; });
-        sd.skills.forEach((s: SkillDetail) => {
-          const area = classifySkill(s.id);
-          const key = RADAR_AXES.includes(area) ? area : 'Other';
-          buckets[key].push(s.cs_normalized);
-        });
-        const values = RADAR_AXES.map(a => {
-          const arr = buckets[a];
-          return arr.length ? Math.min(arr.reduce((x, y) => x + y, 0) / arr.length, 1) : 0;
-        });
-        return [{ label: id.replace(/_/g, ' '), color: RADAR_COLORS[di], values }];
+    const slots: { profile: JobSkillEntry[]; id: string | null; di: number }[] = splitMode
+      ? [{ profile: profileA, id: jobA, di: 0 }, { profile: profileB, id: jobB, di: 1 }]
+      : [{ profile: profileA, id: jobA, di: 0 }];
+
+    return slots.flatMap(({ profile, id, di }) => {
+      if (!id || profile.length === 0) return [];
+
+      // Group skills into areas and collect normalised O*NET scores (0–1)
+      const buckets: Record<string, number[]> = {};
+      RADAR_AXES.forEach(a => { buckets[a] = []; });
+
+      profile.forEach((s: JobSkillEntry) => {
+        const area = classifySkill(s.id);
+        const key  = RADAR_AXES.includes(area) ? area : 'Other';
+        buckets[key].push(s.score / 100);    // O*NET score is 0–100
       });
-  }, [skillDataA, skillDataB, splitMode, jobA, jobB]);
+
+      // Average per area; cap at 1.0
+      const values = RADAR_AXES.map(a => {
+        const arr = buckets[a];
+        return arr.length ? Math.min(arr.reduce((x, y) => x + y, 0) / arr.length, 1) : 0;
+      });
+
+      const mr = matchResults.find(m => m.job_id === id);
+      const color = mr ? mr.suitability_color : RADAR_COLORS[di];
+      return [{ label: id.replace(/_/g, ' '), color, values }];
+    });
+  }, [profileA, profileB, splitMode, jobA, jobB, matchResults]);
+
+  const allRadarDatasets = useMemo<RadarDataset[]>(() => {
+    return matchResults.map((mr, index) => {
+      const profile = allProfiles[mr.job_id] || [];
+      if (profile.length === 0) return null;
+      
+      const buckets: Record<string, number[]> = {};
+      RADAR_AXES.forEach(a => { buckets[a] = []; });
+      profile.forEach((s: JobSkillEntry) => {
+        const area = classifySkill(s.id);
+        const key  = RADAR_AXES.includes(area) ? area : 'Other';
+        buckets[key].push(s.score / 100);
+      });
+      const values = RADAR_AXES.map(a => {
+        const arr = buckets[a];
+        return arr.length ? Math.min(arr.reduce((x, y) => x + y, 0) / arr.length, 1) : 0;
+      });
+
+      const color = ALL_JOBS_COLORS[index % ALL_JOBS_COLORS.length];
+      return { label: mr.job_id.replace(/_/g, ' '), color, values };
+    }).filter(Boolean) as RadarDataset[];
+  }, [allProfiles, matchResults]);
 
   /* ── Scatter plot ── */
   const renderScatter = () => (
@@ -529,8 +605,8 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
       {/* Tab bar */}
       <div className="ja-tab-bar">
         <button className={`ja-tab${mainTab === 'map' ? ' active' : ''}`} onClick={() => setMainTab('map')}>Suitability Map</button>
-        <button className={`ja-tab${mainTab === 'radar' ? ' active' : ''}`} onClick={() => setMainTab('radar')}>Skill Profile</button>
         <button className={`ja-tab${mainTab === 'detail' ? ' active' : ''}`} onClick={() => setMainTab('detail')}>Skill Detail</button>
+        <button className={`ja-tab${mainTab === 'radar' ? ' active' : ''}`} onClick={() => setMainTab('radar')}>Skill Profile</button>
         <div className="ja-tab-spacer" />
         <span className="ja-worker-chip">{workerDisplayName}</span>
       </div>
@@ -569,7 +645,26 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
       {/* ── RADAR tab ── */}
       {mainTab === 'radar' && (
         <div className="ja-tab-content">
-          <div className="ja-radar-body">
+          <div className="ja-radar-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 220px' }}>
+            <div className="ja-radar-chart-col" style={{ borderRight: '1px solid rgba(255,255,255,0.08)' }}>
+              <div className="ja-radar-controls">
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'rgba(255,255,255,0.88)' }}>All Evaluated Jobs</span>
+              </div>
+              <div className="ja-radar-legend">
+                {allRadarDatasets.map(ds => (
+                  <span key={ds.label} className="ja-legend-item">
+                    <span className="ja-legend-dot" style={{ background: ds.color }} />{ds.label}
+                  </span>
+                ))}
+              </div>
+              <div className="ja-radar-svg-wrap">
+                {loadingAllProfiles
+                  ? <div className="ja-center"><div className="wp-spinner" /><span className="ja-status-txt">Loading all profiles…</span></div>
+                  : <RadarChart datasets={allRadarDatasets} />
+                }
+              </div>
+            </div>
+
             <div className="ja-radar-chart-col">
               {/* controls */}
               <div className="ja-radar-controls">
@@ -578,17 +673,9 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
                 {splitMode && renderPicker(jobB ?? null, (id) => setJobB(id), menuOpenB, setMenuOpenB)}
                 {splitMode && <button className="ja-btn-close-split" onClick={toggleSplit}>✕</button>}
               </div>
-              {/* legend */}
-              <div className="ja-radar-legend">
-                {radarDatasets.map(ds => (
-                  <span key={ds.label} className="ja-legend-item">
-                    <span className="ja-legend-dot" style={{ background: ds.color }} />{ds.label}
-                  </span>
-                ))}
-              </div>
               {/* chart */}
               <div className="ja-radar-svg-wrap">
-                {loadingA
+                {loadingProfileA
                   ? <div className="ja-center"><div className="wp-spinner" /><span className="ja-status-txt">Loading…</span></div>
                   : <RadarChart datasets={radarDatasets} />
                 }
@@ -596,10 +683,10 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
             </div>
 
             {/* breakdown sidebar */}
-            <div className="ja-radar-sidebar">
+            <div className="ja-radar-sidebar" style={{ borderLeft: '1px solid rgba(255,255,255,0.08)' }}>
               <div className="ja-radar-sidebar-title">Skill Area Breakdown</div>
               {radarDatasets.map(ds => (
-                <div key={ds.label}>
+                <div key={ds.label} style={{ marginBottom: '16px' }}>
                   <div className="ja-breakdown-ds-name" style={{ color: ds.color }}>{ds.label}</div>
                   {RADAR_AXES.map((axis, i) => {
                     const pct = Math.round(ds.values[i] * 100);
@@ -615,7 +702,7 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
                   })}
                 </div>
               ))}
-              {!skillDataA && !loadingA && (
+              {profileA.length === 0 && !loadingProfileA && (
                 <p className="ja-status-txt" style={{ fontSize: '0.75rem' }}>Select a job to view the skill profile.</p>
               )}
             </div>

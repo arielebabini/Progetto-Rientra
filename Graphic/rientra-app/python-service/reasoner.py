@@ -472,6 +472,43 @@ def get_importance_summary(job_id: Optional[str] = None) -> list[dict]:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+#  Query — Job skill/ability demand profile  (used by radar chart)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def get_job_skill_profile(job_id: str) -> list[dict]:
+    """
+    Returns every Skill/Ability required by the given job with its raw O*NET
+    score (0–100).  This is purely job-side data — no worker is involved —
+    so comparing two jobs actually reflects their different skill demands.
+
+    Used by the frontend radar chart to show what a job 'tends toward'
+    (e.g. Carpenter → high Physical scores).
+    """
+    job_ind = default_world.search_one(iri=f"*#{job_id}")
+    if job_ind is None:
+        raise KeyError(f"Job '{job_id}' not found in ontology.")
+
+    rows = _sparql(f"""
+        SELECT DISTINCT ?skab ?score WHERE {{
+            <{job_ind.iri}> <{IRI_REQUIRES}> ?jde .
+            ?jde  <{IRI_CONCERNS}>  ?skab .
+            ?jde  <{IRI_HAS_SCORE}> ?score .
+        }}
+    """)
+
+    seen: dict = {}
+    for skab, score_raw in rows:
+        key   = str(skab)
+        score = int(score_raw) if score_raw is not None else 0
+        # keep highest score if duplicated
+        if key not in seen or score > seen[key]["score"]:
+            seen[key] = {"id": local_name(skab), "score": score}
+
+    result = sorted(seen.values(), key=lambda s: (-s["score"], s["id"]))
+    return result
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 #  Query — GCS% and AISA% for all selected workers × jobs  (Q1+Q2)
 # ═══════════════════════════════════════════════════════════════════════════════
 

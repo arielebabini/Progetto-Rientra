@@ -33,6 +33,7 @@ from reasoner import (
     get_importance_summary,
     get_match_results,
     get_skill_detail,
+    get_job_skill_profile,
     set_selected_worker,
     get_all_icf_codes,
     update_health_conditions,
@@ -43,6 +44,7 @@ from models import (
     WorkerSummary,
     WorkerDetail,
     JobSummary,
+    JobSkillProfileEntry,
     HealthConditionsResponse,
     ImportanceEntry,
     MatchResult,
@@ -380,6 +382,36 @@ def match_detail(body: MatchDetailRequest) -> SkillDetailResponse:
     try:
         data = get_skill_detail(body.worker_id, body.job_id)
         return SkillDetailResponse(**data)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get(
+    "/jobs/{job_id}/profile",
+    response_model=list[JobSkillProfileEntry],
+    summary="All skills a job requires with their O*NET scores (job-only, no worker)",
+    tags=["Jobs"],
+)
+def job_profile(job_id: str) -> list[JobSkillProfileEntry]:
+    """
+    Returns the complete list of Skill/Ability individuals required by the
+    given job, each with its raw O*NET score (0–100).  No worker is
+    involved — call this to understand what a job **tends toward** and to
+    build radar / inclination charts independently of any health condition.
+    """
+    _require_ready()
+    try:
+        entries = get_job_skill_profile(job_id)
+        if not entries:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No skill data found for job '{job_id}'.",
+            )
+        return [JobSkillProfileEntry(**e) for e in entries]
+    except HTTPException:
+        raise
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except Exception as exc:

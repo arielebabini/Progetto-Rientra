@@ -118,6 +118,22 @@ export function fetchSkillDetail(
   });
 }
 
+// ── Job skill-demand profile (radar chart, no worker needed) ──────────────────
+
+export interface JobSkillEntry {
+  id: string;
+  score: number; // raw O*NET score 0–100, purely job-side
+}
+
+/**
+ * All skills a job requires with their O*NET scores.
+ * Worker-independent: use for the radar "inclination" chart to show
+ * what a job is oriented toward (e.g. Carpenter → high Physical scores).
+ */
+export function fetchJobProfile(jobId: string): Promise<JobSkillEntry[]> {
+  return apiFetch<JobSkillEntry[]>(`/jobs/${encodeURIComponent(jobId)}/profile`);
+}
+
 // ── Worker selection ──────────────────────────────────────────────────────────
 
 export interface SelectWorkerResponse {

@@ -48,6 +48,11 @@ class JobSummary(BaseModel):
     id:    str
     label: str
 
+class JobSkillProfileEntry(BaseModel):
+    """One skill/ability required by a job, with its raw O*NET score (0–100)."""
+    id:    str
+    score: int = Field(..., description="O*NET importance score [0-100]")
+
 
 # ── Health Conditions ─────────────────────────────────────────────────────────
 
