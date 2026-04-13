@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import './JobAnalysisView.css';
 import {
   fetchMatchResults,
@@ -10,35 +10,155 @@ import {
 } from '../api/semanticService';
 
 /* ═══════════════════════════════════════════════════════════════
-   Scatter plot coordinate system
+   Scatter plot — layout constants
+   PAD is in SVG user-units and stays fixed so labels never scale.
 ═══════════════════════════════════════════════════════════════ */
-const VB_W = 600, VB_H = 280;
-const PAD = { l: 62, r: 22, t: 22, b: 52 };
-const PW = VB_W - PAD.l - PAD.r;
-const PH = VB_H - PAD.t - PAD.b;
+const PAD = { l: 62, r: 24, t: 20, b: 50 };
 const X_MAX = 55, Y_MAX = 25;
-
-const toX = (a: number) => PAD.l + (a / X_MAX) * PW;
-const toY = (g: number) => PAD.t + PH - (g / Y_MAX) * PH;
-
-const zonePts = (z: 'green' | 'yellow' | 'red') => {
-  const pts: [number, number][] =
-    z === 'green' ? [[0, 0], [31, 0], [0, 15.5]] :
-      z === 'yellow' ? [[0, 15.5], [31, 0], [42, 0], [0, 21]] :
-        [[0, 21], [42, 0], [X_MAX, 0], [X_MAX, Y_MAX], [0, Y_MAX]];
-  return pts.map(([a, g]) => `${toX(a)},${toY(g)}`).join(' ');
-};
-
 const X_TICKS = [0, 10, 20, 30, 40, 50];
 const Y_TICKS = [0, 5, 10, 15, 20, 25];
 
-/* Suitability zone colours — muted fills only, no neon */
-const ZONE_FILL = { green: 'rgba(34,197,94,0.10)', yellow: 'rgba(245,158,11,0.10)', red: 'rgba(239,68,68,0.10)' };
-const ZONE_LINE = { red: 'rgba(239,68,68,0.65)', yellow: 'rgba(245,158,11,0.65)' };
-
 /* ═══════════════════════════════════════════════════════════════
-   Criticality colour map — desaturated to match app palette
+   ScatterPlot component
+   Tracks its container's real pixel size with ResizeObserver so
+   the viewBox grows with the space — dots / labels stay the same
+   visual size because PAD values are in fixed SVG user-units.
 ═══════════════════════════════════════════════════════════════ */
+interface ScatterPlotProps {
+  matchResults: MatchResult[];
+  jobA: string | null;
+  jobB: string | null;
+  onSelect: (id: string) => void;
+}
+function ScatterPlot({ matchResults, jobA, jobB, onSelect }: ScatterPlotProps) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ w: 600, h: 300 });
+  const [tooltip, setTooltip] = useState<{ dataX: number; dataY: number; result: MatchResult } | null>(null);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(entries => {
+      for (const e of entries) {
+        const { width, height } = e.contentRect;
+        if (width > 10 && height > 10) setSize({ w: Math.round(width), h: Math.round(height) });
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const { w, h } = size;
+  const PW = w - PAD.l - PAD.r;
+  const PH = h - PAD.t - PAD.b;
+  const toX = (a: number) => PAD.l + (a / X_MAX) * PW;
+  const toY = (g: number) => PAD.t + PH - (g / Y_MAX) * PH;
+
+  return (
+    <div ref={wrapRef} style={{ flex: 1, minHeight: 0, minWidth: 0, position: 'relative' }}>
+      <svg
+        viewBox={`0 0 ${w} ${h}`}
+        width={w} height={h}
+        style={{ display: 'block', overflow: 'visible' }}
+        aria-label="Job suitability scatter plot"
+      >
+        <defs>
+          <clipPath id="ja-clip">
+            <rect x={PAD.l} y={PAD.t} width={PW} height={PH} />
+          </clipPath>
+        </defs>
+
+        {/* plot area */}
+        <rect x={PAD.l} y={PAD.t} width={PW} height={PH} fill="rgba(0,0,0,0.15)" rx="3" />
+
+        {/* dashed grid */}
+        {X_TICKS.map(t => <line key={`xg${t}`} x1={toX(t)} y1={PAD.t} x2={toX(t)} y2={PAD.t + PH} stroke="rgba(255,255,255,0.09)" strokeWidth="0.6" strokeDasharray="3,5" />)}
+        {Y_TICKS.map(t => <line key={`yg${t}`} x1={PAD.l} y1={toY(t)} x2={PAD.l + PW} y2={toY(t)} stroke="rgba(255,255,255,0.09)" strokeWidth="0.6" strokeDasharray="3,5" />)}
+
+        {/* border */}
+        <rect x={PAD.l} y={PAD.t} width={PW} height={PH} fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="0.8" rx="3" />
+
+        {/* suitability threshold lines — muted, clipped to plot area */}
+        <g clipPath="url(#ja-clip)">
+          {/* NOT SUITABLE boundary */}
+          <line x1={toX(0)} y1={toY(21)} x2={toX(42)} y2={toY(0)} stroke="rgba(210,80,80,0.30)" strokeWidth="1.2" strokeDasharray="6,4" />
+          {/* WITH PRECAUTIONS boundary */}
+          <line x1={toX(0)} y1={toY(15.5)} x2={toX(31)} y2={toY(0)} stroke="rgba(190,145,55,0.30)" strokeWidth="1.2" strokeDasharray="6,4" />
+        </g>
+
+        {/* X axis */}
+        {X_TICKS.map(t => (
+          <g key={`xt${t}`}>
+            <line x1={toX(t)} y1={PAD.t + PH} x2={toX(t)} y2={PAD.t + PH + 5} stroke="rgba(255,255,255,0.20)" strokeWidth="0.8" />
+            <text x={toX(t)} y={PAD.t + PH + 15} textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.45)">{t}</text>
+          </g>
+        ))}
+
+        {/* Y axis */}
+        {Y_TICKS.map(t => (
+          <g key={`yt${t}`}>
+            <line x1={PAD.l - 5} y1={toY(t)} x2={PAD.l} y2={toY(t)} stroke="rgba(255,255,255,0.20)" strokeWidth="0.8" />
+            <text x={PAD.l - 8} y={toY(t) + 3} textAnchor="end" fontSize="9" fill="rgba(255,255,255,0.45)">{t}</text>
+          </g>
+        ))}
+
+        {/* axis labels */}
+        <text x={PAD.l + PW / 2} y={h - 6} textAnchor="middle" fontSize="9" fontWeight="500" fill="rgba(255,255,255,0.35)" letterSpacing="0.5">
+          AMOUNT OF IMPAIRED SKILLS &amp; ABILITIES — AISA (%)
+        </text>
+        <text x={12} y={PAD.t + PH / 2} textAnchor="middle" fontSize="9" fontWeight="500" fill="rgba(255,255,255,0.35)" letterSpacing="0.5"
+          transform={`rotate(-90,12,${PAD.t + PH / 2})`}>
+          GENERAL CRITICALITY SCORE — GCS (%)
+        </text>
+
+        {/* data points */}
+        {matchResults.map(r => {
+          const cx = toX(r.aisa_pct), cy = toY(r.gcs_pct);
+          const active = r.job_id === jobA || r.job_id === jobB;
+          return (
+            <g key={r.job_id} style={{ cursor: 'pointer' }}
+              onClick={() => onSelect(r.job_id)}
+              onMouseEnter={() => setTooltip({ dataX: r.aisa_pct, dataY: r.gcs_pct, result: r })}
+              onMouseLeave={() => setTooltip(null)}>
+              {active && <circle cx={cx} cy={cy} r="11" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.4" />}
+              <circle cx={cx} cy={cy} r={active ? 7 : 5.5} fill={r.suitability_color} opacity={active ? 1 : 0.82} />
+            </g>
+          );
+        })}
+
+        {/* tooltip */}
+        {tooltip && (() => {
+          const r = tooltip.result;
+          const lbl = r.job_id.replace(/_/g, ' ');
+          const trunc = lbl.length > 22 ? lbl.slice(0, 22) + '…' : lbl;
+          const bw = 170, bh = 64;
+          const px = toX(tooltip.dataX), py = toY(tooltip.dataY);
+          const tx = px + 14 + bw > w - PAD.r ? px - bw - 14 : px + 14;
+          const ty = Math.max(PAD.t + 2, Math.min(py - bh / 2, PAD.t + PH - bh - 2));
+          const icon = r.suitability === 'SUITABLE' ? '✔' : r.suitability === 'SUITABLE WITH PRECAUTIONS' ? '⚠' : '✘';
+          return (
+            <g style={{ pointerEvents: 'none' }}>
+              <line x1={px} y1={PAD.t} x2={px} y2={PAD.t + PH} stroke="rgba(255,255,255,0.07)" strokeWidth="0.8" strokeDasharray="4,3" clipPath="url(#ja-clip)" />
+              <line x1={PAD.l} y1={py} x2={PAD.l + PW} y2={py} stroke="rgba(255,255,255,0.07)" strokeWidth="0.8" strokeDasharray="4,3" clipPath="url(#ja-clip)" />
+              <rect x={tx} y={ty} width={bw} height={bh} rx="7" fill="rgba(14,28,54,0.97)" stroke="rgba(255,255,255,0.12)" strokeWidth="0.8" />
+              <rect x={tx} y={ty} width="3" height={bh} rx="3" fill={r.suitability_color} opacity="0.85" />
+              <text x={tx + 11} y={ty + 17} fontSize="10" fontWeight="700" fill="rgba(255,255,255,0.92)">{trunc}</text>
+              <text x={tx + 11} y={ty + 31} fontSize="8.5" fill="rgba(255,255,255,0.40)">
+                GCS <tspan fontWeight="600" fill="rgba(255,255,255,0.78)">{r.gcs_pct.toFixed(1)}%</tspan>
+                {'   '}AISA <tspan fontWeight="600" fill="rgba(255,255,255,0.78)">{r.aisa_pct.toFixed(1)}%</tspan>
+              </text>
+              <text x={tx + 11} y={ty + 48} fontSize="8" fontWeight="700" fill={r.suitability_color} letterSpacing="0.4">
+                {icon}{' '}{r.suitability}
+              </text>
+            </g>
+          );
+        })()}
+      </svg>
+    </div>
+  );
+}
+
+
 const CRIT_COLOR: Record<string, string> = {
   'not critical': 'rgba(255,255,255,0.30)',
   'SLIGHTLY CRITICAL': '#6aad8c',
@@ -148,7 +268,6 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
   const [matchResults, setMatchResults] = useState<MatchResult[]>([]);
   const [loadingMatch, setLoadingMatch] = useState(true);
   const [matchError, setMatchError] = useState<string | null>(null);
-  const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const [mainTab, setMainTab] = useState<MainTab>('map');
 
   const [jobA, setJobA] = useState<string | null>(null);
@@ -175,11 +294,76 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
   const [allProfiles, setAllProfiles] = useState<Record<string, JobSkillEntry[]>>({});
   const [loadingAllProfiles, setLoadingAllProfiles] = useState(false);
 
-  /* fetch */
+  /* ── Per-worker session cache ──────────────────────────────────────────
+     Saves each worker's job-comparison state so switching back restores it.
+     Only jobA/jobB/splitMode/sorts are saved; skill data is re-fetched.
+  ─────────────────────────────────────────────────────────────────────── */
+  type WorkerSession = {
+    jobA: string | null; jobB: string | null; splitMode: boolean;
+    sortColA: SortCol; sortDirA: SortDir; sortColB: SortCol; sortDirB: SortDir;
+  };
+  const sessionCache = useRef<Record<string, WorkerSession>>({});
+  // Tracks the current mutable values so the cleanup closure is never stale
+  const liveState = useRef<WorkerSession>({
+    jobA: null, jobB: null, splitMode: false,
+    sortColA: null, sortDirA: null, sortColB: null, sortDirB: null,
+  });
+  liveState.current = { jobA, jobB, splitMode, sortColA, sortDirA, sortColB, sortDirB };
+  // Signals the fetch effect NOT to auto-select the first job (restored session exists)
+  const skipAutoSelectRef = useRef(false);
+
+  /* Save outgoing worker session → restore incoming worker session */
+  useEffect(() => {
+    return () => {
+      // This runs when workerId is about to change (cleanup of the previous effect).
+      // Save the current live state under the old workerId.
+      // We read from sessionCache to know the last saved workerId key:
+      // simply store keyed by the workerId value captured in this closure.
+      sessionCache.current[workerId] = { ...liveState.current };
+    };
+  }, [workerId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const saved = sessionCache.current[workerId];
+    if (saved) {
+      // Restore previous session for this worker
+      skipAutoSelectRef.current = true;
+      setJobA(saved.jobA);
+      setJobB(saved.jobB);
+      setSplitMode(saved.splitMode);
+      setSortColA(saved.sortColA);
+      setSortDirA(saved.sortDirA);
+      setSortColB(saved.sortColB);
+      setSortDirB(saved.sortDirB);
+    } else {
+      // First visit — reset to empty; fetch effect will auto-pick first job
+      skipAutoSelectRef.current = false;
+      setJobA(null);
+      setJobB(null);
+      setSplitMode(false);
+      setSortColA(null); setSortDirA(null);
+      setSortColB(null); setSortDirB(null);
+    }
+    // Always clear fetched data — it will be re-fetched for the new worker
+    setMatchResults([]);
+    setSkillDataA(null);
+    setSkillDataB(null);
+    setMenuOpenA(false);
+    setMenuOpenB(false);
+    setProfileA([]);
+    setProfileB([]);
+    setAllProfiles({});
+  }, [workerId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* fetch match results */
   useEffect(() => {
     setLoadingMatch(true); setMatchError(null);
     fetchMatchResults(workerId)
-      .then(r => { setMatchResults(r); if (r.length) setJobA(r[0].job_id); })
+      .then(r => {
+        setMatchResults(r);
+        if (r.length && !skipAutoSelectRef.current) setJobA(r[0].job_id);
+        skipAutoSelectRef.current = false;
+      })
       .catch(e => setMatchError(e.message ?? 'Failed to load'))
       .finally(() => setLoadingMatch(false));
   }, [workerId]);
@@ -306,115 +490,7 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
     }).filter(Boolean) as RadarDataset[];
   }, [allProfiles, matchResults]);
 
-  /* ── Scatter plot ── */
-  const renderScatter = () => (
-    <svg viewBox={`0 0 ${VB_W} ${VB_H}`} className="ja-scatter-svg"
-      aria-label="Job suitability scatter plot" preserveAspectRatio="xMidYMid meet">
-      <defs>
-        <clipPath id="ja-clip">
-          <rect x={PAD.l} y={PAD.t} width={PW} height={PH} />
-        </clipPath>
-      </defs>
-
-      {/* plot background */}
-      <rect x={PAD.l} y={PAD.t} width={PW} height={PH} fill="rgba(0,0,0,0.25)" rx="3" />
-
-      {/* zone fills */}
-      <g clipPath="url(#ja-clip)">
-        <polygon points={zonePts('green')} fill={ZONE_FILL.green} />
-        <polygon points={zonePts('yellow')} fill={ZONE_FILL.yellow} />
-        <polygon points={zonePts('red')} fill={ZONE_FILL.red} />
-      </g>
-
-      {/* subtle grid */}
-      {X_TICKS.map(t => <line key={`xg${t}`} x1={toX(t)} y1={PAD.t} x2={toX(t)} y2={PAD.t + PH} stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" strokeDasharray="3,4" />)}
-      {Y_TICKS.map(t => <line key={`yg${t}`} x1={PAD.l} y1={toY(t)} x2={PAD.l + PW} y2={toY(t)} stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" strokeDasharray="3,4" />)}
-
-      {/* boundary lines */}
-      <g clipPath="url(#ja-clip)">
-        <line x1={toX(0)} y1={toY(21)} x2={toX(42)} y2={toY(0)} stroke={ZONE_LINE.red} strokeWidth="1.3" />
-        <line x1={toX(0)} y1={toY(15.5)} x2={toX(31)} y2={toY(0)} stroke={ZONE_LINE.yellow} strokeWidth="1.3" />
-      </g>
-
-      {/* zone labels */}
-      <text x={toX(2)} y={toY(23.2)} fontSize="7.5" fontWeight="700" fill="rgba(239,68,68,0.55)" letterSpacing="0.9">NOT SUITABLE</text>
-      <text x={toX(2)} y={toY(12.8)} fontSize="7.5" fontWeight="700" fill="rgba(245,158,11,0.55)" letterSpacing="0.9">WITH PRECAUTIONS</text>
-      <text x={toX(2)} y={toY(2.8)} fontSize="7.5" fontWeight="700" fill="rgba(34,197,94,0.55)" letterSpacing="0.9">SUITABLE</text>
-
-      {/* border */}
-      <rect x={PAD.l} y={PAD.t} width={PW} height={PH} fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="0.8" rx="3" />
-
-      {/* axes */}
-      {X_TICKS.map(t => (
-        <g key={`xt${t}`}>
-          <line x1={toX(t)} y1={PAD.t + PH} x2={toX(t)} y2={PAD.t + PH + 4} stroke="rgba(255,255,255,0.22)" strokeWidth="0.8" />
-          <text x={toX(t)} y={PAD.t + PH + 14} textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.45)">{t}</text>
-        </g>
-      ))}
-      {Y_TICKS.map(t => (
-        <g key={`yt${t}`}>
-          <line x1={PAD.l - 4} y1={toY(t)} x2={PAD.l} y2={toY(t)} stroke="rgba(255,255,255,0.22)" strokeWidth="0.8" />
-          <text x={PAD.l - 6} y={toY(t) + 3} textAnchor="end" fontSize="8" fill="rgba(255,255,255,0.45)" >{t}</text>
-        </g>
-      ))}
-      <text x={PAD.l + PW / 2} y={VB_H - 5} textAnchor="middle" fontSize="8.5" fontWeight="500" fill="rgba(255,255,255,0.38)" letterSpacing="0.4">
-        AMOUNT OF IMPAIRED SKILLS &amp; ABILITIES — AISA (%)
-      </text>
-      <text x={13} y={PAD.t + PH / 2} textAnchor="middle" fontSize="8.5" fontWeight="500" fill="rgba(255,255,255,0.38)" letterSpacing="0.4"
-        transform={`rotate(-90,13,${PAD.t + PH / 2})`}>
-        GENERAL CRITICALITY SCORE — GCS (%)
-      </text>
-
-      {/* data points */}
-      {matchResults.map(r => {
-        const cx = toX(r.aisa_pct), cy = toY(r.gcs_pct);
-        const isA = r.job_id === jobA, isB = r.job_id === jobB;
-        const active = isA || isB;
-        const col = r.suitability_color;
-        return (
-          <g key={r.job_id} style={{ cursor: 'pointer' }}
-            onClick={() => setJobA(r.job_id)}
-            onMouseEnter={() => setTooltip({ dataX: r.aisa_pct, dataY: r.gcs_pct, result: r })}
-            onMouseLeave={() => setTooltip(null)}>
-            {active && <circle cx={cx} cy={cy} r="13" fill="none" stroke={col} strokeWidth="1" opacity="0.28" className="ja-ring-pulse" />}
-            {active && <circle cx={cx} cy={cy} r="8.5" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.2" />}
-            <circle cx={cx} cy={cy} r={active ? 5 : 4} fill={col} opacity={active ? 0.95 : 0.75} className="ja-dot" />
-          </g>
-        );
-      })}
-
-      {/* tooltip */}
-      {tooltip && (() => {
-        const r = tooltip.result;
-        const lbl = r.job_id.replace(/_/g, ' ');
-        const trunc = lbl.length > 22 ? lbl.slice(0, 22) + '…' : lbl;
-        const bw = 170, bh = 66;
-        const px = toX(tooltip.dataX), py = toY(tooltip.dataY);
-        const tx = px + 14 + bw > VB_W - PAD.r ? px - bw - 14 : px + 14;
-        const ty = Math.max(PAD.t + 2, Math.min(py - bh / 2, PAD.t + PH - bh - 2));
-        const icon = r.suitability === 'SUITABLE' ? '✔' : r.suitability === 'SUITABLE WITH PRECAUTIONS' ? '⚠' : '✘';
-        return (
-          <g style={{ pointerEvents: 'none' }}>
-            <line x1={px} y1={PAD.t} x2={px} y2={PAD.t + PH} stroke="rgba(255,255,255,0.10)" strokeWidth="0.8" strokeDasharray="4,3" clipPath="url(#ja-clip)" />
-            <line x1={PAD.l} y1={py} x2={PAD.l + PW} y2={py} stroke="rgba(255,255,255,0.10)" strokeWidth="0.8" strokeDasharray="4,3" clipPath="url(#ja-clip)" />
-            <rect x={tx} y={ty} width={bw} height={bh} rx="8"
-              fill="rgba(18,34,60,0.96)" stroke="rgba(255,255,255,0.13)" strokeWidth="0.8" />
-            <rect x={tx} y={ty} width="3.5" height={bh} rx="3.5" fill={r.suitability_color} opacity="0.90" />
-            <text x={tx + 12} y={ty + 17} fontSize="10.5" fontWeight="700" fill="rgba(255,255,255,0.92)">{trunc}</text>
-            <text x={tx + 12} y={ty + 32} fontSize="9" fill="rgba(255,255,255,0.42)">
-              GCS <tspan fontWeight="600" fill="rgba(255,255,255,0.80)">{r.gcs_pct.toFixed(1)}%</tspan>
-              {'   '}AISA <tspan fontWeight="600" fill="rgba(255,255,255,0.80)">{r.aisa_pct.toFixed(1)}%</tspan>
-            </text>
-            <text x={tx + 12} y={ty + 50} fontSize="8.5" fontWeight="700" fill={r.suitability_color} letterSpacing="0.4">
-              {icon}{' '}{r.suitability}
-            </text>
-          </g>
-        );
-      })()}
-    </svg>
-  );
-
-  /* ── Job picker dropdown ── */
+/* ── Job picker dropdown ── */
   const renderPicker = (
     jobId: string | null, setJobId: (id: string) => void,
     open: boolean, setOpen: (v: boolean) => void,
@@ -623,7 +699,12 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
                   </span>
                 ))}
               </div>
-              {renderScatter()}
+              <ScatterPlot
+                matchResults={matchResults}
+                jobA={jobA}
+                jobB={jobB}
+                onSelect={id => setJobA(id)}
+              />
             </div>
             <div className="ja-jobs-sidebar">
               <div className="ja-jobs-sidebar-hdr">Jobs</div>
