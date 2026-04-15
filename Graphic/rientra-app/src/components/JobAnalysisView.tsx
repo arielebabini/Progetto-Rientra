@@ -131,7 +131,7 @@ function ScatterPlot({ matchResults, jobA, jobB, onSelect }: ScatterPlotProps) {
           const r = tooltip.result;
           const lbl = r.job_id.replace(/_/g, ' ');
           const trunc = lbl.length > 22 ? lbl.slice(0, 22) + '…' : lbl;
-          const bw = 170, bh = 64;
+          const bw = 200, bh = 76;
           const px = toX(tooltip.dataX), py = toY(tooltip.dataY);
           const tx = px + 14 + bw > w - PAD.r ? px - bw - 14 : px + 14;
           const ty = Math.max(PAD.t + 2, Math.min(py - bh / 2, PAD.t + PH - bh - 2));
@@ -141,13 +141,13 @@ function ScatterPlot({ matchResults, jobA, jobB, onSelect }: ScatterPlotProps) {
               <line x1={px} y1={PAD.t} x2={px} y2={PAD.t + PH} stroke="rgba(255,255,255,0.07)" strokeWidth="0.8" strokeDasharray="4,3" clipPath="url(#ja-clip)" />
               <line x1={PAD.l} y1={py} x2={PAD.l + PW} y2={py} stroke="rgba(255,255,255,0.07)" strokeWidth="0.8" strokeDasharray="4,3" clipPath="url(#ja-clip)" />
               <rect x={tx} y={ty} width={bw} height={bh} rx="7" fill="rgba(14,28,54,0.97)" stroke="rgba(255,255,255,0.12)" strokeWidth="0.8" />
-              <rect x={tx} y={ty} width="3" height={bh} rx="3" fill={r.suitability_color} opacity="0.85" />
-              <text x={tx + 11} y={ty + 17} fontSize="10" fontWeight="700" fill="rgba(255,255,255,0.92)">{trunc}</text>
-              <text x={tx + 11} y={ty + 31} fontSize="8.5" fill="rgba(255,255,255,0.40)">
+              <rect x={tx} y={ty} width="4" height={bh} rx="3" fill={r.suitability_color} opacity="0.85" />
+              <text x={tx + 14} y={ty + 21} fontSize="11.5" fontWeight="700" fill="rgba(255,255,255,0.92)">{trunc}</text>
+              <text x={tx + 14} y={ty + 40} fontSize="9.5" fill="rgba(255,255,255,0.40)">
                 GCS <tspan fontWeight="600" fill="rgba(255,255,255,0.78)">{r.gcs_pct.toFixed(1)}%</tspan>
                 {'   '}AISA <tspan fontWeight="600" fill="rgba(255,255,255,0.78)">{r.aisa_pct.toFixed(1)}%</tspan>
               </text>
-              <text x={tx + 11} y={ty + 48} fontSize="8" fontWeight="700" fill={r.suitability_color} letterSpacing="0.4">
+              <text x={tx + 14} y={ty + 60} fontSize="9" fontWeight="700" fill={r.suitability_color} letterSpacing="0.4">
                 {icon}{' '}{r.suitability}
               </text>
             </g>
@@ -165,6 +165,13 @@ const CRIT_COLOR: Record<string, string> = {
   'MODERATELY CRITICAL': '#c4a83a',
   'RELEVANTLY CRITICAL': '#c47e45',
   'EXTREMELY CRITICAL': '#c04040',
+};
+const CRIT_RANK: Record<string, number> = {
+  'not critical': 0,
+  'SLIGHTLY CRITICAL': 1,
+  'MODERATELY CRITICAL': 2,
+  'RELEVANTLY CRITICAL': 3,
+  'EXTREMELY CRITICAL': 4,
 };
 const ANCHOR_ICON = ['—', '↑', '↑↑', '↑↑↑'];
 
@@ -251,8 +258,9 @@ function RadarChart({ datasets }: { datasets: RadarDataset[] }) {
 /* ═══════════════════════════════════════════════════════════════
    Sort types
 ═══════════════════════════════════════════════════════════════ */
-type SortCol = 'score' | 'anchor' | 'qualifier' | null;
-type SortDir = 'asc' | 'desc' | null;
+export type SortCol = 'score' | 'anchor' | 'qualifier' | 'criticality_label';
+export type SortDir = 'asc' | 'desc';
+export type SortState = { col: SortCol; dir: SortDir }[];
 type MainTab = 'map' | 'radar' | 'detail';
 
 /* ═══════════════════════════════════════════════════════════════
@@ -274,16 +282,18 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
   const [skillDataA, setSkillDataA] = useState<SkillDetailResponse | null>(null);
   const [loadingA, setLoadingA] = useState(false);
   const [menuOpenA, setMenuOpenA] = useState(false);
-  const [sortColA, setSortColA] = useState<SortCol>(null);
-  const [sortDirA, setSortDirA] = useState<SortDir>(null);
+  const [sortsA, setSortsA] = useState<SortState>([]);
+  const [skillSearchA, setSkillSearchA] = useState('');
+  const [showSearchA, setShowSearchA] = useState(false);
 
   const [splitMode, setSplitMode] = useState(false);
   const [jobB, setJobB] = useState<string | null>(null);
   const [skillDataB, setSkillDataB] = useState<SkillDetailResponse | null>(null);
   const [loadingB, setLoadingB] = useState(false);
   const [menuOpenB, setMenuOpenB] = useState(false);
-  const [sortColB, setSortColB] = useState<SortCol>(null);
-  const [sortDirB, setSortDirB] = useState<SortDir>(null);
+  const [sortsB, setSortsB] = useState<SortState>([]);
+  const [skillSearchB, setSkillSearchB] = useState('');
+  const [showSearchB, setShowSearchB] = useState(false);
 
   /* job demand profiles (worker-independent, for radar) */
   const [profileA, setProfileA] = useState<JobSkillEntry[]>([]);
@@ -300,15 +310,17 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
   ─────────────────────────────────────────────────────────────────────── */
   type WorkerSession = {
     jobA: string | null; jobB: string | null; splitMode: boolean;
-    sortColA: SortCol; sortDirA: SortDir; sortColB: SortCol; sortDirB: SortDir;
+    sortsA: SortState; sortsB: SortState;
+    skillSearchA: string; skillSearchB: string;
   };
   const sessionCache = useRef<Record<string, WorkerSession>>({});
   // Tracks the current mutable values so the cleanup closure is never stale
   const liveState = useRef<WorkerSession>({
     jobA: null, jobB: null, splitMode: false,
-    sortColA: null, sortDirA: null, sortColB: null, sortDirB: null,
+    sortsA: [], sortsB: [],
+    skillSearchA: '', skillSearchB: '',
   });
-  liveState.current = { jobA, jobB, splitMode, sortColA, sortDirA, sortColB, sortDirB };
+  liveState.current = { jobA, jobB, splitMode, sortsA, sortsB, skillSearchA, skillSearchB };
   // Signals the fetch effect NOT to auto-select the first job (restored session exists)
   const skipAutoSelectRef = useRef(false);
 
@@ -331,18 +343,20 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
       setJobA(saved.jobA);
       setJobB(saved.jobB);
       setSplitMode(saved.splitMode);
-      setSortColA(saved.sortColA);
-      setSortDirA(saved.sortDirA);
-      setSortColB(saved.sortColB);
-      setSortDirB(saved.sortDirB);
+      setSortsA(saved.sortsA);
+      setSortsB(saved.sortsB);
+      setSkillSearchA(saved.skillSearchA);
+      setSkillSearchB(saved.skillSearchB);
     } else {
       // First visit — reset to empty; fetch effect will auto-pick first job
       skipAutoSelectRef.current = false;
       setJobA(null);
       setJobB(null);
       setSplitMode(false);
-      setSortColA(null); setSortDirA(null);
-      setSortColB(null); setSortDirB(null);
+      setSortsA([]);
+      setSortsB([]);
+      setSkillSearchA('');
+      setSkillSearchB('');
     }
     // Always clear fetched data — it will be re-fetched for the new worker
     setMatchResults([]);
@@ -350,6 +364,8 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
     setSkillDataB(null);
     setMenuOpenA(false);
     setMenuOpenB(false);
+    setShowSearchA(false);
+    setShowSearchB(false);
     setProfileA([]);
     setProfileB([]);
     setAllProfiles({});
@@ -415,14 +431,29 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
     }
   };
 
-  const doSort = (col: SortCol, cc: SortCol, sc: (c: SortCol) => void, cd: SortDir, sd: (d: SortDir) => void) => {
-    if (cc !== col) { sc(col); sd('asc'); return; }
-    if (cd === 'asc') { sd('desc'); return; }
-    sc(null); sd(null);
+  const doSort = (col: SortCol, sorts: SortState, setSorts: (s: SortState) => void) => {
+    const idx = sorts.findIndex(s => s.col === col);
+    if (idx >= 0) {
+      const currentDir = sorts[idx].dir;
+      const newSorts = [...sorts];
+      if (currentDir === 'asc') {
+        newSorts[idx].dir = 'desc';
+      } else {
+        newSorts.splice(idx, 1);
+      }
+      setSorts(newSorts);
+    } else {
+      setSorts([...sorts, { col, dir: 'asc' }]);
+    }
   };
-  const sortIcon = (col: SortCol, cc: SortCol, cd: SortDir) =>
-    cc !== col ? <span className="ja-sort-icon">⇅</span>
-      : <span className="ja-sort-badge">{cd === 'asc' ? '↑' : '↓'}</span>;
+  
+  const sortIcon = (col: SortCol, sorts: SortState) => {
+    const idx = sorts.findIndex(s => s.col === col);
+    if (idx === -1) return <span className="ja-sort-icon">⇅</span>;
+    const s = sorts[idx];
+    const n = sorts.length > 1 ? <sub style={{fontSize: '0.7em', marginLeft: 1, verticalAlign: 'baseline'}}>{idx + 1}</sub> : null;
+    return <span className="ja-sort-badge">{s.dir === 'asc' ? '↑' : '↓'}{n}</span>;
+  };
 
   /* KPI stats */
   const stats = useMemo(() => ({
@@ -463,7 +494,17 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
       });
 
       const mr = matchResults.find(m => m.job_id === id);
-      const color = mr ? mr.suitability_color : RADAR_COLORS[di];
+      let color = mr ? mr.suitability_color : RADAR_COLORS[di];
+
+      if (di === 1 && splitMode && jobA) {
+        const mrA = matchResults.find(m => m.job_id === jobA);
+        if (mrA && mrA.suitability_color === color) {
+          if (color === '#ef4444') color = '#b91c1c'; // darker red
+          else if (color === '#f59e0b') color = '#b45309'; // darker amber
+          else if (color === '#22c55e') color = '#15803d'; // darker green
+        }
+      }
+
       return [{ label: id.replace(/_/g, ' '), color, values }];
     });
   }, [profileA, profileB, splitMode, jobA, jobB, matchResults]);
@@ -492,10 +533,12 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
 
 /* ── Job picker dropdown ── */
   const renderPicker = (
+    panelId: 'A' | 'B',
     jobId: string | null, setJobId: (id: string) => void,
     open: boolean, setOpen: (v: boolean) => void,
   ) => {
     const r = matchResults.find(m => m.job_id === jobId);
+    const otherJobId = panelId === 'A' ? jobB : jobA;
     return (
       <div className="ja-picker-wrap">
         <button className="ja-picker-btn" onClick={() => setOpen(!open)}>
@@ -505,13 +548,15 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
         </button>
         {open && (
           <div className="ja-picker-menu">
-            {matchResults.map(m => (
-              <button key={m.job_id} className={`ja-picker-item${m.job_id === jobId ? ' active' : ''}`}
-                onClick={() => { setJobId(m.job_id); setOpen(false); }}>
-                <span className="ja-picker-dot" style={{ background: m.suitability_color }} />
-                {m.job_id.replace(/_/g, ' ')}
-              </button>
-            ))}
+            {matchResults
+              .filter(m => !splitMode || m.job_id !== otherJobId)
+              .map(m => (
+                <button key={m.job_id} className={`ja-picker-item${m.job_id === jobId ? ' active' : ''}`}
+                  onClick={() => { setJobId(m.job_id); setOpen(false); }}>
+                  <span className="ja-picker-dot" style={{ background: m.suitability_color }} />
+                  {m.job_id.replace(/_/g, ' ')}
+                </button>
+              ))}
           </div>
         )}
       </div>
@@ -524,46 +569,69 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
     jobId: string | null, setJobId: (id: string) => void,
     skillData: SkillDetailResponse | null, loading: boolean,
     open: boolean, setOpen: (v: boolean) => void,
-    sortCol: SortCol, setSortCol: (c: SortCol) => void,
-    sortDir: SortDir, setSortDir: (d: SortDir) => void,
+    sorts: SortState, setSorts: (s: SortState) => void,
+    search: string, setSearch: (v: string) => void,
+    showSearch: boolean, setShowSearch: (v: boolean) => void,
   ) => {
     const result = matchResults.find(r => r.job_id === jobId) ?? null;
     if (!result) return null;
-    const sorted = [...(skillData?.skills ?? [])].sort((a, b) => {
-      if (!sortCol || !sortDir) return 0;
-      return (sortDir === 'asc' ? 1 : -1) * ((a[sortCol] as number) - (b[sortCol] as number));
+    
+    // Filter
+    const filteredSkills = (skillData?.skills ?? []).filter(s => 
+      s.id.replace(/_/g, ' ').toLowerCase().includes(search.toLowerCase())
+    );
+
+    // Sort
+    const sorted = [...filteredSkills].sort((a, b) => {
+      for (const { col, dir } of sorts) {
+        if (a[col] === b[col]) continue;
+        const dirMult = dir === 'asc' ? 1 : -1;
+        if (col === 'criticality_label') {
+          const rankA = CRIT_RANK[a.criticality_label as string] ?? -1;
+          const rankB = CRIT_RANK[b.criticality_label as string] ?? -1;
+          if (rankA !== rankB) return dirMult * (rankA - rankB);
+          continue;
+        }
+        return dirMult * ((a[col] as number) - (b[col] as number));
+      }
+      return 0;
     });
     return (
       <div className="ja-detail-pane">
-        <div className="ja-detail-hdr">
-          {splitMode && <span className="ja-split-lbl">{panelId}</span>}
-          {renderPicker(jobId, setJobId, open, setOpen)}
-          <span className="ja-metric">GCS <strong>{result.gcs_pct.toFixed(2)}%</strong></span>
-          <span className="ja-metric">AISA <strong>{result.aisa_pct.toFixed(2)}%</strong></span>
-          <span className="ja-metric">N skills <strong>{result.n_total}</strong></span>
-          {splitMode ? (
-            <div style={{ flexBasis: '100%', display: 'flex', alignItems: 'center', gap: '12px', minHeight: '32px' }}>
-              <span className="ja-suit-badge"
-                style={{ color: result.suitability_color, borderColor: result.suitability_color + '45', background: result.suitability_color + '12' }}>
-                {result.suitability === 'SUITABLE' ? '✔' : result.suitability === 'SUITABLE WITH PRECAUTIONS' ? '⚠' : '✘'}{' '}
-                {result.suitability}
-              </span>
-              {panelId === 'B' && (
-                <button className="ja-btn-close-split" onClick={toggleSplit} title="Close compare">✕</button>
-              )}
+        <div className="ja-detail-hdr" style={{ 
+          flexDirection: splitMode ? 'column' : 'row', 
+          alignItems: splitMode ? 'stretch' : 'center',
+          gap: splitMode ? '8px' : '12px',
+          height: splitMode ? '84px' : 'auto',
+          boxSizing: 'border-box'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', height: splitMode ? '28px' : 'auto', flexShrink: 0 }}>
+            {splitMode && <span className="ja-split-lbl">{panelId}</span>}
+            {renderPicker(panelId, jobId, setJobId, open, setOpen)}
+            {splitMode && panelId === 'B' && (
+              <button className="ja-btn-close-split" onClick={toggleSplit} title="Close compare" style={{ marginLeft: 'auto' }}>✕</button>
+            )}
+            {!splitMode && panelId === 'A' && (
+              <button className="ja-btn-split" onClick={toggleSplit}>⊞ Compare</button>
+            )}
+          </div>
+
+          <div style={{ 
+            display: 'flex', alignItems: 'center', gap: '12px', 
+            marginLeft: splitMode ? '0' : 'auto', 
+            justifyContent: 'space-between'
+          }}>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <span className="ja-metric">GCS <strong>{result.gcs_pct.toFixed(2)}%</strong></span>
+              <span className="ja-metric">AISA <strong>{result.aisa_pct.toFixed(2)}%</strong></span>
+              <span className="ja-metric">N skills <strong>{result.n_total}</strong></span>
             </div>
-          ) : (
-            <>
-              <span className="ja-suit-badge"
-                style={{ color: result.suitability_color, borderColor: result.suitability_color + '45', background: result.suitability_color + '12' }}>
-                {result.suitability === 'SUITABLE' ? '✔' : result.suitability === 'SUITABLE WITH PRECAUTIONS' ? '⚠' : '✘'}{' '}
-                {result.suitability}
-              </span>
-              {panelId === 'A' && (
-                <button className="ja-btn-split" onClick={toggleSplit}>⊞ Compare</button>
-              )}
-            </>
-          )}
+            <span className="ja-suit-badge"
+              style={{ color: result.suitability_color, borderColor: result.suitability_color + '45', background: result.suitability_color + '12', whiteSpace: 'nowrap' }}>
+              {result.suitability === 'SUITABLE' ? '✔' : result.suitability === 'SUITABLE WITH PRECAUTIONS' ? '⚠' : '✘'}{' '}
+              {result.suitability}
+            </span>
+          </div>
         </div>
         <div className="ja-skills-wrap" style={{ position: 'relative' }}>
           {loading && skillData && (
@@ -577,21 +645,43 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
             <table className="ja-skills-tbl" style={{ opacity: loading ? 0.55 : 1, transition: 'opacity 0.2s' }}>
               <thead>
                 <tr>
-                  <th>Skill / Ability</th>
-                  <th className={`ja-th-sort${sortCol === 'score' ? ' active' : ''}`}
-                    onClick={() => doSort('score', sortCol, setSortCol, sortDir, setSortDir)}>
-                    Score {sortIcon('score', sortCol, sortDir)}</th>
+                  <th className="ja-th-searchable" onClick={() => !showSearch && setShowSearch(true)}>
+                    {!showSearch && !search ? (
+                      <div className="ja-th-search-lbl">
+                        <span>Skill / Ability</span><span className="ja-search-icon">🔍</span>
+                      </div>
+                    ) : (
+                      <div className="ja-th-search-wrap">
+                        <input 
+                          autoFocus
+                          className="ja-th-search-input" 
+                          value={search} 
+                          onChange={e => setSearch(e.target.value)} 
+                          onBlur={() => { if (!search) setShowSearch(false); }}
+                          placeholder="Search skill..."
+                        />
+                        {search && (
+                          <span className="ja-th-search-clear" onClick={(e) => { e.stopPropagation(); setSearch(''); setShowSearch(false); }}>✕</span>
+                        )}
+                      </div>
+                    )}
+                  </th>
+                  <th className={`ja-th-sort${sorts.some(s => s.col === 'score') ? ' active' : ''}`}
+                    onClick={() => doSort('score', sorts, setSorts)}>
+                    Score {sortIcon('score', sorts)}</th>
                   {!splitMode && (
-                    <th className={`ja-th-sort${sortCol === 'anchor' ? ' active' : ''}`}
-                      onClick={() => doSort('anchor', sortCol, setSortCol, sortDir, setSortDir)}>
-                      Importance {sortIcon('anchor', sortCol, sortDir)}</th>
+                    <th className={`ja-th-sort${sorts.some(s => s.col === 'anchor') ? ' active' : ''}`}
+                      onClick={() => doSort('anchor', sorts, setSorts)}>
+                      Importance {sortIcon('anchor', sorts)}</th>
                   )}
-                  <th className={`ja-th-sort${sortCol === 'qualifier' ? ' active' : ''}`}
-                    onClick={() => doSort('qualifier', sortCol, setSortCol, sortDir, setSortDir)}>
-                    Qualifier {sortIcon('qualifier', sortCol, sortDir)}</th>
+                  <th className={`ja-th-sort${sorts.some(s => s.col === 'qualifier') ? ' active' : ''}`}
+                    onClick={() => doSort('qualifier', sorts, setSorts)}>
+                    Qualifier {sortIcon('qualifier', sorts)}</th>
                   {!splitMode && <th>CS</th>}
                   {!splitMode && <th className="ja-th-bar">CS bar</th>}
-                  <th>Criticality</th>
+                  <th className={`ja-th-sort${sorts.some(s => s.col === 'criticality_label') ? ' active' : ''}`}
+                    onClick={() => doSort('criticality_label', sorts, setSorts)}>
+                    Criticality {sortIcon('criticality_label', sorts)}</th>
                 </tr>
               </thead>
               <tbody>
@@ -693,7 +783,7 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
           <div className="ja-map-body">
             <div className="ja-scatter-area">
               <div className="ja-scatter-legend">
-                {[['#22c55e', 'Suitable'], ['#f59e0b', 'With precautions'], ['#ef4444', 'Not suitable']].map(([c, l]) => (
+                {[['#ef4444', 'Not suitable'], ['#f59e0b', 'With precautions'], ['#22c55e', 'Suitable']].map(([c, l]) => (
                   <span key={l} className="ja-legend-item">
                     <span className="ja-legend-dot" style={{ background: c }} />{l}
                   </span>
@@ -709,7 +799,13 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
             <div className="ja-jobs-sidebar">
               <div className="ja-jobs-sidebar-hdr">Jobs</div>
               <ul className="ja-jobs-list" role="listbox">
-                {matchResults.map(r => (
+                {[...matchResults].sort((a, b) => {
+                  const rank: Record<string, number> = { 'NOT SUITABLE': 0, 'SUITABLE WITH PRECAUTIONS': 1, 'SUITABLE': 2 };
+                  const rankA = rank[a.suitability] ?? 3;
+                  const rankB = rank[b.suitability] ?? 3;
+                  if (rankA !== rankB) return rankA - rankB;
+                  return a.job_id.localeCompare(b.job_id);
+                }).map(r => (
                   <li key={r.job_id} role="option" aria-selected={r.job_id === jobA}
                     className={`ja-job-item${r.job_id === jobA ? ' selected' : ''}`}
                     onClick={() => setJobA(r.job_id)}>
@@ -749,9 +845,9 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
             <div className="ja-radar-chart-col">
               {/* controls */}
               <div className="ja-radar-controls">
-                {renderPicker(jobA, setJobA, menuOpenA, setMenuOpenA)}
+                {renderPicker('A', jobA, setJobA, menuOpenA, setMenuOpenA)}
                 {!splitMode && <button className="ja-btn-split" onClick={toggleSplit}>⊞ Compare</button>}
-                {splitMode && renderPicker(jobB ?? null, (id) => setJobB(id), menuOpenB, setMenuOpenB)}
+                {splitMode && renderPicker('B', jobB ?? null, (id) => setJobB(id), menuOpenB, setMenuOpenB)}
                 {splitMode && <button className="ja-btn-close-split" onClick={toggleSplit}>✕</button>}
               </div>
               {/* chart */}
@@ -798,11 +894,11 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
             <div className="ja-detail-split">
               {jobA && renderSkillsTable(
                 'A', jobA, setJobA, skillDataA, loadingA, menuOpenA, setMenuOpenA,
-                sortColA, setSortColA, sortDirA, setSortDirA,
+                sortsA, setSortsA, skillSearchA, setSkillSearchA, showSearchA, setShowSearchA,
               )}
               {splitMode && jobB && renderSkillsTable(
                 'B', jobB, setJobB, skillDataB, loadingB, menuOpenB, setMenuOpenB,
-                sortColB, setSortColB, sortDirB, setSortDirB,
+                sortsB, setSortsB, skillSearchB, setSkillSearchB, showSearchB, setShowSearchB,
               )}
             </div>
           </div>
