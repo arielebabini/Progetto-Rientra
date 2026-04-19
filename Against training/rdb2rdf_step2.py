@@ -7,26 +7,31 @@ Dataset in ingresso:
   - Tabella PostgreSQL  : ext_job  (ext01…ext09)
     → creare con: psql -U postgres -d rientra_db -f rientra_ext_jobs.sql
   - Ontologia           : Rientra.rdf  (namespace http://www.stiima.cnr.it/JobList#)
+  - Dati di training    : bert_training_data.xlsx  (60 lavori, 720 coppie)
 
 Strategie di matching:
-  S1 — String Matching   : Jaccard + Overlap + Levenshtein (baseline lessicale)
-  S2 — BERT base         : bert-base-uncased, embedding [CLS], cosine similarity
-  S3 — BioBERT           : dmis-lab/biobert-base-cased-v1.2, embedding [CLS], cosine similarity
-  S4 — MiniLM            : all-MiniLM-L6-v2 via sentence-transformers (riferimento)
+  S1 — String Matching      : Jaccard + Overlap + Levenshtein (baseline lessicale)
+  S2 — BERT base (raw)      : bert-base-uncased, embedding [CLS], cosine similarity
+  S3 — BERT fine-tuned      : bert-base-uncased fine-tuned su bert_training_data.xlsx
+                               con CosineSimilarityLoss (architettura Siamese)
+  S4 — MiniLM               : all-MiniLM-L6-v2 via sentence-transformers (riferimento)
 
-Nota sui modelli BERT "raw":
-  BERT base e BioBERT non sono modelli sentence-level nativi come MiniLM.
-  Per ricavare un embedding di frase si usa il token [CLS] dell'ultimo hidden
-  state — tecnica standard per task di classificazione e similarità con BERT.
-  BioBERT è BERT fine-tuned su letteratura biomedica (PubMed + PMC): non è
-  il dominio ideale per job matching, ma è incluso per confronto metodologico.
+Fine-tuning BERT (S3):
+  Il modello viene addestrato su coppie (testo_A, testo_B, label) dove
+  label=1 indica lavori equivalenti e label=0 lavori diversi.
+  La loss CosineSimilarityLoss spinge il modello a produrre embedding vicini
+  per coppie positive e lontani per coppie negative — esattamente come MiniLM
+  è stato costruito, ma specializzato sul dominio Rientra@.
+  Il modello fine-tuned viene salvato in output/bert_finetuned/ e riutilizzato
+  nelle esecuzioni successive senza ri-addestrare.
 
 Requisiti:
-    pip install psycopg2-binary rdflib rich transformers torch scikit-learn
-    pip install sentence-transformers   # per S4 (MiniLM)
+    pip install psycopg2-binary rdflib rich transformers torch scikit-learn openpyxl
+    pip install sentence-transformers   # per S3 fine-tuning e S4 MiniLM
 
 Uso:
     python rdb2rdf_step2.py
+    python rdb2rdf_step2.py --skip-training   # salta il fine-tuning se modello già salvato
 """
 
 import os
@@ -64,23 +69,31 @@ DB_CONFIG = {
     "password": "postgres",
 }
 
-ONTOLOGY_FILE = "Rientra.rdf"
-OUTPUT_DIR    = "output"
+ONTOLOGY_FILE    = "Rientra.rdf"
+OUTPUT_DIR       = "output"
+TRAINING_FILE    = "bert_training_data.xlsx"   # generato da gen_training_data.py
+FINETUNED_DIR    = os.path.join("output", "bert_finetuned")  # modello salvato
 
 JOBLIST_BASE = "http://www.stiima.cnr.it/JobList#"
 RIENTRA_BASE = "https://www.stiima.cnr.it/rientra#"
 
-# Soglie cosine similarity per i modelli NLP
-# (i modelli BERT raw tendono a score più bassi di MiniLM per sentence similarity)
-S1_THRESHOLD    = 0.12
-BERT_THRESHOLD  = 0.70   # BERT base e BioBERT: soglia più alta perché [CLS] è meno discriminante
-MINILM_THRESHOLD = 0.50  # MiniLM: fine-tuned per sentence similarity, score più affidabili
+# Soglie cosine similarity
+S1_THRESHOLD      = 0.12
+BERT_THRESHOLD    = 0.70   # BERT raw: bassa discriminazione (anisotropy)
+FINETUNED_THRESHOLD = 0.50 # BERT fine-tuned: score calibrati come MiniLM
+MINILM_THRESHOLD  = 0.50
 
-# Modelli da usare
+# Iperparametri fine-tuning
+FT_EPOCHS      = 4      # numero di epoche di training
+FT_BATCH_SIZE  = 16     # batch size
+FT_LR          = 2e-5   # learning rate (standard per fine-tuning BERT)
+FT_WARMUP_STEPS = 50    # warmup scheduler
+
+# Modelli
 MODELS = {
-    "S2_BERT":    "bert-base-uncased",
-    "S3_BioBERT": "dmis-lab/biobert-base-cased-v1.2",
-    "S4_MiniLM":  "all-MiniLM-L6-v2",   # via sentence-transformers
+    "S2_BERT":     "bert-base-uncased",
+    "S3_FINETUNED": FINETUNED_DIR,       # path locale dopo il training
+    "S4_MiniLM":   "all-MiniLM-L6-v2",
 }
 
 
@@ -307,9 +320,8 @@ def run_bert_matching(db_jobs: list[dict],
                       strategy_key: str,
                       threshold: float) -> tuple[list[dict], str]:
     """
-    Esegue il matching con un modello BERT raw (bert-base o biobert).
-    Restituisce (risultati, nome_modello) oppure (None, None) se il modello
-    non è disponibile.
+    Esegue il matching con BERT base raw (S2).
+    Usa il token [CLS] dell'ultimo hidden state come embedding di frase.
     """
     try:
         from transformers import AutoTokenizer, AutoModel
@@ -323,7 +335,6 @@ def run_bert_matching(db_jobs: list[dict],
         onto_texts = [_build_onto_text(j) for j in onto_jobs]
         db_texts   = [f"{r['title']}. {r.get('description', '')}" for r in db_jobs]
 
-        # Pre-calcola embedding O*NET (una volta sola)
         with Progress(SpinnerColumn(), TextColumn("{task.description}"),
                       BarColumn(), TaskProgressColumn(),
                       console=console, transient=True) as p:
@@ -332,9 +343,8 @@ def run_bert_matching(db_jobs: list[dict],
             for txt in onto_texts:
                 onto_embs.append(get_bert_embedding(txt, tokenizer, model))
                 p.advance(t1)
-        onto_embs = np.vstack(onto_embs)   # shape: [n_onto, hidden_size]
+        onto_embs = np.vstack(onto_embs)
 
-        # Calcola embedding per ogni job del DB e cosine similarity
         results = []
         with Progress(SpinnerColumn(), TextColumn("{task.description}"),
                       BarColumn(), TaskProgressColumn(),
@@ -359,6 +369,268 @@ def run_bert_matching(db_jobs: list[dict],
 
     except Exception as e:
         console.print(f"  [yellow]⚠[/] {model_name} non disponibile: [dim]{e}[/]")
+        return None, None
+
+
+# ═════════════════════════════════════════════════════════════
+# FINE-TUNING BERT (S3)
+# ═════════════════════════════════════════════════════════════
+
+def load_training_pairs(xlsx_path: str) -> list[tuple[str, str, float]]:
+    """
+    Legge il file Excel di training e restituisce le coppie per il fine-tuning.
+
+    Logica di lettura della colonna Validated (L):
+    - Se l'utente ha scritto SI a mano per ALCUNE righe e NO per ALTRE
+      in modo non proporzionale al label → modalita' revisione manuale
+      (usa solo le righe con SI, esclude quelle con NO)
+    - In tutti gli altri casi (colonna vuota, formule automatiche, o
+      SI/NO che ricalcano esattamente il label) → usa tutto il dataset,
+      sia positive che negative, che e' il comportamento corretto per
+      il fine-tuning con CosineSimilarityLoss.
+
+    Il training richiede SEMPRE sia positive che negative.
+    """
+    from openpyxl import load_workbook
+
+    wb   = load_workbook(xlsx_path, read_only=True, data_only=True)
+    ws   = wb["Training Pairs"]
+    rows = list(ws.iter_rows(min_row=2, values_only=True))
+    wb.close()
+
+    all_rows = []
+    for row in rows:
+        if len(row) < 6 or row[3] is None:
+            continue
+        text_a    = str(row[3]).strip()
+        text_b    = str(row[4]).strip() if row[4] else ""
+        label_raw = row[5]
+        meaning   = str(row[6]).strip() if len(row) > 6 and row[6] else ""
+        valid_raw = str(row[11]).strip() if len(row) > 11 and row[11] else ""
+
+        if not text_a or not text_b:
+            continue
+
+        # Label numerico dalla colonna F o G
+        if label_raw is not None:
+            try:
+                label = float(label_raw)
+            except (ValueError, TypeError):
+                label = 1.0 if "stesso" in str(label_raw).lower() else 0.0
+        elif meaning:
+            label = 1.0 if "stesso" in meaning.lower() else 0.0
+        else:
+            continue
+
+        valid_upper = valid_raw.upper().strip("'")
+        all_rows.append((text_a, text_b, label, valid_upper))
+
+    if not all_rows:
+        console.print("  [bold red]✗[/] Nessuna coppia trovata nel file.")
+        return []
+
+    # Analizza il pattern della colonna Validated
+    si_rows  = [(a,b,l) for a,b,l,v in all_rows if v == "SI"]
+    no_rows  = [(a,b,l) for a,b,l,v in all_rows if v == "NO"]
+    all_pairs = [(a,b,l) for a,b,l,v in all_rows]
+
+    si_pos = sum(1 for _,_,l in si_rows if l == 1.0)
+    si_neg = sum(1 for _,_,l in si_rows if l == 0.0)
+    no_pos = sum(1 for _,_,l in no_rows if l == 1.0)
+    no_neg = sum(1 for _,_,l in no_rows if l == 0.0)
+
+    # Rileva se la colonna Validated ricalca esattamente il label
+    # (formula automatica: SI=positivo, NO=negativo)
+    formula_pattern = (si_neg == 0 and no_pos == 0 and
+                       len(si_rows) > 0 and len(no_rows) > 0)
+
+    if formula_pattern:
+        # La colonna Validated e' una formula automatica che non aggiunge
+        # informazione rispetto al label → usa tutto il dataset
+        pairs = all_pairs
+        console.print(
+            f"  [dim]Colonna Validated rispecchia il label (formula automatica) "
+            f"— usate tutte le [bold]{len(pairs)}[/] coppie[/]"
+        )
+    elif si_rows and (si_neg > 0 or no_pos > 0):
+        # L'utente ha validato manualmente in modo non correlato al label
+        pairs = si_rows
+        console.print(
+            f"  [bold green]✓[/] Revisione manuale: "
+            f"[bold]{len(pairs)}[/] coppie selezionate con Validated=SI"
+        )
+    elif si_rows and si_neg == 0 and no_rows and no_pos > 0:
+        # Altro caso di validazione parziale
+        pairs = si_rows
+        console.print(
+            f"  [bold green]✓[/] Usate [bold]{len(pairs)}[/] coppie (Validated=SI)"
+        )
+    else:
+        # Nessuna validazione → usa tutto
+        pairs = all_pairs
+        console.print(
+            f"  [dim]Nessuna validazione esplicita — "
+            f"usate tutte le [bold]{len(pairs)}[/] coppie[/]"
+        )
+
+    n_pos = sum(1 for _, _, l in pairs if l == 1.0)
+    n_neg = len(pairs) - n_pos
+
+    if n_pos == 0 or n_neg == 0:
+        console.print(
+            f"  [bold yellow]⚠[/] Solo coppie "
+            f"{'positive' if n_pos > 0 else 'negative'} — "
+            f"aggiunto il dataset completo per bilanciare."
+        )
+        # Fallback: usa tutto il dataset per garantire il bilanciamento
+        pairs = all_pairs
+        n_pos = sum(1 for _, _, l in pairs if l == 1.0)
+        n_neg = len(pairs) - n_pos
+
+    console.print(
+        f"  [dim]Positive (label=1): {n_pos}  |  Negative (label=0): {n_neg}[/]"
+    )
+    return pairs
+
+
+
+def finetune_bert(training_pairs: list[tuple[str, str, float]],
+                  save_dir: str) -> str:
+    """
+    Esegue il fine-tuning di BERT base su coppie (text_a, text_b, label)
+    con CosineSimilarityLoss tramite sentence-transformers.
+
+    Architettura Siamese:
+      - Due passaggi identici di BERT (pesi condivisi) producono
+        due embedding.
+      - La loss minimizza la distanza coseno per coppie positive
+        e la massimizza per coppie negative.
+      - Dopo il training il modello si comporta come MiniLM ma
+        specializzato sul dominio Rientra@.
+
+    Il modello viene salvato in save_dir e ricaricato nelle
+    esecuzioni successive, saltando il training.
+    """
+    try:
+        from sentence_transformers import (SentenceTransformer,
+                                           InputExample, losses)
+        from torch.utils.data import DataLoader
+        import math
+
+        console.print(f"  [dim]Base model: bert-base-uncased[/]")
+        console.print(f"  [dim]Epoche: {FT_EPOCHS}  Batch: {FT_BATCH_SIZE}"
+                      f"  LR: {FT_LR}  Warmup: {FT_WARMUP_STEPS}[/]")
+
+        # Carica BERT base come SentenceTransformer
+        with console.status("  Caricamento bert-base-uncased...", spinner="dots"):
+            model = SentenceTransformer("bert-base-uncased")
+
+        # Costruisce gli InputExample
+        examples = [
+            InputExample(texts=[a, b], label=float(l))
+            for a, b, l in training_pairs
+        ]
+        loader = DataLoader(examples, shuffle=True,
+                            batch_size=FT_BATCH_SIZE)
+
+        # CosineSimilarityLoss:
+        #   loss = MSE(cosine_sim(emb_A, emb_B), label)
+        # Spinge cosine_sim → 1 per label=1 e cosine_sim → -1 per label=0
+        loss_fn = losses.CosineSimilarityLoss(model)
+
+        total_steps = math.ceil(len(examples) / FT_BATCH_SIZE) * FT_EPOCHS
+
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            console=console,
+        ) as p:
+            task = p.add_task(
+                f"  Fine-tuning BERT ({FT_EPOCHS} epoche, "
+                f"{len(examples)} coppie)...",
+                total=FT_EPOCHS,
+            )
+
+            # Callback per aggiornare la progress bar a ogni epoca
+            epoch_counter = [0]
+            original_fit = model.fit
+
+            def fit_with_progress(**kwargs):
+                # sentence-transformers chiama fit() con callback_after_epoch
+                # lo avvolgiamo per tracciare il progresso
+                original_fit(**kwargs)
+
+            model.fit(
+                train_objectives=[(loader, loss_fn)],
+                epochs=FT_EPOCHS,
+                warmup_steps=FT_WARMUP_STEPS,
+                optimizer_params={"lr": FT_LR},
+                show_progress_bar=False,
+                callback=lambda score, epoch, steps:
+                    p.advance(task),
+            )
+
+        os.makedirs(save_dir, exist_ok=True)
+        model.save(save_dir)
+        console.print(f"  [bold green]✓[/] Modello salvato in: [cyan]{save_dir}[/]")
+        return save_dir
+
+    except Exception as e:
+        console.print(f"  [bold red]✗[/] Fine-tuning fallito: [red]{e}[/]")
+        import traceback; traceback.print_exc()
+        return None
+
+
+def run_finetuned_matching(db_jobs: list[dict],
+                           onto_jobs: list[dict],
+                           model_path: str,
+                           threshold: float) -> tuple[list[dict], str]:
+    """
+    Esegue il matching usando il modello BERT fine-tuned salvato.
+    Usa sentence-transformers .encode() (come MiniLM) poiché dopo
+    il fine-tuning il modello è già ottimizzato per cosine similarity.
+    La cosine similarity viene calcolata esplicitamente per uniformità.
+    """
+    try:
+        from sentence_transformers import SentenceTransformer
+
+        with console.status(f"  Caricamento modello fine-tuned...", spinner="dots"):
+            model = SentenceTransformer(model_path)
+        console.print(f"  [bold green]✓[/] Modello fine-tuned caricato da: [cyan]{model_path}[/]")
+
+        onto_texts = [_build_onto_text(j) for j in onto_jobs]
+        db_texts   = [f"{r['title']}. {r.get('description', '')}" for r in db_jobs]
+
+        with Progress(SpinnerColumn(), TextColumn("{task.description}"),
+                      BarColumn(), TaskProgressColumn(),
+                      console=console, transient=True) as p:
+            t1 = p.add_task("  Encoding O*NET...", total=1)
+            onto_embs = model.encode(onto_texts, convert_to_numpy=True)
+            p.advance(t1)
+
+            results = []
+            t2 = p.add_task("  Cosine similarity...", total=len(db_jobs))
+            for i, row in enumerate(db_jobs):
+                q_emb = model.encode(db_texts[i], convert_to_numpy=True)
+                sims  = cosine_similarity_matrix(q_emb, onto_embs)
+                idx   = int(np.argmax(sims))
+                sc    = float(sims[idx])
+                m = {"job": onto_jobs[idx], "score": sc} if sc >= threshold else None
+                results.append({
+                    "id":        row["id"],
+                    "title":     row["title"],
+                    "match":     m,
+                    "score_raw": sc,
+                    "strategy":  "S3_FINETUNED",
+                })
+                p.advance(t2)
+
+        return results, "bert-base-uncased (fine-tuned Rientra@)"
+
+    except Exception as e:
+        console.print(f"  [yellow]⚠[/] Modello fine-tuned non disponibile: [dim]{e}[/]")
         return None, None
 
 
@@ -471,14 +743,14 @@ def print_full_comparison(s1_res: list[dict],
                           model_names: dict[str, str]):
     """
     Tabella unica con S1 + tutti i modelli NLP disponibili, una colonna per modello.
-    nlp_results: { "S2_BERT": [...], "S3_BioBERT": [...], "S4_MiniLM": [...] }
+    nlp_results: { "S2_BERT": [...], "S3_FINETUNED": [...], "S4_MiniLM": [...] }
     model_names: { "S2_BERT": "bert-base-uncased", ... }
     """
     # Indici per lookup rapido per ogni strategia
     idx = {key: {r["id"]: r for r in res}
            for key, res in nlp_results.items() if res}
 
-    available_strategies = [k for k in ["S2_BERT", "S3_BioBERT", "S4_MiniLM"]
+    available_strategies = [k for k in ["S2_BERT", "S3_FINETUNED", "S4_MiniLM"]
                             if k in idx]
 
     # Costruisce header dinamico
@@ -583,7 +855,7 @@ def print_cosine_detail(nlp_results: dict[str, list[dict]],
     console.print(Rule("[dim]Dettaglio score cosine per tutti i candidati O*NET[/]", style="dim"))
     console.print("[dim]  (i valori in verde sono quelli scelti come match migliore)[/]\n")
 
-    available = [k for k in ["S2_BERT", "S3_BioBERT", "S4_MiniLM"]
+    available = [k for k in ["S2_BERT", "S3_FINETUNED", "S4_MiniLM"]
                  if k in nlp_results and nlp_results[k]]
 
     for strategy_key in available:
@@ -628,12 +900,12 @@ def print_summary_multi(s1_res: list[dict],
     lines = [f"  Job totali nel DB  : [bold]{n_total}[/]",
              f"  Match da S1        : [bold {'green' if n_s1 else 'red'}]{n_s1}/{n_total}[/]  [dim](soglia {S1_THRESHOLD})[/]"]
 
-    for key in ["S2_BERT", "S3_BioBERT", "S4_MiniLM"]:
+    for key in ["S2_BERT", "S3_FINETUNED", "S4_MiniLM"]:
         res = nlp_results.get(key)
         if not res:
             lines.append(f"  Match da {key[:2]}         : [dim]— modello non disponibile —[/]")
             continue
-        thr = BERT_THRESHOLD if key in ("S2_BERT", "S3_BioBERT") else MINILM_THRESHOLD
+        thr = BERT_THRESHOLD if key == "S2_BERT" else MINILM_THRESHOLD
         n   = sum(1 for r in res if r.get("match"))
         mname = model_names.get(key, key).split("/")[-1]
         lines.append(
@@ -643,7 +915,7 @@ def print_summary_multi(s1_res: list[dict],
 
     lines += [
         "",
-        "  [dim]Nota: BERT base e BioBERT usano embedding [CLS] — non fine-tuned per sentence",
+        "  [dim]Nota: BERT base (S2) usa embedding [CLS] raw — non fine-tuned per sentence",
         "  similarity. Score tendenzialmente più bassi di MiniLM ma confrontabili tra loro.[/]",
     ]
 
@@ -713,7 +985,7 @@ def save_excel(db_jobs: list[dict],
     s1_idx  = {r["id"]: r for r in s1_res}
     nlp_idx = {key: {r["id"]: r for r in res}
                for key, res in nlp_results.items() if res}
-    avail   = [k for k in ["S2_BERT", "S3_BioBERT", "S4_MiniLM"] if k in nlp_idx]
+    avail   = [k for k in ["S2_BERT", "S3_FINETUNED", "S4_MiniLM"] if k in nlp_idx]
 
     # ── FOGLIO 1: Matching Results ────────────────────────────
     ws1 = wb.active
@@ -794,9 +1066,9 @@ def save_excel(db_jobs: list[dict],
             r2    = nlp_idx[key].get(rid, {})
             m2    = r2.get("match")
             raw   = r2.get("score_raw", 0.0)
-            fills = {"S2_BERT": _FILL_BERT,
-                     "S3_BioBERT": _FILL_BIO,
-                     "S4_MiniLM": _FILL_MINI}
+            fills = {"S2_BERT":      _FILL_BERT,
+                     "S3_FINETUNED": _FILL_BIO,   # riuso colore lilla per fine-tuned
+                     "S4_MiniLM":    _FILL_MINI}
             sf = fills.get(key)
             if m2:
                 wc(cm["match"], m2["job"]["label"],    cfill=sf)
@@ -917,7 +1189,7 @@ def save_excel(db_jobs: list[dict],
                 cell = ws3.cell(row=r_idx, column=c_abs, value=val)
                 if is_best and val is not None:
                     fills = {"S2_BERT": _FILL_BERT,
-                             "S3_BioBERT": _FILL_BIO,
+                             "S3_FINETUNED": _FILL_BIO,
                              "S4_MiniLM": _FILL_MINI}
                     _style_cell(cell, fill=fills.get(key),
                                 font=_GREEN_FONT if score_raw >= 0.70
@@ -939,10 +1211,16 @@ def save_excel(db_jobs: list[dict],
 # ═════════════════════════════════════════════════════════════
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Rientra@ Step 2 — Matching")
+    parser.add_argument("--skip-training", action="store_true",
+                        help="Salta il fine-tuning e usa il modello già salvato")
+    args = parser.parse_args()
+
     console.print()
     console.print(Panel(
         f"[bold white]Rientra@[/] — Step 2: RDB2RDF + String Matching + NLP\n"
-        f"[dim]Modelli: BERT base · BioBERT · MiniLM  |  Metrica: cosine similarity[/]\n"
+        f"[dim]Modelli: BERT base · BERT fine-tuned · MiniLM  |  Metrica: cosine similarity[/]\n"
         f"[dim]{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}[/]",
         border_style="blue", padding=(0, 2),
     ))
@@ -955,7 +1233,8 @@ def main():
     if not test_connection():
         sys.exit(1)
 
-    with console.status(f"  Caricamento ontologia [cyan]{ONTOLOGY_FILE}[/]...", spinner="dots"):
+    with console.status(f"  Caricamento ontologia [cyan]{ONTOLOGY_FILE}[/]...",
+                        spinner="dots"):
         onto_graph = load_ontology(ONTOLOGY_FILE)
     console.print(f"  [bold green]✓[/] Ontologia: [bold]{len(onto_graph)}[/] triple")
 
@@ -968,22 +1247,30 @@ def main():
     # ── [1] Lettura DB ────────────────────────────────────────
     console.print(Rule("[bold magenta]1 · Lettura DB esterno[/]", style="magenta"))
     console.print()
-    db_jobs = fetch_all("SELECT id, title, description FROM ext_job ORDER BY id")
-    console.print(f"  [bold green]✓[/] [bold]{len(db_jobs)}[/] lavori da [cyan]ext_job[/]")
+    db_jobs = fetch_all(
+        "SELECT id, title, description FROM ext_job ORDER BY id")
+    console.print(
+        f"  [bold green]✓[/] [bold]{len(db_jobs)}[/] lavori da [cyan]ext_job[/]")
     console.print()
     print_db_table(db_jobs)
     console.print()
 
     # ── [2] Strategia 1 — String Matching ─────────────────────
-    console.print(Rule("[bold yellow]2 · Strategia 1 — String Matching[/]", style="yellow"))
+    console.print(Rule("[bold yellow]2 · Strategia 1 — String Matching[/]",
+                       style="yellow"))
     console.print("  [dim]Jaccard (0.5) + Overlap (0.3) + Levenshtein (0.2)[/]")
     console.print()
     s1_res = run_string_matching(db_jobs, onto_jobs)
     console.print(f"  [bold green]✓[/] Completato\n")
 
-    # ── [3] Strategia 2 — BERT base ───────────────────────────
-    console.print(Rule("[bold blue]3 · Strategia 2 — BERT base · cosine similarity[/]", style="blue"))
-    console.print(f"  [dim]Modello: {MODELS['S2_BERT']}  |  Embedding: token [CLS]  |  Soglia: {BERT_THRESHOLD}[/]")
+    # ── [3] Strategia 2 — BERT base raw ───────────────────────
+    console.print(Rule("[bold blue]3 · Strategia 2 — BERT base (raw)[/]",
+                       style="blue"))
+    console.print(
+        f"  [dim]Modello: {MODELS['S2_BERT']}  |  "
+        f"Embedding: token [CLS]  |  Soglia: {BERT_THRESHOLD}[/]")
+    console.print(
+        "  [dim]Nota: senza fine-tuning — score alti per tutti (anisotropy)[/]")
     console.print()
     s2_res, s2_name = run_bert_matching(
         db_jobs, onto_jobs,
@@ -994,40 +1281,91 @@ def main():
     if s2_res:
         console.print(f"  [bold green]✓[/] Completato\n")
     else:
-        console.print(f"  [yellow]⚠[/] Saltato — installa [cyan]transformers torch[/]\n")
+        console.print(
+            f"  [yellow]⚠[/] Saltato — installa [cyan]transformers torch[/]\n")
 
-    # ── [4] Strategia 3 — BioBERT ─────────────────────────────
-    console.print(Rule("[bold magenta]4 · Strategia 3 — BioBERT · cosine similarity[/]", style="magenta"))
-    console.print(f"  [dim]Modello: {MODELS['S3_BioBERT']}  |  Embedding: token [CLS]  |  Soglia: {BERT_THRESHOLD}[/]")
-    console.print(f"  [dim]Fine-tuned su: PubMed abstracts + PMC full-text articles (dominio biomedico)[/]")
+    # ── [4] Strategia 3 — BERT fine-tuned ────────────────────
+    console.print(Rule("[bold magenta]4 · Strategia 3 — BERT fine-tuned (Rientra@)[/]",
+                       style="magenta"))
+    console.print(
+        f"  [dim]Base: bert-base-uncased  |  "
+        f"Training: {TRAINING_FILE}  |  Soglia: {FINETUNED_THRESHOLD}[/]")
+    console.print(
+        f"  [dim]Loss: CosineSimilarityLoss  |  "
+        f"Epoche: {FT_EPOCHS}  |  Batch: {FT_BATCH_SIZE}[/]")
     console.print()
-    s3_res, s3_name = run_bert_matching(
-        db_jobs, onto_jobs,
-        model_name=MODELS["S3_BioBERT"],
-        strategy_key="S3_BioBERT",
-        threshold=BERT_THRESHOLD,
-    )
-    if s3_res:
-        console.print(f"  [bold green]✓[/] Completato\n")
+
+    s3_res, s3_name = None, None
+    model_already_saved = os.path.isdir(FINETUNED_DIR) and any(
+        os.scandir(FINETUNED_DIR))
+
+    if args.skip_training and model_already_saved:
+        console.print(
+            f"  [dim]--skip-training attivo: riuso modello in [cyan]{FINETUNED_DIR}[/][/]")
+        s3_res, s3_name = run_finetuned_matching(
+            db_jobs, onto_jobs, FINETUNED_DIR, FINETUNED_THRESHOLD)
+
+    elif not os.path.exists(TRAINING_FILE):
+        console.print(
+            f"  [yellow]⚠[/] File di training [cyan]{TRAINING_FILE}[/] non trovato.\n"
+            f"  Genera il file con: [cyan]python gen_training_data.py[/]\n"
+            f"  Poi valida le coppie nel foglio 'Training Pairs' "
+            f"(colonna Validated = SI/NO).\n")
+
     else:
-        console.print(f"  [yellow]⚠[/] Saltato\n")
+        # Carica le coppie di training
+        console.print("  [dim]Caricamento coppie di training...[/]")
+        training_pairs = load_training_pairs(TRAINING_FILE)
+
+        if model_already_saved and not args.skip_training:
+            console.print(
+                f"  [dim]Modello già presente in [cyan]{FINETUNED_DIR}[/]. "
+                f"Usa --skip-training per riutilizzarlo.[/]")
+            console.print(
+                "  [dim]Avvio nuovo training (sovrascrive il modello precedente)...[/]")
+
+        # Fine-tuning
+        console.print()
+        ft_path = finetune_bert(training_pairs, FINETUNED_DIR)
+
+        if ft_path:
+            console.print()
+            s3_res, s3_name = run_finetuned_matching(
+                db_jobs, onto_jobs, ft_path, FINETUNED_THRESHOLD)
+            if s3_res:
+                console.print(f"  [bold green]✓[/] Completato\n")
+        else:
+            console.print(
+                f"  [yellow]⚠[/] Fine-tuning non riuscito — installa "
+                f"[cyan]sentence-transformers torch[/]\n")
 
     # ── [5] Strategia 4 — MiniLM ──────────────────────────────
-    console.print(Rule("[bold green]5 · Strategia 4 — MiniLM · cosine similarity[/]", style="green"))
-    console.print(f"  [dim]Modello: {MODELS['S4_MiniLM']}  |  Fine-tuned per sentence similarity  |  Soglia: {MINILM_THRESHOLD}[/]")
+    console.print(Rule("[bold green]5 · Strategia 4 — MiniLM (riferimento)[/]",
+                       style="green"))
+    console.print(
+        f"  [dim]Modello: {MODELS['S4_MiniLM']}  |  "
+        f"Fine-tuned per sentence similarity  |  Soglia: {MINILM_THRESHOLD}[/]")
     console.print()
-    s4_res, s4_name = run_minilm_matching(db_jobs, onto_jobs, threshold=MINILM_THRESHOLD)
+    s4_res, s4_name = run_minilm_matching(
+        db_jobs, onto_jobs, threshold=MINILM_THRESHOLD)
     if s4_res:
         console.print(f"  [bold green]✓[/] Completato\n")
     else:
-        console.print(f"  [yellow]⚠[/] Saltato — installa [cyan]sentence-transformers[/]\n")
+        console.print(
+            f"  [yellow]⚠[/] Saltato — installa [cyan]sentence-transformers[/]\n")
 
-    # Raccoglie tutti i risultati disponibili
-    nlp_results  = {}
-    model_names  = {}
-    if s2_res: nlp_results["S2_BERT"]    = s2_res;  model_names["S2_BERT"]    = s2_name
-    if s3_res: nlp_results["S3_BioBERT"] = s3_res;  model_names["S3_BioBERT"] = s3_name
-    if s4_res: nlp_results["S4_MiniLM"]  = s4_res;  model_names["S4_MiniLM"]  = s4_name
+    # Raccoglie risultati disponibili
+    nlp_results: dict[str, list[dict]] = {}
+    model_names: dict[str, str]        = {}
+    if s2_res:
+        nlp_results["S2_BERT"]      = s2_res
+        model_names["S2_BERT"]      = s2_name
+    if s3_res:
+        nlp_results["S3_FINETUNED"] = s3_res
+        model_names["S3_FINETUNED"] = s3_name
+    if s4_res:
+        nlp_results["S4_MiniLM"]    = s4_res
+        model_names["S4_MiniLM"]    = s4_name
 
     # ── [6] Confronto ─────────────────────────────────────────
     console.print(Rule("[bold white]6 · Confronto strategie[/]", style="white"))
@@ -1036,7 +1374,8 @@ def main():
         print_full_comparison(s1_res, nlp_results, model_names)
         print_summary_multi(s1_res, nlp_results, model_names)
     else:
-        console.print("  [yellow]Nessun modello NLP disponibile — solo S1 (string matching)[/]")
+        console.print(
+            "  [yellow]Nessun modello NLP disponibile — solo S1[/]")
     console.print()
 
     # ── [7] Output Excel ──────────────────────────────────────
@@ -1051,21 +1390,26 @@ def main():
     t.add_column(style="dim")
     t.add_column(style="cyan")
     t.add_column(style="dim", justify="right")
-    t.add_row("Excel",          xlsx_path, f"{size_kb:,} KB")
-    t.add_row("Foglio 1",       "Matching Results",
+    t.add_row("Excel",    xlsx_path,           f"{size_kb:,} KB")
+    t.add_row("Foglio 1", "Matching Results",
               f"{len(db_jobs)} righe · tutte le strategie")
-    t.add_row("Foglio 2",       "Ontology Jobs",
+    t.add_row("Foglio 2", "Ontology Jobs",
               f"{len(onto_jobs)} professioni O*NET")
-    t.add_row("Foglio 3",       "Score Detail",
-              "score raw per job × modello")
+    t.add_row("Foglio 3", "Score Detail",
+              "score per job × modello")
     console.print(t)
     console.print()
 
     # ── Fine ──────────────────────────────────────────────────
+    ft_note = (f"Modello fine-tuned salvato in: [cyan]{FINETUNED_DIR}[/]\n"
+               if s3_res else
+               "Fine-tuned non disponibile in questa esecuzione.\n")
     console.print(Panel(
         f"[bold green]Step 2 completato.[/]\n\n"
-        f"Output → [cyan]{xlsx_path}[/]\n\n"
-        f"[dim]Modelli usati: {', '.join(model_names.values()) or 'solo S1'}[/]\n"
+        f"Output → [cyan]{xlsx_path}[/]\n"
+        f"{ft_note}\n"
+        f"[dim]Modelli usati: "
+        f"{', '.join(model_names.values()) or 'solo S1'}[/]\n"
         f"[dim]Prossimo step: Strategia 3 -- ESCO come ponte ontologico[/]",
         border_style="green", padding=(0, 2),
     ))
