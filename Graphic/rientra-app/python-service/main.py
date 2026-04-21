@@ -36,6 +36,7 @@ from reasoner import (
     get_job_skill_profile,
     set_selected_worker,
     get_all_icf_codes,
+    get_all_core_sets,
     update_health_conditions,
 )
 from models import (
@@ -462,6 +463,27 @@ def list_icf_codes() -> list[IcfCodeEntry]:
     try:
         codes = get_all_icf_codes()
         return [IcfCodeEntry(**c) for c in codes]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+# ─ GET /core-sets ─────────────────────────────────────────────────────────────────────
+
+@app.get(
+    "/core-sets",
+    response_model=list[str],
+    summary="All ICF core set labels from the ontology",
+    tags=["Health Conditions"],
+)
+def list_core_sets() -> list[str]:
+    """
+    Returns the sorted list of all distinct ICF core set names that exist
+    in the ontology (e.g. Stroke, Hearing Loss, Low Back Pain, ...).
+    Used to populate Core Set filter dropdowns on the frontend.
+    """
+    _require_ready()
+    try:
+        return get_all_core_sets()
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 

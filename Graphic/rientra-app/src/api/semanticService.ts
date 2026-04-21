@@ -29,6 +29,7 @@ export interface Worker {
 export interface HealthCondition {
   icf_code: string;
   icf_name: string;
+  core_sets: string[];
   bf_qualifier: number | null;
   ap1_qualifier: number | null;
 }
@@ -159,12 +160,18 @@ export interface IcfCodeEntry {
   icf_code: string;
   icf_name: string;
   category: string;
+  core_sets: string[];
   iri: string;
 }
 
 /** All ICF codes in the ontology — used in the Modify Health Conditions wizard. */
 export function fetchAllIcfCodes(): Promise<IcfCodeEntry[]> {
   return apiFetch<IcfCodeEntry[]>('/icf-codes');
+}
+
+/** All distinct ICF core set labels in the ontology (e.g. "Stroke", "Low Back Pain"). */
+export function fetchCoreSets(): Promise<string[]> {
+  return apiFetch<string[]>('/core-sets');
 }
 
 // ── HC mutation ───────────────────────────────────────────────────────────────

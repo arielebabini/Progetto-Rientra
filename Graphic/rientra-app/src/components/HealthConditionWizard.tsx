@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import './HealthConditionWizard.css';
 import {
   fetchAllIcfCodes,
+  fetchCoreSets,
   updateHealthConditions,
   type HealthCondition,
   type IcfCodeEntry,
@@ -31,6 +32,12 @@ const CloseIcon = () => (
   </svg>
 );
 
+const FilterIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+  </svg>
+);
+
 export default function HealthConditionWizard({ workerId, workerDisplayName, currentConditions, onClose, onSaved }: HealthConditionWizardProps) {
   const [step, setStep] = useState<Step>('select');
   const [allIcfCodes, setAllIcfCodes] = useState<IcfCodeEntry[]>([]);
@@ -38,6 +45,9 @@ export default function HealthConditionWizard({ workerId, workerDisplayName, cur
   const [error, setError] = useState<string | null>(null);
 
   const [search, setSearch] = useState('');
+  const [coreSetFilterOpen,      setCoreSetFilterOpen]      = useState(false);
+  const [wizardSelectedCoreSets, setWizardSelectedCoreSets] = useState<string[]>([]);
+  const [availableCoreSets,      setAvailableCoreSets]      = useState<string[]>([]);
   
   // Set of icf_codes that are checked (including currently assigned + newly selected)
   const [selectedCodes, setSelectedCodes] = useState<Set<string>>(new Set());
@@ -66,15 +76,25 @@ export default function HealthConditionWizard({ workerId, workerDisplayName, cur
       })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
+
+    // fetch the canonical list of core set labels for the filter
+    fetchCoreSets()
+      .then(setAvailableCoreSets)
+      .catch(() => {}); // silently ignore — filter just won't show options
   }, [currentConditions]);
 
+  // Derive unique core sets from the full catalogue
   const filteredCodes = useMemo(() => {
     const q = search.toLowerCase();
-    return allIcfCodes.filter(c => 
-      c.icf_code.toLowerCase().includes(q) || 
-      c.icf_name.toLowerCase().includes(q)
-    );
-  }, [allIcfCodes, search]);
+    const matchesText = (c: IcfCodeEntry) =>
+      c.icf_code.toLowerCase().includes(q) ||
+      c.icf_name.toLowerCase().includes(q) ||
+      (c.core_sets || []).join(' ').toLowerCase().includes(q);
+    const matchesFilter = (c: IcfCodeEntry) =>
+      wizardSelectedCoreSets.length === 0 ||
+      (c.core_sets || []).some(cs => wizardSelectedCoreSets.includes(cs));
+    return allIcfCodes.filter(c => matchesText(c) && matchesFilter(c));
+  }, [allIcfCodes, search, wizardSelectedCoreSets]);
 
   const toggleSelection = (code: string) => {
     const next = new Set(selectedCodes);
@@ -181,13 +201,122 @@ export default function HealthConditionWizard({ workerId, workerDisplayName, cur
 
           {step === 'select' && (
             <>
-              <div className="hc-wizard-search-bar">
-                <input 
-                  type="text" 
-                  placeholder="Search..." 
-                  value={search} 
+              <div className="hc-wizard-search-bar" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={search}
                   onChange={e => setSearch(e.target.value)}
+                  style={{ width: 260, maxWidth: '100%' }}
                 />
+
+                {/* Core Set filter */}
+                <div style={{ position: 'relative' }}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setCoreSetFilterOpen(v => !v); }}
+                    style={{
+                      background: coreSetFilterOpen || wizardSelectedCoreSets.length > 0
+                        ? 'rgba(77,217,192,0.15)' : 'rgba(255,255,255,0.04)',
+                      border: `1px solid ${coreSetFilterOpen || wizardSelectedCoreSets.length > 0 ? '#4DD9C0' : 'var(--border-color)'}`,
+                      borderRadius: 8,
+                      color: coreSetFilterOpen || wizardSelectedCoreSets.length > 0 ? '#4DD9C0' : 'var(--text-muted)',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      transition: 'all 0.2s',
+                      whiteSpace: 'nowrap',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '9px 14px',
+                      outline: 'none',
+                      fontFamily: 'inherit',
+                    }}
+                    title="Filter by Core Set"
+                  >
+                    <FilterIcon />
+                    Core Set
+                    {wizardSelectedCoreSets.length > 0 && (
+                      <span style={{
+                        background: '#4DD9C0', color: '#0f2233', borderRadius: '99px',
+                        fontSize: '0.7rem', fontWeight: 700, padding: '1px 7px',
+                      }}>{wizardSelectedCoreSets.length}</span>
+                    )}
+                  </button>
+
+                  {coreSetFilterOpen && (
+                    <div style={{
+                      position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 50,
+                      minWidth: 260, maxHeight: 320, overflowY: 'auto',
+                      background: '#1a2e4a',
+                      border: '1px solid rgba(255,255,255,0.12)',
+                      borderRadius: 10,
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                      padding: '6px 0',
+                    }}>
+                      {/* Header */}
+                      <div style={{ padding: '6px 14px 4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Filter by Core Set</span>
+                        {wizardSelectedCoreSets.length > 0 && (
+                          <button
+                            onClick={() => setWizardSelectedCoreSets([])}
+                            style={{ background: 'none', border: 'none', color: '#4DD9C0', cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}
+                          >Clear all</button>
+                        )}
+                      </div>
+                      <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '4px 0' }} />
+
+                      {availableCoreSets.length === 0 ? (
+                        <div style={{ padding: '10px 14px', color: 'rgba(255,255,255,0.35)', fontSize: '0.82rem' }}>Loading...</div>
+                      ) : (
+                        availableCoreSets.map(cs => {
+                          const checked = wizardSelectedCoreSets.includes(cs);
+                          return (
+                            <button
+                              key={cs}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setWizardSelectedCoreSets(prev =>
+                                  checked ? prev.filter(x => x !== cs) : [...prev, cs]
+                                );
+                              }}
+                              style={{
+                                display: 'flex', alignItems: 'center',
+                                gap: 10, width: '100%', padding: '8px 14px',
+                                cursor: 'pointer', transition: 'background 0.15s',
+                                fontSize: '0.83rem', color: 'var(--text-base)',
+                                boxSizing: 'border-box',
+                                background: 'transparent',
+                                border: 'none',
+                                textAlign: 'left',
+                                fontFamily: 'inherit',
+                                outline: 'none',
+                              }}
+                              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+                              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                            >
+                              <span style={{
+                                width: 16, height: 16, borderRadius: 4, flexShrink: 0,
+                                border: `2px solid ${checked ? '#4DD9C0' : 'rgba(255,255,255,0.3)'}`,
+                                background: checked ? '#4DD9C0' : 'transparent',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                transition: 'all 0.15s',
+                                pointerEvents: 'none',
+                              }}>
+                                {checked && (
+                                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                                    <polyline points="2 6 5 9 10 3" stroke="#0f2233" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                  </svg>
+                                )}
+                              </span>
+                              {cs}
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="hc-wizard-table-container">
@@ -201,6 +330,7 @@ export default function HealthConditionWizard({ workerId, workerDisplayName, cur
                         <th style={{ width: 140 }}>ICF Code No.</th>
                         <th>ICF Code Name</th>
                         <th>ICF Category</th>
+                        <th>Core Set</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -220,11 +350,12 @@ export default function HealthConditionWizard({ workerId, workerDisplayName, cur
                             <td className="hc-table-code">{c.icf_code}</td>
                             <td>{c.icf_name || '—'}</td>
                             <td className="hc-table-category">{c.category}</td>
+                            <td className="hc-table-category" style={{ fontSize: '0.75rem', opacity: 0.8 }}>{(c.core_sets || []).join(', ') || '—'}</td>
                           </tr>
                         );
                       })}
                       {filteredCodes.length === 0 && (
-                        <tr><td colSpan={4} className="hc-table-empty">No codes found</td></tr>
+                        <tr><td colSpan={5} className="hc-table-empty">No codes found</td></tr>
                       )}
                     </tbody>
                   </table>

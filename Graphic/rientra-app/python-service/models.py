@@ -59,6 +59,7 @@ class JobSkillProfileEntry(BaseModel):
 class HealthCondition(BaseModel):
     icf_code:      str
     icf_name:      str = ""
+    core_sets:     list[str] = []
     bf_qualifier:  Optional[int] = None
     ap1_qualifier: Optional[int] = None
 
@@ -137,10 +138,11 @@ class SelectWorkerResponse(BaseModel):
 # ── ICF Codes catalogue  (for HC wizard Step 1) ──────────────────────────────
 
 class IcfCodeEntry(BaseModel):
-    icf_code: str
-    icf_name: str = ""
-    category: str = ""
-    iri:      str = ""
+    icf_code:  str
+    icf_name:  str = ""
+    category:  str = ""
+    core_sets: list[str] = []
+    iri:       str = ""
 
 
 # ── HC update request / response ─────────────────────────────────────────────

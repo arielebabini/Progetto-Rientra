@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import './WorkersPage.css';
 import JobAnalysisView from './JobAnalysisView';
 import {
   fetchStatus,
   fetchWorkers,
   fetchHealthConditions,
+  fetchCoreSets,
   selectWorker,
   type ServiceStatus,
   type Worker,
@@ -66,6 +67,11 @@ const RefreshIcon = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" />
     <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+  </svg>
+);
+const FilterIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
   </svg>
 );
 
@@ -187,9 +193,13 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
   const [loadingConditions,setLoadingConditions]= useState(false);
 
   // ── UI state ───────────────────────────────────────────────────────
-  const [searchQuery,      setSearchQuery]      = useState('');
-  const [dotsMenuOpen,     setDotsMenuOpen]     = useState(false);
-  const [activeNav,        setActiveNav]        = useState<'workers' | 'jobs-analysis' | 'jobs-positions'>(initialNav);
+  const [searchQuery,          setSearchQuery]          = useState('');
+  const [conditionSearchQuery, setConditionSearchQuery] = useState('');
+  const [dotsMenuOpen,         setDotsMenuOpen]         = useState(false);
+  const [coreSetFilterOpen,    setCoreSetFilterOpen]    = useState(false);
+  const [selectedCoreSets,     setSelectedCoreSets]     = useState<string[]>([]);
+  const [allCoreSets,          setAllCoreSets]          = useState<string[]>([]);
+  const [activeNav,            setActiveNav]            = useState<'workers' | 'jobs-analysis' | 'jobs-positions'>(initialNav);
 
   const [switchingWorkerId,setSwitchingWorkerId] = useState<string | null>(null);
   const [isWizardOpen,     setIsWizardOpen]     = useState(false);
@@ -252,6 +262,22 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
     return <span className="wp-sort-icon">⇅</span>;
   };
 
+  // All available core set labels — fetched from API, not derived from conditions
+  const availableCoreSets = allCoreSets;
+
+  const filteredConditions = sortedConditions.filter(c => {
+    const q = conditionSearchQuery.toLowerCase();
+    const matchesSearch = (
+      c.icf_code.toLowerCase().includes(q) ||
+      (c.icf_name || '').toLowerCase().includes(q) ||
+      (c.core_sets || []).join(' ').toLowerCase().includes(q)
+    );
+    const matchesFilter =
+      selectedCoreSets.length === 0 ||
+      (c.core_sets || []).some(cs => selectedCoreSets.includes(cs));
+    return matchesSearch && matchesFilter;
+  });
+
 
   // ── Polling /status until ready ────────────────────────────────────
   const poll = useCallback(async () => {
@@ -288,6 +314,10 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
       .then(setWorkers)
       .catch(e => console.error('fetchWorkers:', e))
       .finally(() => setLoadingWorkers(false));
+    // Also fetch all available core set labels once (for the filter dropdown)
+    fetchCoreSets()
+      .then(setAllCoreSets)
+      .catch(e => console.error('fetchCoreSets:', e));
   }, [isReady]);
 
   // ── Fetch health conditions when a worker is selected ──────────────
@@ -364,14 +394,41 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
             <span className="wp-nav-title">RIENTR@</span>
           </div>
         </div>
-        <div className="wp-nav-links">
-          {(['workers', 'jobs-analysis', 'jobs-positions'] as const).map(n => (
-            <button key={n} id={`nav-${n}`}
-              className={`wp-nav-link ${activeNav === n ? 'active' : ''}`}
-              onClick={() => setActiveNav(n)}>
-              {n === 'workers' ? 'Workers' : n === 'jobs-analysis' ? 'Jobs Analysis' : 'Jobs Positions'}
-            </button>
-          ))}
+        <div className="wp-breadcrumbs">
+          {(() => {
+            const navTitle = activeNav === 'workers' ? 'Worker Information' : activeNav === 'jobs-analysis' ? 'Job Analysis' : 'Job Positions';
+            const breadcrumbItems = [];
+            breadcrumbItems.push({ label: 'Home', onClick: onNavigateHome });
+            breadcrumbItems.push({ label: navTitle, onClick: isWizardOpen ? () => setIsWizardOpen(false) : undefined });
+            if (activeNav === 'workers' && isWizardOpen) {
+              breadcrumbItems.push({ label: 'Modify Health Conditions' });
+            }
+
+            return breadcrumbItems.map((item, index) => {
+              const isCurrent = index === breadcrumbItems.length - 1;
+              const isLastBeforeCurrent = index === breadcrumbItems.length - 2;
+              
+              return (
+                <span key={index} className="wp-breadcrumb-segment">
+                  <span 
+                    className={`wp-breadcrumb-text ${isCurrent ? 'current' : ''} ${isLastBeforeCurrent ? 'last-before-current' : ''}`}
+                    onClick={item.onClick}
+                    role={item.onClick ? "button" : undefined}
+                    tabIndex={item.onClick ? 0 : undefined}
+                  >
+                    {item.label}
+                  </span>
+                  {!isCurrent && (
+                    <span className="wp-breadcrumb-separator">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                      </svg>
+                    </span>
+                  )}
+                </span>
+              );
+            });
+          })()}
         </div>
 
         {/* Service status pill */}
@@ -513,6 +570,85 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                       <div className="wp-section">
                         <div className="wp-section-header">
                           <h2 className="wp-section-title">Current Health Conditions</h2>
+                          
+                          <div className="wp-search-wrapper" style={{ flex: 1, maxWidth: 300, marginBottom: 0 }}>
+                            <span className="wp-search-icon"><SearchIcon /></span>
+                            <input type="text" className="wp-search-input"
+                              placeholder="Search conditions..." value={conditionSearchQuery}
+                              onChange={e => setConditionSearchQuery(e.target.value)} />
+                          </div>
+
+                          {/* Core Set filter dropdown */}
+                          <div className="wp-dots-wrapper" style={{ position: 'relative' }}>
+                            <button
+                              className={`wp-btn-dots ${coreSetFilterOpen || selectedCoreSets.length > 0 ? 'active' : ''}`}
+                              id="btn-coreset-filter"
+                              onClick={() => setCoreSetFilterOpen(v => !v)}
+                              aria-label="Filter by Core Set"
+                              title="Filter by Core Set"
+                              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', width: 'auto' }}
+                            >
+                              <FilterIcon />
+                              <span style={{ fontSize: '0.8rem', fontWeight: 500 }}>Core Set</span>
+                              {selectedCoreSets.length > 0 && (
+                                <span style={{
+                                  background: '#4DD9C0', color: '#0f2233', borderRadius: '99px',
+                                  fontSize: '0.7rem', fontWeight: 700, padding: '1px 7px', marginLeft: 2
+                                }}>{selectedCoreSets.length}</span>
+                              )}
+                            </button>
+                            {coreSetFilterOpen && (
+                              <div className="wp-dropdown" id="coreset-filter-dropdown" style={{ minWidth: 260, maxHeight: 340, overflowY: 'auto' }}>
+                                <div style={{ padding: '6px 12px 4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Filter by Core Set</span>
+                                  {selectedCoreSets.length > 0 && (
+                                    <button
+                                      onClick={() => setSelectedCoreSets([])}
+                                      style={{ background: 'none', border: 'none', color: '#4DD9C0', cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}
+                                    >Clear all</button>
+                                  )}
+                                </div>
+                                <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '4px 0' }} />
+                                {availableCoreSets.length === 0 ? (
+                                  <div style={{ padding: '10px 12px', color: 'rgba(255,255,255,0.4)', fontSize: '0.82rem' }}>No core sets available</div>
+                                ) : (
+                                  availableCoreSets.map(cs => {
+                                    const checked = selectedCoreSets.includes(cs);
+                                    return (
+                                      <button
+                                        key={cs}
+                                        className="wp-dropdown-item"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setSelectedCoreSets(prev =>
+                                            checked ? prev.filter(x => x !== cs) : [...prev, cs]
+                                          );
+                                        }}
+                                        style={{ display: 'flex', alignItems: 'center', gap: 10 }}
+                                      >
+                                        <span style={{
+                                          width: 16, height: 16, borderRadius: 4, flexShrink: 0,
+                                          border: `2px solid ${checked ? '#4DD9C0' : 'rgba(255,255,255,0.3)'}`,
+                                          background: checked ? '#4DD9C0' : 'transparent',
+                                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                          transition: 'all 0.15s',
+                                          pointerEvents: 'none',
+                                        }}>
+                                          {checked && (
+                                            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                                              <polyline points="2 6 5 9 10 3" stroke="#0f2233" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            </svg>
+                                          )}
+                                        </span>
+                                        <span style={{ fontSize: '0.82rem' }}>{cs}</span>
+                                      </button>
+                                    );
+                                  })
+                                )}
+                              </div>
+                            )}
+                          </div>
+
                           <div className="wp-section-actions">
                             <button className="wp-btn-primary" id="btn-modify-health" onClick={() => setIsWizardOpen(true)}>
                               <EditIcon /> Modify Health Conditions
@@ -569,6 +705,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                                   >
                                     Name {sortIcon('name')}
                                   </th>
+                                  <th>Core Set</th>
                                   <th>BF Qualifier</th>
                                   <th>AP1 Qualifier</th>
                                   <th
@@ -581,12 +718,13 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                                 </tr>
                               </thead>
                               <tbody>
-                                {sortedConditions.map((c, i) => {
+                                {filteredConditions.map((c, i) => {
                                   const eff = Math.max(c.bf_qualifier ?? 0, c.ap1_qualifier ?? 0);
                                   return (
                                     <tr key={`${c.icf_code}-${i}`}>
                                       <td><span className="wp-icf-code">{c.icf_code}</span></td>
                                       <td><span className="wp-icf-name">{c.icf_name || '—'}</span></td>
+                                      <td><span className="wp-icf-category" style={{ fontSize: '0.75rem', opacity: 0.8 }}>{(c.core_sets || []).join(', ') || '—'}</span></td>
                                       <td>
                                         {c.bf_qualifier != null
                                           ? <span className="wp-qualifier-badge">{c.bf_qualifier}</span>

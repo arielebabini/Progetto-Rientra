@@ -123,6 +123,54 @@ state = ReasonerState()
 # Lock that serialises any in-memory isSelected mutations
 _selection_lock = threading.Lock()
 
+# Cache: local ICF code name -> sorted list of core set labels
+_icf_core_set_map: dict[str, list[str]] = {}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Core-set membership map  (built once after load_and_reason)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+IRI_ICF_CORE_SET = "http://www.stiima.cnr.it/ICF-exc-coreset#ICF_Core_set"
+
+def _build_icf_core_set_map() -> None:
+    """
+    Build _icf_core_set_map by querying which core set classes each ICF code
+    class belongs to (transitively via rdfs:subClassOf+).
+    Must be called AFTER the ontology is loaded.
+    """
+    global _icf_core_set_map
+    # Find all direct subclasses of ICF_Core_set — these ARE the core sets
+    rows = _sparql(f"""
+        SELECT DISTINCT ?icf ?coreset WHERE {{
+            ?icf <http://www.w3.org/2000/01/rdf-schema#subClassOf>+ ?coreset .
+            ?coreset <http://www.w3.org/2000/01/rdf-schema#subClassOf> <{IRI_ICF_CORE_SET}> .
+        }}
+    """)
+    result: dict[str, list[str]] = {}
+    for icf_cls, cs_cls in rows:
+        icf_name = local_name(icf_cls) if hasattr(icf_cls, 'name') else str(icf_cls).split('#')[-1]
+        cs_name  = local_name(cs_cls).replace('_', ' ')
+        if icf_name not in result:
+            result[icf_name] = []
+        if cs_name not in result[icf_name]:
+            result[icf_name].append(cs_name)
+    # Sort each list for deterministic output
+    for k in result:
+        result[k] = sorted(result[k])
+    _icf_core_set_map = result
+
+
+def get_all_core_sets() -> list[str]:
+    """
+    Return a sorted list of all distinct core set names present in the ontology.
+    Built from _icf_core_set_map, so must be called after _build_icf_core_set_map.
+    """
+    labels: set[str] = set()
+    for cs_list in _icf_core_set_map.values():
+        labels.update(cs_list)
+    return sorted(labels)
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  Utility functions
@@ -289,6 +337,8 @@ def load_and_reason(rdf_path: str = "") -> None:
         "properties"  : len(list(default_world.properties())),
     }
     state.set_ready(path, elapsed, stats)
+    # Build ICF → Core Set lookup map once, after reasoning is complete
+    _build_icf_core_set_map()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -414,9 +464,12 @@ def get_health_conditions(worker_id: str) -> dict:
         labels   = getattr(icf, "label", [])
         icf_name = str(labels[0]) if labels else embedded_name
 
+        core_sets = _icf_core_set_map.get(icf_code, [])
+
         conditions.append({
             "icf_code"     : icf_code,
             "icf_name"     : icf_name,
+            "core_sets"    : core_sets,
             "bf_qualifier" : int(bfq_raw)  if bfq_raw  is not None else None,
             "ap1_qualifier": int(ap1q_raw) if ap1q_raw is not None else None,
         })
@@ -781,10 +834,13 @@ def get_all_icf_codes() -> list[dict]:
         else:
             category = "Other"
 
+        core_sets = _icf_core_set_map.get(icf_code, [])
+
         result.append({
             "icf_code" : icf_code,
             "icf_name" : icf_name,
             "category" : category,
+            "core_sets": core_sets,
             "iri"      : str(icf.iri),
         })
 
