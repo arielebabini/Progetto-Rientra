@@ -1,0 +1,1050 @@
+\documentclass[12pt, a4paper]{report}
+
+%  Packages 
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tcolorbox}
+\usepackage{mdframed}
+\usepackage{microtype}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{parskip}
+
+%  Page layout 
+\geometry{
+  top=2.5cm, bottom=2.5cm,
+  left=3cm,  right=2.5cm,
+  headheight=15pt
+}
+
+%  Colors 
+\definecolor{codeblue}{RGB}{0, 80, 160}
+\definecolor{codegray}{RGB}{128, 128, 128}
+\definecolor{codegreen}{RGB}{0, 120, 50}
+\definecolor{codebg}{RGB}{248, 248, 248}
+\definecolor{codeborder}{RGB}{210, 210, 210}
+\definecolor{noteblue}{RGB}{230, 241, 251}
+\definecolor{noteblueborder}{RGB}{24, 95, 165}
+\definecolor{warnbg}{RGB}{250, 238, 218}
+\definecolor{warnborder}{RGB}{133, 79, 11}
+\definecolor{okbg}{RGB}{234, 243, 222}
+\definecolor{okborder}{RGB}{59, 109, 17}
+\definecolor{headcolor}{RGB}{30, 50, 90}
+
+%  Code style 
+\lstdefinestyle{python}{
+  language=Python,
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{codeblue}\bfseries,
+  stringstyle=\color{codegreen},
+  commentstyle=\color{codegray}\itshape,
+  numberstyle=\tiny\color{codegray},
+  breaklines=true,
+  breakatwhitespace=true,
+  frame=single,
+  rulecolor=\color{codeborder},
+  numbers=left,
+  numbersep=8pt,
+  showstringspaces=false,
+  tabsize=4,
+  captionpos=b,
+}
+\lstset{style=python}
+
+%  Info boxes 
+\tcbuselibrary{skins, breakable}
+
+\newtcolorbox{notebox}{
+  colback=noteblue, colframe=noteblueborder,
+  fonttitle=\bfseries\small, title=Note,
+  left=6pt, right=6pt, top=4pt, bottom=4pt,
+  breakable
+}
+\newtcolorbox{warnbox}{
+  colback=warnbg, colframe=warnborder,
+  fonttitle=\bfseries\small, title=Warning,
+  left=6pt, right=6pt, top=4pt, bottom=4pt,
+  breakable
+}
+\newtcolorbox{okbox}{
+  colback=okbg, colframe=okborder,
+  fonttitle=\bfseries\small,
+  left=6pt, right=6pt, top=4pt, bottom=4pt,
+  breakable
+}
+
+%  Header/Footer 
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{headcolor}{\textbf{Rientr@ Project}}}
+\fancyhead[R]{\small\textcolor{codegray}{Technical Documentation -- rdb2rdf\_step2.py}}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+%  Section titles 
+\titleformat{\chapter}[display]
+  {\normalfont\Large\bfseries\color{headcolor}}
+  {\chaptertitlename\ \thechapter}{10pt}{\Huge}
+\titleformat{\section}
+  {\normalfont\large\bfseries\color{headcolor}}
+  {\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsection}{1em}{}
+
+%  Hyperref 
+\hypersetup{
+  colorlinks=true,
+  linkcolor=codeblue,
+  urlcolor=codeblue,
+  citecolor=codeblue,
+  pdftitle={Technical Documentation rdb2rdf\_step2.py},
+  pdfauthor={Rientr@ Project},
+}
+
+% 
+\begin{document}
+% 
+
+%  Title page 
+\begin{titlepage}
+  \centering
+  \vspace*{2cm}
+  {\Large\textbf{Rientr@Returns Project}\\[0.4em]
+   \large CNR-STIIMA}\par
+  \vspace{2.5cm}
+  {\Huge\bfseries\color{headcolor} Technical Documentation\par}
+  \vspace{0.8cm}
+  {\LARGE\ttfamily rdb2rdf\_step2.py\par}
+  \vspace{0.5cm}
+  {\large Matching between relational DB and ontology\\
+   via String Matching and NLP models\par}
+  \vspace{3cm}
+  \begin{tabular}{ll}
+    \textbf{Version}   & Step 2 \\[0.3em]
+    \textbf{Language} & Python 3.10+ \\[0.3em]
+    \textbf{Ontology}  & Rientra.rdf (namespace JobList) \\[0.3em]
+    \textbf{Database}   & PostgreSQL 17 \\[0.3em]
+  \end{tabular}
+  \vfill
+  {\small\textcolor{codegray}{Academic year 2025--2026}}
+\end{titlepage}
+
+%  Table of contents 
+\tableofcontents
+\clearpage
+
+% 
+\chapter{Introduction and Context}
+% 
+
+\section{Module Purpose}
+
+The \texttt{rdb2rdf\_step2.py} module constitutes the second step of
+the RDB2RDF process of the \textbf{Rientr@Returns} project, developed
+at CNR-STIIMA. The objective is to resolve the \emph{mismatch} between
+the job labels found in an external relational database
+(\texttt{ext\_job}) and the occupations represented in the main
+Rientr@ ontology, built on the O*NET vocabulary.
+
+The problem can be formally defined as an \emph{entity
+linking} task: given an entity (job title + description) from a
+heterogeneous source, find the corresponding ontological class
+in the reference ontology, considering that names may be
+completely different while describing the same occupation.
+
+\begin{notebox}
+Concrete mismatch example: the job title \textit{``Manager of the
+digital archive''} in the relational DB corresponds to the O*NET
+class \textit{``Archivists''} in the ontology. The two names share
+no words, but the description of activities is semantically
+equivalent.
+\end{notebox}
+
+\section{Position in the Project}
+
+The module sits between two phases:
+
+\begin{itemize}
+  \item \textbf{Upstream:} the \texttt{ext\_job} table in PostgreSQL,
+        created with \texttt{rientra\_ext\_jobs.sql}, containing 9
+        occupations with title and description.
+  \item \textbf{Downstream:} an excel file
+        (\texttt{rientra\_matching.xlsx}), which display the jobs from the db with the matched jobs from the ontology, it also display the results of each strategy used to find the match.
+\end{itemize}
+
+% 
+\chapter{Architecture and Code Structure}
+% 
+
+\section{Pipeline Overview}
+
+The module executes the following phases in sequence:
+
+\begin{enumerate}
+  \item \textbf{Setup:} connection to PostgreSQL, loading of the
+        RDF ontology, dynamic extraction of O*NET occupations.
+  \item \textbf{DB Read:} retrieval of jobs from the
+        \texttt{ext\_job} table.
+  \item \textbf{Strategy 1:} Lexical String Matching
+        (Jaccard + Overlap + Levenshtein).
+  \item \textbf{Strategy 2:} NLP with base BERT,
+        \texttt{[CLS]} embedding, cosine similarity.
+  \item \textbf{Strategy 3:} NLP with BioBERT,
+        \texttt{[CLS]} embedding, cosine similarity.
+  \item \textbf{Strategy 4:} NLP with MiniLM via
+        \texttt{sentence-transformers}, cosine similarity.
+  \item \textbf{Comparison:} comparative table of results
+        with agreement verdict among models.
+  \item \textbf{Excel Output:} creation of the excel file to show the matching jobs.
+\end{enumerate}
+
+\section{File Organization}
+
+The file is organized into logical sections separated by delimiter
+comments. The following table summarizes the main functions with
+their roles.
+
+\begin{longtable}{p{5.5cm} p{2.5cm} p{6cm}}
+\toprule
+\textbf{Function} & \textbf{Approx. Lines} & \textbf{Role} \\
+\midrule
+\endhead
+\texttt{score\_color()} & 87--93 & Maps score $\to$ rich style \\
+\texttt{score\_bar()} & 94--96 & Generates ASCII text bar \\
+\texttt{get\_connection()} & 103--104 & Opens PostgreSQL connection \\
+\texttt{fetch\_all()} & 106--110 & Executes query, returns dict list \\
+\texttt{test\_connection()} & 112--122 & Verifies DB connectivity \\
+\texttt{extract\_ontology\_jobs()} & 129--160 & Extracts occupations from ontology \\
+\texttt{\_build\_onto\_text()} & 162--169 & Builds composite O*NET text \\
+\texttt{\_norm(), \_jaccard(),} & 176--201 & String matching metrics \\
+\texttt{\_overlap(), \_levenshtein()} & & \\
+\texttt{\_combined()} & 200--201 & Weighted S1 score \\
+\texttt{s1\_match\_one()} & 203--215 & Single job match with S1 \\
+\texttt{run\_string\_matching()} & 217--227 & Runs S1 on all jobs \\
+\texttt{cosine\_similarity\_matrix()} & 234--253 & Vectorized cosine similarity \\
+\texttt{get\_bert\_embedding()} & 260--288 & [CLS] embedding with raw BERT \\
+\texttt{run\_bert\_matching()} & 291--349 & Matching with BERT base or BioBERT \\
+\texttt{run\_minilm\_matching()} & 356--407 & Matching with MiniLM \\
+\texttt{print\_ontology\_table()} & 414--425 & Rich table of ontology occupations \\
+\texttt{print\_db\_table()} & 428--438 & Rich table of jobs in the DB \\
+\texttt{print\_full\_comparison()} & 456--559 & Comparative strategies table \\
+\texttt{print\_summary\_multi()} & 609--652 & Summary panel \\
+\texttt{set\_header()} & 679--686 & Generate the setting \\
+\texttt{style\_cell()} & 689--694 & Style \\
+\texttt{save\_excel()} & 697--935 & Save the excel file \\
+\texttt{main()} & 722--847 & Pipeline orchestration \\
+\bottomrule
+\caption{Main functions of the module}
+\end{longtable}
+
+\section{Dependencies}
+
+\subsection{Required Dependencies}
+
+\begin{lstlisting}[caption={Minimum dependencies installation}]
+pip install psycopg2-binary rdflib scikit-learn rich numpy
+\end{lstlisting}
+
+\subsection{Optional Dependencies for Full NLP}
+
+\begin{lstlisting}[caption={NLP dependencies installation}]
+pip install sentence-transformers transformers torch
+\end{lstlisting}
+
+\begin{notebox}
+The module implements \emph{graceful degradation}: if
+\texttt{transformers} or \texttt{sentence-transformers} are not
+installed, the related strategies are silently skipped and
+the output contains only the available strategies. 
+\end{notebox}
+
+% 
+\chapter{Configuration}
+% 
+
+\section{Global Parameters}
+
+All modifiable parameters are collected in the configuration
+section at the top of the file, so that no changes to the
+functional code are required to adapt the module to a different environment.
+
+\begin{lstlisting}[caption={Configuration section}]
+DB_CONFIG = {
+    "host":     "localhost",
+    "port":     5432,
+    "dbname":   "rientra_db",
+    "user":     "postgres",
+    "password": "postgres",
+}
+
+ONTOLOGY_FILE = "Rientra.rdf"
+OUTPUT_DIR    = "output"
+
+JOBLIST = Namespace("http://www.stiima.cnr.it/JobList#")
+RIENTRA = Namespace("https://www.stiima.cnr.it/rientra#")
+
+S1_THRESHOLD     = 0.12
+BERT_THRESHOLD   = 0.70
+MINILM_THRESHOLD = 0.50
+
+MODELS = {
+    "S2_BERT":    "bert-base-uncased",
+    "S3_BioBERT": "dmis-lab/biobert-base-cased-v1.2",
+    "S4_MiniLM":  "all-MiniLM-L6-v2",
+}
+\end{lstlisting}
+
+\section{Confidence Thresholds}
+
+Thresholds control when a match is considered valid. A
+match with a score below the threshold is saved as
+\texttt{score\_raw} in the visual output but \textbf{is not inserted
+in the RDF graph} as a linking triple.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llll}
+\toprule
+\textbf{Strategy} & \textbf{Parameter} & \textbf{Current Value} &
+\textbf{Notes} \\
+\midrule
+S1 String Match  & \texttt{S1\_THRESHOLD}     & 0.12 & Low: metrics already combined \\
+S2 BERT base     & \texttt{BERT\_THRESHOLD}   & 0.70 & Raise to 0.92 (anisotropy) \\
+S3 BioBERT       & \texttt{BERT\_THRESHOLD}   & 0.70 & Raise to 0.92 (anisotropy) \\
+S4 MiniLM        & \texttt{MINILM\_THRESHOLD} & 0.50 & Calibrated, reliable \\
+\bottomrule
+\end{tabular}
+\caption{Configured confidence thresholds}
+\end{table}
+
+\begin{warnbox}
+The BERT base and BioBERT thresholds are currently set to 0.70, but
+experimental results show that with these models all 9 jobs
+exceed the threshold regardless of match quality, due to
+the \emph{anisotropy} phenomenon (see Section~\ref{sec:anisotropy}).
+The value recommended by the project supervisor is $\geq 0.90$.
+\end{warnbox}
+
+% 
+\chapter{Data Sources}
+% 
+
+\section{External Relational Database}
+
+The \texttt{ext\_job} table in PostgreSQL is the source
+of jobs to be matched. It has an intentionally minimal structure: three
+columns representing the identifier, title, and description
+of the job.
+
+\begin{lstlisting}[language=SQL, caption={Schema of the ext\_job table}]
+CREATE TABLE ext_job (
+    id          VARCHAR(6)  PRIMARY KEY,  -- ext01, ext02, ...
+    title       TEXT        NOT NULL,
+    description TEXT
+);
+\end{lstlisting}
+
+The 9 jobs currently present span very different domains:
+accounting, web content management, data science, digital public
+relations, secretarial operations and retail. This
+heterogeneity is intentional and serves to test the limits of the
+current ontological vocabulary.
+
+\section{Rientra.rdf Ontology}
+
+The ontology is read from the \texttt{Rientra.rdf} file in
+RDF/XML format. It contains 12,250 triples that define the T-Box
+(classes, properties, relations) of the Rientr@ model.
+
+\subsection{Relevant Namespaces}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Prefix} & \textbf{URI} \\
+\midrule
+\texttt{JobList:} & \texttt{http://www.stiima.cnr.it/JobList\#} \\
+\texttt{rientra:} & \texttt{https://www.stiima.cnr.it/rientra\#} \\
+\texttt{O1:}      & \texttt{http://www.stiima.cnr.it/O1:} \\
+\bottomrule
+\end{tabular}
+\caption{Main ontology namespaces}
+\end{table}
+
+\subsection{O*NET Occupations Present}
+
+The ontology currently contains 13 occupations in the
+\texttt{JobList} namespace, extracted from the O*NET classification:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Local URI} & \textbf{O*NET Label} \\
+\midrule
+\texttt{Billing\_cost\_and\_rate\_clerks} & Billing, Cost, and Rate Clerks \\
+\texttt{Bookkeping\_accounting\_and\_auditing\_clerks} & Bookkeeping, Accounting, Auditing Clerks \\
+\texttt{Cabinet\_makers\_and\_bench\_carpenters} & Cabinetmakers and Bench Carpenters \\
+\texttt{Construction\_laborers} & Construction Laborers \\
+\texttt{File\_clerks} & File Clerks \\
+\texttt{Gem\_and\_diamond\_workers} & Gem and Diamond Workers \\
+\texttt{Insurance\_claims\_clerks} & Insurance Claims Clerks \\
+\texttt{Insurance\_policy\_processing\_clerks} & Insurance Policy Processing Clerks \\
+\texttt{Landscaping\_and\_Groundskeeping\_Workers} & Landscaping and Groundskeeping Workers \\
+\texttt{Postal\_service\_clerks} & Postal Service Clerks \\
+\texttt{Receptionist\_and\_information\_clerks} & Receptionists and Information Clerks \\
+\texttt{Travel\_guides} & Travel Guides \\
+\texttt{Word\_Processors\_and\_Typists} & Word Processors and Typists \\
+\bottomrule
+\end{tabular}
+\caption{O*NET occupations present in the ontology}
+\end{table}
+
+\subsection{Dynamic Extraction}
+
+Occupations are not hardcoded in the script, but are extracted
+dynamically from the ontology via the
+\texttt{extract\_ontology\_jobs()} function. For each class in the
+\texttt{JobList} namespace, three predicates are collected:
+
+\begin{itemize}
+  \item \texttt{rdfs:label} -- canonical name of the occupation
+  \item \texttt{O1:Net\_job\_titles} -- alternative titles reported
+        by O*NET (e.g.\ ``Accounting Clerk, Accounting Specialist, ...'')
+  \item \texttt{O1:Net\_short\_description} -- concise description
+        of the work activity
+\end{itemize}
+
+The prefix ``Sample of reported job titles:'' is automatically removed
+from \texttt{Net\_job\_titles} before matching,
+as otherwise descriptive text fragments would end up in the
+lexical comparison causing spurious matches.
+
+% 
+\chapter{Matching Strategies}
+% 
+
+\section{Strategy 1 -- String Matching}
+
+\subsection{Description}
+
+Strategy 1 is a lexical baseline that does not use language models.
+It compares the \textbf{job title in the DB} with the canonical label
+and all alternative O*NET titles of each occupation
+in the ontology, using three linearly combined metrics.
+
+\begin{notebox}
+Strategy 1 uses \textbf{only the title} of the job, not the
+description. This makes it fast but insensitive to the semantic
+content of work activities.
+\end{notebox}
+
+\subsection{Metrics}
+
+\subsubsection{Jaccard Similarity}
+
+\begin{equation}
+J(A, B) = \frac{|A \cap B|}{|A \cup B|}
+\end{equation}
+
+where $A$ and $B$ are the sets of words (after lowercase normalization)
+of the two titles. Measures the proportion of shared words
+over total distinct words. Insensitive to word order.
+
+\subsubsection{Overlap Coefficient}
+
+\begin{equation}
+O(A, B) = \frac{|A \cap B|}{\min(|A|, |B|)}
+\end{equation}
+
+Divides by the cardinality of the smaller set rather than the
+union. It is more generous than Jaccard when a short title is
+semantically contained in a longer one (e.g.\ ``Data entry''
+contained in ``Data Entry Operator'').
+\newpage
+\subsubsection{Normalized Levenshtein Similarity}
+
+\begin{equation}
+L(s_1, s_2) = 1 - \frac{d_{edit}(s_1, s_2)}{\max(|s_1|, |s_2|)}
+\end{equation}
+
+where $d_{edit}$ is the edit distance (minimum number of insertions,
+deletions and substitutions of characters). It is the only one of the
+three metrics sensitive to character order -- useful for abbreviations
+and spelling variants.
+
+\subsubsection{Combined Score}
+
+\begin{equation}
+\text{score}_{S1}(a, b) = 0.5 \cdot J(a, b) + 0.3 \cdot O(a, b) + 0.2 \cdot L(a, b)
+\end{equation}
+
+The weights give priority to Jaccard as the main metric, with
+Overlap as support for length asymmetries and Levenshtein for
+spelling variations.
+
+\subsection{Implementation}
+
+\begin{lstlisting}[caption={S1 matching function}]
+def s1_match_one(title: str, onto_jobs: list[dict]) -> dict | None:
+    best, bj, bv = 0.0, None, None
+    for j in onto_jobs:
+        cands = [j["label"]]
+        if j["titles"]:
+            cands += [t.strip() for t in j["titles"].split(",") if t.strip()]
+        for c in cands:
+            sc = _combined(title, c)
+            if sc > best:
+                best, bj, bv = sc, j, c
+    if best >= S1_THRESHOLD:
+        return {"job": bj, "score": best, "via": bv}
+    return None
+\end{lstlisting}
+
+The \texttt{"via"} key in the returned dictionary indicates exactly
+which specific label (among the alternative O*NET ones) produced the
+maximum score -- useful information for debugging and for evaluating
+match quality.
+
+% 
+\section{Cosine Similarity -- Shared Function}
+
+All three NLP strategies use the same function to calculate
+cosine similarity, ensuring methodological uniformity in comparisons.
+
+\begin{equation}
+\cos(\theta) = \frac{\mathbf{A} \cdot \mathbf{B}}{\|\mathbf{A}\| \cdot \|\mathbf{B}\|}
+\end{equation}
+
+where $\mathbf{A}$ is the embedding vector of the DB job and $\mathbf{B}$
+is the embedding vector of an O*NET occupation. The result is
+between $-1$ and $1$; for language model embeddings the
+effective range is $[0, 1]$.
+\newpage
+\begin{lstlisting}[caption={Vectorized implementation of cosine similarity}]
+def cosine_similarity_matrix(query_emb: np.ndarray,
+                              corpus_embs: np.ndarray) -> np.ndarray:
+    query_norm  = query_emb / (np.linalg.norm(query_emb) + 1e-9)
+    corpus_norm = corpus_embs / (
+        np.linalg.norm(corpus_embs, axis=1, keepdims=True) + 1e-9
+    )
+    return corpus_norm.dot(query_norm)
+\end{lstlisting}
+
+The $+10^{-9}$ term (numerical stability epsilon) prevents
+division by zero in the theoretical case where a vector has zero norm.
+The vectorized form computes in a single operation the
+similarity between the query vector and all 13 O*NET vectors, without
+Python loops.
+
+% 
+\section{Strategy 2 -- BERT base}
+
+\subsection{Model}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+HuggingFace identifier & \texttt{bert-base-uncased} \\
+Number of parameters & 110 million \\
+Architecture & Transformer encoder, 12 layers \\
+Embedding dimension & 768 \\
+Pre-training & Wikipedia EN + BookCorpus \\
+Pre-training tasks & Masked LM + Next Sentence Prediction \\
+\bottomrule
+\end{tabular}
+\caption{Characteristics of bert-base-uncased}
+\end{table}
+
+\subsection{Embedding Strategy}
+
+BERT does not natively produce a sentence embedding. To derive it,
+the vector of the special \texttt{[CLS]} token is used, inserted
+automatically at the beginning of each input sequence. This token was
+designed during pre-training to capture an aggregated representation
+of the entire sequence.
+
+\begin{lstlisting}[caption={[CLS] embedding extraction from BERT}]
+def get_bert_embedding(text, tokenizer, model, max_length=512):
+    inputs = tokenizer(text, return_tensors="pt",
+                       truncation=True, max_length=max_length,
+                       padding=True)
+    with torch.no_grad():
+        outputs = model(**inputs)
+    # shape: [batch=1, seq_len, 768]  ->  [768]
+    cls_embedding = outputs.last_hidden_state[:, 0, :].squeeze().numpy()
+    return cls_embedding
+\end{lstlisting}
+
+\texttt{torch.no\_grad()} disables gradient computation since
+the model is used only for inference, reducing memory usage.
+
+\subsection{Limitations: Anisotropy}
+\label{sec:anisotropy}
+
+BERT has not been fine-tuned for sentence similarity. Its
+embeddings tend to occupy a restricted area of the vector space
+(a phenomenon known as \emph{anisotropy}): vectors all point in
+similar directions, making cosine similarity
+systematically high regardless of actual semantic similarity. In
+practice, with a threshold of 0.70, all 9 jobs in the dataset
+get a match -- which is not necessarily correct.
+
+% 
+\section{Strategy 3 -- BioBERT}
+
+\subsection{Model}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+HuggingFace identifier & \texttt{dmis-lab/biobert-base-cased-v1.2} \\
+Number of parameters & 110 million \\
+Architecture & Transformer encoder, 12 layers (like BERT) \\
+Embedding dimension & 768 \\
+Pre-training & BERT base + PubMed abstracts + PMC full text \\
+Additional corpus & 4.5 billion words of biomedical literature \\
+\bottomrule
+\end{tabular}
+\caption{Characteristics of BioBERT}
+\end{table}
+
+\subsection{Reason for Inclusion}
+
+BioBERT is included for \textbf{methodological comparison}, not because
+it is the best model for this task. Its presence allows empirical
+observation of how domain specialization influences
+results: a model trained on medical literature produces
+different embeddings from base BERT when processing texts in the
+administrative/occupational domain.
+
+\subsection{Observed Results}
+
+Tests show that BioBERT maps 8 out of 9 jobs to the same class
+(\textit{File Clerks}), regardless of content. This
+behavior is attributable to the mismatch between the training domain
+(biomedical literature) and the task domain (job matching). The
+\textit{File Clerks} class has a short and generic O*NET description
+that produces a ``neutral'' vector close to many texts in a semantic
+space not calibrated for this domain.
+\\
+\begin{warnbox}
+    Analysis of BioBERT's architectural characteristics, combined with the poor performance detected during the experimental phase, suggests that its use is ineffective in the present case. Unlike what was observed with the standard BERT model, the specificity of BioBERT's pre-training on biomedical domains did not yield the expected benefits, rendering any further fine-tuning activity superfluous and unproductive.
+\end{warnbox}
+
+
+% 
+\section{Strategy 4 -- MiniLM}
+
+\subsection{Model}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+HuggingFace identifier & \texttt{sentence-transformers/all-MiniLM-L6-v2} \\
+Number of parameters & 22 million \\
+Architecture & Transformer encoder, 6 layers (distilled from BERT) \\
+Embedding dimension & 384 \\
+Fine-tuning & Sentence similarity on 1+ billion pairs \\
+Library & \texttt{sentence-transformers} \\
+\bottomrule
+\end{tabular}
+\caption{Characteristics of MiniLM}
+\end{table}
+
+\subsection{Differences Compared to Raw BERT}
+
+MiniLM was trained with an explicit sentence similarity objective
+via \emph{Siamese} architecture: two networks with shared weights
+process pairs of sentences and are optimized to produce
+vectors close together for semantically similar sentences and vectors
+far apart for semantically dissimilar sentences. The result is that its
+cosine similarity scores are \textbf{calibrated}: a score of 0.86
+indicates genuine semantic similarity, a score of 0.30 indicates
+genuine dissimilarity.
+
+\subsection{Implementation}
+
+\begin{lstlisting}[caption={Matching with MiniLM}]
+model = SentenceTransformer("all-MiniLM-L6-v2")
+onto_embs = model.encode(onto_texts, convert_to_numpy=True)
+
+for i, row in enumerate(db_jobs):
+    q_emb = model.encode(db_texts[i], convert_to_numpy=True)
+    # Cosine similarity computed with the same function as S2/S3
+    sims  = cosine_similarity_matrix(q_emb, onto_embs)
+    idx   = int(np.argmax(sims))
+    sc    = float(sims[idx])
+    m = {"job": onto_jobs[idx], "score": sc} if sc >= threshold else None
+\end{lstlisting}
+
+O*NET embeddings are pre-computed only once before the
+loop over DB jobs, optimizing performance. Although MiniLM
+provides cosine similarity functions internally, the
+\texttt{cosine\_similarity\_matrix()} function is used explicitly for
+uniformity with S2 and S3.
+
+\newpage
+\subsection{Text Input}
+
+Both for DB jobs and for O*NET occupations, the text passed
+to the model is a concatenation of multiple fields:
+
+\begin{itemize}
+  \item \textbf{DB Job:} \texttt{title + ". " + description}
+  \item \textbf{O*NET Occupation:} \texttt{label + Net\_job\_titles + Net\_short\_description}
+\end{itemize}
+
+The more semantic context is provided, the more precise the
+embeddings produced by the model.
+
+
+% 
+\chapter{Producing Results in Excel Format}
+% 
+
+\section{Purpose of Excel Output}
+
+Unlike the previous phase, the current module does not generate an RDF A-Box graph, but produces an analytical report in Microsoft Excel format (\texttt{.xlsx}). This choice is motivated by the need to validate confidence thresholds and compare the various matching strategies (lexical and neural) in a readable and structured way before definitive persistence in the Knowledge Graph.
+
+The file is automatically generated in the \texttt{output/} folder with the name\\ \texttt{rientra\_matching.xlsx}.
+
+\section{Workbook Structure}
+
+The Excel document is organized into three distinct worksheets, each with a specific role in the results evaluation pipeline:
+
+\begin{enumerate}
+  \item \textbf{Matching Results}: Main sheet containing the results of all matching strategies for each database job.
+  \item \textbf{Ontology Jobs}: List of O*NET occupations extracted from the original ontology, used as reference.
+  \item \textbf{Score Detail}: Detailed matrix reporting raw scores for each job-model combination.
+\end{enumerate}
+
+\section{Detail of the ``Matching Results'' Sheet}
+
+The main sheet collects information from the PostgreSQL database and enriches it with NLP model results.
+
+\subsection{Metadata and Columns}
+
+For each row (corresponding to a DB job), the following are reported:
+\begin{itemize}
+    \item \textbf{DB Data}: ID (\texttt{ext\_job}), Title and Description.
+    \item \textbf{Individual IRI}: The URI that would identify the entity in the graph (\texttt{rientra:ExtJob\_*}).
+    \item \textbf{S1 String Match}: Label found, score and specific label used for the match.
+    \item \textbf{NLP Strategies (S2, S3, S4)}: Identified occupation, \textit{cosine similarity} score and URI of the corresponding class.
+\end{itemize}
+
+\subsection{Verdict Logic}
+
+The last column of the sheet provides a synthetic \textbf{Verdict} based on consensus among NLP models.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lp{9cm}}
+\toprule
+\textbf{Verdict} & \textbf{Description} \\
+\midrule
+All agree & All active NLP models identified the same O*NET URI. \\
+Partial agreement & There is consensus among some models or the score is considered reliable. \\
+Diverge & NLP models point to different O*NET occupations. \\
+S1 only & Only string matching produced a result above the threshold. \\
+No match & No strategy exceeded the configured confidence thresholds. \\
+\bottomrule
+\end{tabular}
+\caption{Verdict logic in the Excel sheet}
+\end{table}
+
+\section{Styles and Conditional Formatting}
+
+To facilitate visual analysis, the module applies specific styles based on score quality:
+
+\begin{itemize}
+    \item \textbf{Coloring by Strategy}: Each matching column has a distinctive color (e.g.\ yellow for S1, green for MiniLM).
+    \item \textbf{Score Highlighting}: Scores above the thresholds ($\geq 0.70$ for BERT and $\geq 0.50$ for MiniLM) are highlighted in bold green.
+    \item \textbf{Below Threshold}: Insufficient results report the \textit{raw} value in red with the label ``below threshold''.
+\end{itemize}
+\newpage
+\section{Implementation Example}
+
+Below is the structure of the Python function that uses the \texttt{openpyxl} library:
+
+\begin{lstlisting}[caption={Snippet of the \texttt{save\_excel} function}]
+def save_excel(db_jobs, s1_res, nlp_results, model_names, onto_jobs):
+    wb = Workbook()
+    ws1 = wb.active
+    ws1.title = "Matching Results"
+    # Header and style configuration
+    for r_idx, row in enumerate(db_jobs, start=2):
+        # Writing DB data and strategy results
+        # Computing consensus verdict
+    wb.save(os.path.join(OUTPUT_DIR, "rientra_matching.xlsx"))
+\end{lstlisting}
+
+% 
+\chapter{Output and Results Interpretation}
+% 
+
+\section{Comparative Table}
+
+Section 6 of the output shows a table with one row per
+DB job and a pair of columns (match + score) for each available
+strategy. The \textbf{Verdict} column summarizes the agreement among
+NLP models:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Verdict} & \textbf{Meaning} & \textbf{Reliability} \\
+\midrule
+\texttt{\checkmark\ all}  & All NLP models agree & High \\
+\texttt{\textasciitilde\ part.}  & Partial agreement (some models) & Medium \\
+\texttt{$\neq$\ div.}   & Models point to different occupations & Low \\
+\texttt{S1 only}  & Only string matching has a match & Check manually \\
+\texttt{$\times$\ none}     & No match above threshold & Job not in ontology \\
+\bottomrule
+\end{tabular}
+\caption{Interpretation of the Verdict column}
+\end{table}
+
+\begin{notebox}
+The verdict is computed by comparing the URIs of the occupations found,
+not the scores. Two models with very different scores (e.g.\ 0.929 and 0.863)
+that point to the same occupation give verdict ``\texttt{\checkmark\ all}''.
+Two models with similar scores that point to different occupations give
+``\texttt{$\neq$\ div.}''.
+\end{notebox}
+
+\section{Current Results}
+
+With the 13 occupations currently in the ontology and the
+configured thresholds:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llll}
+\toprule
+\textbf{Job} & \textbf{S4 MiniLM} & \textbf{Match} & \textbf{Reliability} \\
+\midrule
+ext01 Accounting clerk & 0.863 & Bookkeeping Clerks & High \\
+ext05 Data entry employee & 0.556 & Bookkeeping Clerks & Debatable \\
+ext09 Supermarket cashier & 0.511 & Billing Clerks & Debatable \\
+ext02--04, 06--08 & $< 0.50$ & No match & Occupation absent \\
+\bottomrule
+\end{tabular}
+\caption{MiniLM results with threshold 0.50}
+\end{table}
+
+The only semantically reliable match is \texttt{ext01}. The other
+6 jobs find no correspondence because their occupations
+(Data analyst, Data scientist, Content manager web, etc.) are not
+among the 13 classes in the ontology.
+
+% 
+\chapter{Known Limitations and Future Developments}
+% 
+
+\section{Current Limitations}
+
+\subsection{Insufficient Ontological Vocabulary}
+
+The main bottleneck is not the quality of the NLP models but
+the limited coverage of the O*NET vocabulary in the ontology: 13
+occupations out of thousands available. Adding the
+missing occupations (Data analyst, Data scientist, Content manager, etc.)
+will drastically improve MiniLM results.
+
+\subsection{Uncalibrated BERT Thresholds}
+
+With a threshold of 0.70, BERT and BioBERT find a match for all 9 jobs
+regardless of quality. The threshold needs to be raised to $\geq 0.90$
+as recommended by the project supervisor.
+
+\subsection{BioBERT -- Wrong Domain}
+
+BioBERT was included for methodological comparison but is not suitable
+for the job matching task. It produces unreliable results (8/9 jobs
+mapped to \textit{File Clerks}) and could be replaced with a
+more appropriate model for the occupational domain.
+
+\section{Planned Developments}
+
+\begin{enumerate}
+  \item \textbf{Threshold Update:} raise
+        \texttt{BERT\_THRESHOLD} to 0.92 and add the ``gap'' column
+        (difference between first and second score) as a measure of
+        match robustness.
+  \item \textbf{Ontology Enrichment:} add the 10 new
+        O*NET occupations covering the jobs currently without a match.
+
+  \item \textbf{Modified Model:} The decision has been made to move beyond static mapping between the O*NET and ESCO frameworks, opting instead for the implementation of a BERT model trained on real datasets. This approach is aimed at accurately identifying equivalences and semantic similarities between profiles.
+\end{enumerate}
+
+% 
+\chapter{Usage Guide}
+% 
+
+\section{Prerequisites}
+
+\begin{enumerate}
+  \item PostgreSQL 17 running and accessible on \texttt{localhost:5432}
+  \item \texttt{rientra\_db} database created:
+        \lstinline|createdb -U postgres rientra_db|
+  \item \texttt{ext\_job} table populated:
+        \lstinline|psql -U postgres -d rientra_db -f rientra_ext_jobs.sql|
+  \item \texttt{Rientra.rdf} file in the same directory as the script
+  \item Python virtual environment activated
+\end{enumerate}
+
+\section{Installation}
+
+\begin{lstlisting}[caption={Environment setup}]
+python3 -m venv venv
+source venv/bin/activate          # macOS/Linux
+# or: venv\Scripts\activate       # Windows
+
+pip install psycopg2-binary rdflib scikit-learn rich numpy
+pip install transformers torch sentence-transformers
+\end{lstlisting}
+
+\section{Execution}
+
+\begin{lstlisting}[caption={Running the script}]
+python3 rdb2rdf_step2.py #macOS
+
+python rdb2rdf_step2.py # Windows
+\end{lstlisting}
+
+\section{Expected Output}
+
+At the end of execution, the following is produced in the
+\texttt{output/} folder:
+
+\begin{itemize}
+  \item \texttt{rientra\_matching.xlsx} -- excel file 
+\end{itemize}
+
+Complete execution with all NLP models takes approximately 2--5
+minutes on the first run (downloading models from HuggingFace) and
+approximately 30--60 seconds on subsequent runs (local cache).
+
+% 
+\appendix
+\chapter{Known Warning Messages}
+% 
+
+During execution, some warning messages appear that are
+normal and do not indicate errors:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{6cm} p{8cm}}
+\toprule
+\textbf{Message} & \textbf{Cause and Behavior} \\
+\midrule
+\texttt{cls.predictions.* | UNEXPECTED} &
+Pre-training layers (Masked LM) not used. Discarded without
+effect on functionality. \\[0.5em]
+\texttt{cls.seq\_relationship.* | UNEXPECTED} &
+Next Sentence Prediction layer not used. Discarded. \\[0.5em]
+\texttt{embeddings.position\_ids | UNEXPECTED} &
+Buffer deprecated in recent versions of Transformers. Ignored. \\[0.5em]
+\texttt{Unauthenticated requests to HF Hub} &
+Models downloaded without HuggingFace token. Works, but with
+more restrictive rate limiting. Solvable by setting
+\texttt{HF\_TOKEN}. \\
+\bottomrule
+\end{tabular}
+\caption{Known warnings and their interpretation}
+\end{table}
+
+% 
+\chapter{Glossary}
+% 
+
+\begin{description}[style=nextline]
+  \item[A-Box (Assertional Box)]
+    The part of the RDF graph containing individuals (instances), in
+    contrast to the T-Box which contains class and property definitions.
+
+  \item[Anisotropy]
+    A phenomenon whereby embeddings produced by raw BERT tend to
+    occupy a restricted region of the vector space, with all
+    directions similar to each other. Causes systematically high cosine
+    similarity scores for any pair of texts.
+
+  \item[CLS token]
+    Special \texttt{[CLS]} token inserted by BERT at the beginning of
+    each input sequence. Its vector in the last hidden state is
+    used as the embedding of the entire sequence.
+
+  \item[Cosine Similarity]
+    A measure of similarity between two vectors based on the angle
+    they form, independent of their magnitude.
+
+  \item[Embedding]
+    Dense vector representation of a text in a high-dimensional
+    numerical space, produced by a neural model. Semantically similar
+    texts have nearby embeddings.
+
+  \item[Entity Linking]
+    NLP task consisting of linking textual mentions of
+    entities to corresponding entries in a structured knowledge base.
+
+  \item[Fine-tuning]
+    Process of re-training a pre-trained model on a specific
+    dataset for a specific task, partially updating
+    the model's weights.
+
+  \item[Knowledge Graph]
+    Structured graph representing entities and relationships between
+    them in the form of subject-predicate-object triples.
+
+  \item[O*NET]
+    Occupational Information Network: a database of the US Department
+    of Labor providing standardized descriptions of
+    thousands of occupations, including skills, activities, and
+    alternative titles.
+
+  \item[RDB2RDF]
+    W3C standard for mapping relational data (SQL databases)
+    to RDF data. Includes Direct Mapping and R2RML.
+
+  \item[T-Box (Terminological Box)]
+    The part of the RDF graph (or OWL ontology) containing
+    class definitions, properties and axioms -- in contrast to
+    the A-Box which contains individuals.
+
+  \item[RDF Triple]
+    Atomic unit of the RDF model, in the form
+    \textit{subject -- predicate -- object}.
+\end{description}
+
+\end{document}
