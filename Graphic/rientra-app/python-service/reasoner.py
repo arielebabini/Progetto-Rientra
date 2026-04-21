@@ -802,13 +802,9 @@ def get_all_icf_codes() -> list[dict]:
         }}
     """)
 
-    result = []
-    seen   = set()
+    by_code: dict[str, dict] = {}
     for (icf,) in rows:
         full_id = local_name(icf)
-        if full_id in seen:
-            continue
-        seen.add(full_id)
 
         # Split "b1408-AuditoryAttention" → code + name
         if '-' in full_id:
@@ -834,16 +830,28 @@ def get_all_icf_codes() -> list[dict]:
         else:
             category = "Other"
 
-        core_sets = _icf_core_set_map.get(icf_code, [])
+        core_sets = sorted(set(_icf_core_set_map.get(icf_code, [])))
+        existing = by_code.get(icf_code)
 
-        result.append({
-            "icf_code" : icf_code,
-            "icf_name" : icf_name,
-            "category" : category,
-            "core_sets": core_sets,
-            "iri"      : str(icf.iri),
-        })
+        if existing is None:
+            by_code[icf_code] = {
+                "icf_code" : icf_code,
+                "icf_name" : icf_name,
+                "category" : category,
+                "core_sets": core_sets,
+                "iri"      : str(icf.iri),
+            }
+            continue
 
+        # The wizard operates on the pure ICF code, so multiple ontology
+        # individuals that collapse to the same code must be merged into one row.
+        if not existing["icf_name"] and icf_name:
+            existing["icf_name"] = icf_name
+        if existing["category"] == "Other" and category != "Other":
+            existing["category"] = category
+        existing["core_sets"] = sorted(set(existing["core_sets"]) | set(core_sets))
+
+    result = list(by_code.values())
     result.sort(key=lambda x: x["icf_code"])
     return result
 

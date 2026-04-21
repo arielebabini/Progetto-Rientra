@@ -180,43 +180,43 @@ interface WorkersPageProps {
 ───────────────────────────────────────────── */
 export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: WorkersPageProps) {
   // ── service state ──────────────────────────────────────────────────
-  const [serviceStatus, setServiceStatus]   = useState<ServiceStatus | null>(null);
-  const [serviceError,  setServiceError]    = useState<string | null>(null);
-  const [isReady,       setIsReady]         = useState(false);
+  const [serviceStatus, setServiceStatus] = useState<ServiceStatus | null>(null);
+  const [serviceError, setServiceError] = useState<string | null>(null);
+  const [isReady, setIsReady] = useState(false);
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── data state ─────────────────────────────────────────────────────
-  const [workers,          setWorkers]          = useState<Worker[]>([]);
-  const [loadingWorkers,   setLoadingWorkers]   = useState(false);
-  const [selectedWorker,   setSelectedWorker]   = useState<Worker | null>(null);
-  const [conditions,       setConditions]       = useState<HealthCondition[]>([]);
-  const [loadingConditions,setLoadingConditions]= useState(false);
+  const [workers, setWorkers] = useState<Worker[]>([]);
+  const [loadingWorkers, setLoadingWorkers] = useState(false);
+  const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
+  const [conditions, setConditions] = useState<HealthCondition[]>([]);
+  const [loadingConditions, setLoadingConditions] = useState(false);
 
   // ── UI state ───────────────────────────────────────────────────────
-  const [searchQuery,          setSearchQuery]          = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [conditionSearchQuery, setConditionSearchQuery] = useState('');
-  const [dotsMenuOpen,         setDotsMenuOpen]         = useState(false);
-  const [coreSetFilterOpen,    setCoreSetFilterOpen]    = useState(false);
-  const [selectedCoreSets,     setSelectedCoreSets]     = useState<string[]>([]);
-  const [allCoreSets,          setAllCoreSets]          = useState<string[]>([]);
-  const [activeNav,            setActiveNav]            = useState<'workers' | 'jobs-analysis' | 'jobs-positions'>(initialNav);
+  const [dotsMenuOpen, setDotsMenuOpen] = useState(false);
+  const [coreSetFilterOpen, setCoreSetFilterOpen] = useState(false);
+  const [selectedCoreSets, setSelectedCoreSets] = useState<string[]>([]);
+  const [allCoreSets, setAllCoreSets] = useState<string[]>([]);
+  const [activeNav, setActiveNav] = useState<'workers' | 'jobs-analysis' | 'jobs-positions'>(initialNav);
 
-  const [switchingWorkerId,setSwitchingWorkerId] = useState<string | null>(null);
-  const [isWizardOpen,     setIsWizardOpen]     = useState(false);
-  const [isSidebarOpen,    setIsSidebarOpen]    = useState(true);
+  const [switchingWorkerId, setSwitchingWorkerId] = useState<string | null>(null);
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // ── Table sort state ───────────────────────────────────────────────
-  // icf_code cycles: 'b-asc' → 'b-desc' → 'd-asc' → 'd-desc' → null
+  // icf_code cycles: 'b' → 'd' → null
   // name / eff_qualifier cycle: 'asc' → 'desc' → null
   type SortCol = 'icf_code' | 'name' | 'eff_qualifier' | null;
-  type SortDir = 'asc' | 'desc' | 'b-asc' | 'b-desc' | 'd-asc' | 'd-desc' | null;
+  type SortDir = 'asc' | 'desc' | 'b-first' | 'd-first' | null;
   const [sortCol, setSortCol] = useState<SortCol>(null);
   const [sortDir, setSortDir] = useState<SortDir>(null);
 
   const handleSort = (col: SortCol) => {
     if (col === 'icf_code') {
-      if (sortCol !== 'icf_code') { setSortCol('icf_code'); setSortDir('b-asc'); return; }
-      const cycle: SortDir[] = ['b-asc', 'b-desc', 'd-asc', 'd-desc', null];
+      if (sortCol !== 'icf_code') { setSortCol('icf_code'); setSortDir('b-first'); return; }
+      const cycle: SortDir[] = ['b-first', 'd-first', null];
       const next = cycle[(cycle.indexOf(sortDir) + 1) % cycle.length];
       setSortDir(next); if (next === null) setSortCol(null);
     } else {
@@ -230,12 +230,11 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
   const sortedConditions = [...conditions].sort((a, b) => {
     if (!sortCol || !sortDir) return 0;
     if (sortCol === 'icf_code') {
-      const prefix = sortDir.startsWith('b') ? 'b' : 'd';
-      const dir    = sortDir.endsWith('asc') ? 1 : -1;
+      const prefix = sortDir === 'b-first' ? 'b' : 'd';
       const aP = a.icf_code.toLowerCase().startsWith(prefix) ? 0 : 1;
       const bP = b.icf_code.toLowerCase().startsWith(prefix) ? 0 : 1;
       if (aP !== bP) return aP - bP;
-      return dir * a.icf_code.localeCompare(b.icf_code);
+      return a.icf_code.localeCompare(b.icf_code);
     }
     if (sortCol === 'name') {
       const dir = sortDir === 'asc' ? 1 : -1;
@@ -252,9 +251,9 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
 
   const sortIcon = (col: SortCol) => {
     if (col === 'icf_code') {
-      type IcfDir = 'b-asc' | 'b-desc' | 'd-asc' | 'd-desc';
-      const labels: Record<IcfDir, string> = { 'b-asc': 'b↑', 'b-desc': 'b↓', 'd-asc': 'd↑', 'd-desc': 'd↓' };
-      return sortCol === 'icf_code' && sortDir && sortDir !== 'asc' && sortDir !== 'desc'
+      type IcfDir = 'b-first' | 'd-first';
+      const labels: Record<IcfDir, string> = { 'b-first': 'b', 'd-first': 'd' };
+      return sortCol === 'icf_code' && sortDir && (sortDir === 'b-first' || sortDir === 'd-first')
         ? <span className="wp-sort-badge">{labels[sortDir as IcfDir]}</span>
         : <span className="wp-sort-icon">⇅</span>;
     }
@@ -275,7 +274,11 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
     const matchesFilter =
       selectedCoreSets.length === 0 ||
       (c.core_sets || []).some(cs => selectedCoreSets.includes(cs));
-    return matchesSearch && matchesFilter;
+    // When b-first or d-first sort is active, also filter to only that prefix
+    const matchesPrefix =
+      sortCol !== 'icf_code' || !sortDir ||
+      c.icf_code.toLowerCase().startsWith(sortDir === 'b-first' ? 'b' : 'd');
+    return matchesSearch && matchesFilter && matchesPrefix;
   });
 
 
@@ -379,10 +382,10 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
       <nav className="wp-navbar">
         <div className="wp-nav-brand-container">
           {!isSidebarOpen && (
-            <button 
-              className="wp-nav-home-btn" 
-              style={{ marginRight: '16px', padding: '6px 8px' }} 
-              onClick={() => setIsSidebarOpen(true)} 
+            <button
+              className="wp-nav-home-btn"
+              style={{ marginRight: '16px', padding: '6px 8px' }}
+              onClick={() => setIsSidebarOpen(true)}
               aria-label="Open sidebar"
             >
               <ListIcon />
@@ -407,10 +410,10 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
             return breadcrumbItems.map((item, index) => {
               const isCurrent = index === breadcrumbItems.length - 1;
               const isLastBeforeCurrent = index === breadcrumbItems.length - 2;
-              
+
               return (
                 <span key={index} className="wp-breadcrumb-segment">
-                  <span 
+                  <span
                     className={`wp-breadcrumb-text ${isCurrent ? 'current' : ''} ${isLastBeforeCurrent ? 'last-before-current' : ''}`}
                     onClick={item.onClick}
                     role={item.onClick ? "button" : undefined}
@@ -519,7 +522,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                       workerId={selectedWorker.id}
                       workerDisplayName={
                         [selectedWorker.first_name, selectedWorker.surname].filter(Boolean).join(' ')
-                          || selectedWorker.id
+                        || selectedWorker.id
                       }
                     />
                   </div>
@@ -556,6 +559,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                           workerId={selectedWorker.id}
                           workerDisplayName={displayName(selectedWorker)}
                           currentConditions={conditions}
+                          allCoreSets={allCoreSets}
                           onClose={() => setIsWizardOpen(false)}
                           onSaved={() => {
                             setLoadingConditions(true);
@@ -570,7 +574,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                       <div className="wp-section">
                         <div className="wp-section-header">
                           <h2 className="wp-section-title">Current Health Conditions</h2>
-                          
+
                           <div className="wp-search-wrapper" style={{ flex: 1, maxWidth: 300, marginBottom: 0 }}>
                             <span className="wp-search-icon"><SearchIcon /></span>
                             <input type="text" className="wp-search-input"
@@ -694,7 +698,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                                   <th
                                     className={`wp-th-sortable${sortCol === 'icf_code' ? ' wp-th-sorted' : ''}`}
                                     onClick={() => handleSort('icf_code')}
-                                    title="Sort by ICF Code (cycles: b↑ → b↓ → d↑ → d↓ → unsorted)"
+                                    title="Sort by ICF Code (cycles: b first → d first → unsorted)"
                                   >
                                     ICF Code {sortIcon('icf_code')}
                                   </th>
