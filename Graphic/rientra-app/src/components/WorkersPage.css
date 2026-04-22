@@ -647,6 +647,72 @@
   background: rgba(77, 217, 192, 0.06);
 }
 
+.wp-condition-row {
+  cursor: pointer;
+}
+
+.wp-condition-row.is-expanded {
+  background: rgba(77, 217, 192, 0.08);
+}
+
+.wp-icf-name-cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.wp-icf-code-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wp-row-expander-arrow {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #4DD9C0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  opacity: 0.6;
+}
+
+.wp-row-expander-arrow.is-expanded {
+  transform: rotate(180deg);
+  opacity: 1;
+}
+
+.wp-condition-detail-row td {
+  background: rgba(9, 19, 36, 0.24);
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+.wp-condition-description {
+  padding: 6px 0 8px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.wp-condition-description-main,
+.wp-condition-description-text {
+  margin: 0;
+  white-space: pre-line;
+}
+
+.wp-condition-description-section {
+  margin-top: 12px;
+}
+
+.wp-condition-description-label {
+  margin-bottom: 6px;
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
 /* ── Sortable column headers ── */
 .wp-th-sortable {
   cursor: pointer;

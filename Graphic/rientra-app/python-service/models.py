@@ -59,6 +59,7 @@ class JobSkillProfileEntry(BaseModel):
 class HealthCondition(BaseModel):
     icf_code:      str
     icf_name:      str = ""
+    description:   str = ""
     core_sets:     list[str] = []
     bf_qualifier:  Optional[int] = None
     ap1_qualifier: Optional[int] = None

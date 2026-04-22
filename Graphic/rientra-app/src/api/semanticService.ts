@@ -29,6 +29,7 @@ export interface Worker {
 export interface HealthCondition {
   icf_code: string;
   icf_name: string;
+  description: string;
   core_sets: string[];
   bf_qualifier: number | null;
   ap1_qualifier: number | null;

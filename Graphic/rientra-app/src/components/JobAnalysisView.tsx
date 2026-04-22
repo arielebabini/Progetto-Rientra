@@ -270,8 +270,6 @@ interface JobAnalysisViewProps {
   workerId: string;
   workerDisplayName: string;
 }
-interface TooltipState { dataX: number; dataY: number; result: MatchResult; }
-
 export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnalysisViewProps) {
   const [matchResults, setMatchResults] = useState<MatchResult[]>([]);
   const [loadingMatch, setLoadingMatch] = useState(true);
@@ -299,7 +297,7 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
   const [profileA, setProfileA] = useState<JobSkillEntry[]>([]);
   const [profileB, setProfileB] = useState<JobSkillEntry[]>([]);
   const [loadingProfileA, setLoadingProfileA] = useState(false);
-  const [loadingProfileB, setLoadingProfileB] = useState(false);
+  const [, setLoadingProfileB] = useState(false);
 
   const [allProfiles, setAllProfiles] = useState<Record<string, JobSkillEntry[]>>({});
   const [loadingAllProfiles, setLoadingAllProfiles] = useState(false);

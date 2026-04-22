@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import './WorkersPage.css';
 import JobAnalysisView from './JobAnalysisView';
 import {
@@ -74,6 +74,43 @@ const FilterIcon = () => (
     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
   </svg>
 );
+
+type ParsedDescription = {
+  main: string;
+  inclusion: string;
+  exclusion: string;
+};
+
+function parseConditionDescription(description: string): ParsedDescription {
+  const normalized = (description || '').replace(/\r\n/g, '\n').trim();
+  if (!normalized) return { main: '', inclusion: '', exclusion: '' };
+
+  const inclusionMatch = normalized.match(/\bInclusions?:/i);
+  const exclusionMatch = normalized.match(/\bExclusions?:/i);
+
+  const firstMarkerIndex = [inclusionMatch?.index, exclusionMatch?.index]
+    .filter((index): index is number => index != null)
+    .sort((a, b) => a - b)[0];
+
+  const main = (firstMarkerIndex == null ? normalized : normalized.slice(0, firstMarkerIndex)).trim();
+
+  let inclusion = '';
+  if (inclusionMatch?.index != null) {
+    const start = inclusionMatch.index + inclusionMatch[0].length;
+    const end = exclusionMatch?.index != null && exclusionMatch.index > inclusionMatch.index
+      ? exclusionMatch.index
+      : normalized.length;
+    inclusion = normalized.slice(start, end).trim();
+  }
+
+  let exclusion = '';
+  if (exclusionMatch?.index != null) {
+    const start = exclusionMatch.index + exclusionMatch[0].length;
+    exclusion = normalized.slice(start).trim();
+  }
+
+  return { main, inclusion, exclusion };
+}
 
 /* ─────────────────────────────────────────────
    Loading / status animation component
@@ -199,66 +236,77 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
   const [coreSetFilterOpen, setCoreSetFilterOpen] = useState(false);
   const [selectedCoreSets, setSelectedCoreSets] = useState<string[]>([]);
   const [allCoreSets, setAllCoreSets] = useState<string[]>([]);
-  const [activeNav, setActiveNav] = useState<'workers' | 'jobs-analysis' | 'jobs-positions'>(initialNav);
+  const [activeNav] = useState<'workers' | 'jobs-analysis' | 'jobs-positions'>(initialNav);
+  const [expandedConditionCode, setExpandedConditionCode] = useState<string | null>(null);
 
   const [switchingWorkerId, setSwitchingWorkerId] = useState<string | null>(null);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // ── Table sort state ───────────────────────────────────────────────
-  // icf_code cycles: 'b' → 'd' → null
-  // name / eff_qualifier cycle: 'asc' → 'desc' → null
-  type SortCol = 'icf_code' | 'name' | 'eff_qualifier' | null;
-  type SortDir = 'asc' | 'desc' | 'b-first' | 'd-first' | null;
-  const [sortCol, setSortCol] = useState<SortCol>(null);
-  const [sortDir, setSortDir] = useState<SortDir>(null);
+  // icf_code cycles: 'b' → 'd' → removed
+  // name / eff_qualifier cycle: 'asc' → 'desc' → removed
+  type SortCol = 'icf_code' | 'name' | 'eff_qualifier';
+  type SortDir = 'asc' | 'desc' | 'b-first' | 'd-first';
+  type SortRule = { col: SortCol; dir: SortDir };
+  const [sortRules, setSortRules] = useState<SortRule[]>([]);
 
   const handleSort = (col: SortCol) => {
-    if (col === 'icf_code') {
-      if (sortCol !== 'icf_code') { setSortCol('icf_code'); setSortDir('b-first'); return; }
-      const cycle: SortDir[] = ['b-first', 'd-first', null];
-      const next = cycle[(cycle.indexOf(sortDir) + 1) % cycle.length];
-      setSortDir(next); if (next === null) setSortCol(null);
-    } else {
-      if (sortCol !== col) { setSortCol(col); setSortDir('asc'); return; }
-      const cycle: SortDir[] = ['asc', 'desc', null];
-      const next = cycle[(cycle.indexOf(sortDir) + 1) % cycle.length];
-      setSortDir(next); if (next === null) setSortCol(null);
-    }
+    setSortRules(prev => {
+      const existing = prev.find(rule => rule.col === col);
+      const cycle = col === 'icf_code'
+        ? ['b-first', 'd-first', null] as const
+        : ['asc', 'desc', null] as const;
+      const currentIndex = existing ? cycle.indexOf(existing.dir as any) : -1;
+      const next = cycle[(currentIndex + 1) % cycle.length];
+
+      if (next === null) {
+        return prev.filter(rule => rule.col !== col);
+      }
+
+      const remainingRules = prev.filter(rule => rule.col !== col);
+      return [{ col, dir: next }, ...remainingRules];
+    });
   };
 
-  const sortedConditions = [...conditions].sort((a, b) => {
-    if (!sortCol || !sortDir) return 0;
-    if (sortCol === 'icf_code') {
-      const prefix = sortDir === 'b-first' ? 'b' : 'd';
+  const compareConditions = (a: HealthCondition, b: HealthCondition, rule: SortRule) => {
+    if (rule.col === 'icf_code') {
+      const prefix = rule.dir === 'b-first' ? 'b' : 'd';
       const aP = a.icf_code.toLowerCase().startsWith(prefix) ? 0 : 1;
       const bP = b.icf_code.toLowerCase().startsWith(prefix) ? 0 : 1;
       if (aP !== bP) return aP - bP;
       return a.icf_code.localeCompare(b.icf_code);
     }
-    if (sortCol === 'name') {
-      const dir = sortDir === 'asc' ? 1 : -1;
+
+    if (rule.col === 'name') {
+      const dir = rule.dir === 'asc' ? 1 : -1;
       return dir * (a.icf_name || '').localeCompare(b.icf_name || '');
     }
-    if (sortCol === 'eff_qualifier') {
-      const dir = sortDir === 'asc' ? 1 : -1;
-      const effA = Math.max(a.bf_qualifier ?? 0, a.ap1_qualifier ?? 0);
-      const effB = Math.max(b.bf_qualifier ?? 0, b.ap1_qualifier ?? 0);
-      return dir * (effA - effB);
+
+    const dir = rule.dir === 'asc' ? 1 : -1;
+    const effA = Math.max(a.bf_qualifier ?? 0, a.ap1_qualifier ?? 0);
+    const effB = Math.max(b.bf_qualifier ?? 0, b.ap1_qualifier ?? 0);
+    return dir * (effA - effB);
+  };
+
+  const sortedConditions = [...conditions].sort((a, b) => {
+    for (const rule of sortRules) {
+      const result = compareConditions(a, b, rule);
+      if (result !== 0) return result;
     }
     return 0;
   });
 
   const sortIcon = (col: SortCol) => {
-    if (col === 'icf_code') {
-      type IcfDir = 'b-first' | 'd-first';
-      const labels: Record<IcfDir, string> = { 'b-first': 'b', 'd-first': 'd' };
-      return sortCol === 'icf_code' && sortDir && (sortDir === 'b-first' || sortDir === 'd-first')
-        ? <span className="wp-sort-badge">{labels[sortDir as IcfDir]}</span>
-        : <span className="wp-sort-icon">⇅</span>;
-    }
-    if (sortCol === col) return <span className="wp-sort-badge">{sortDir === 'asc' ? '↑' : '↓'}</span>;
-    return <span className="wp-sort-icon">⇅</span>;
+    const ruleIndex = sortRules.findIndex(rule => rule.col === col);
+    if (ruleIndex === -1) return <span className="wp-sort-icon">⇅</span>;
+
+    const rule = sortRules[ruleIndex];
+    const label = col === 'icf_code'
+      ? (rule.dir === 'b-first' ? 'b' : 'd')
+      : (rule.dir === 'asc' ? '↑' : '↓');
+
+    return <span className="wp-sort-badge">{`${label}${ruleIndex + 1}`}</span>;
   };
 
   // All available core set labels — fetched from API, not derived from conditions
@@ -273,12 +321,12 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
     );
     const matchesFilter =
       selectedCoreSets.length === 0 ||
-      (c.core_sets || []).some(cs => selectedCoreSets.includes(cs));
-    // When b-first or d-first sort is active, also filter to only that prefix
-    const matchesPrefix =
-      sortCol !== 'icf_code' || !sortDir ||
-      c.icf_code.toLowerCase().startsWith(sortDir === 'b-first' ? 'b' : 'd');
-    return matchesSearch && matchesFilter && matchesPrefix;
+      selectedCoreSets.every(cs => (c.core_sets || []).includes(cs));
+    const icfSortRule = sortRules.find(rule => rule.col === 'icf_code');
+    const matchesIcfPrefix =
+      !icfSortRule ||
+      c.icf_code.toLowerCase().startsWith(icfSortRule.dir === 'b-first' ? 'b' : 'd');
+    return matchesSearch && matchesFilter && matchesIcfPrefix;
   });
 
 
@@ -327,6 +375,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
   useEffect(() => {
     if (!selectedWorker) return;
     setConditions([]);
+    setExpandedConditionCode(null);
     setLoadingConditions(true);
     fetchHealthConditions(selectedWorker.id)
       .then(r => setConditions(r.conditions))
@@ -696,56 +745,93 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                               <thead>
                                 <tr>
                                   <th
-                                    className={`wp-th-sortable${sortCol === 'icf_code' ? ' wp-th-sorted' : ''}`}
+                                    className={`wp-th-sortable${sortRules.some(rule => rule.col === 'icf_code') ? ' wp-th-sorted' : ''}`}
                                     onClick={() => handleSort('icf_code')}
                                     title="Sort by ICF Code (cycles: b first → d first → unsorted)"
                                   >
                                     ICF Code {sortIcon('icf_code')}
                                   </th>
                                   <th
-                                    className={`wp-th-sortable${sortCol === 'name' ? ' wp-th-sorted' : ''}`}
+                                    className={`wp-th-sortable${sortRules.some(rule => rule.col === 'name') ? ' wp-th-sorted' : ''}`}
                                     onClick={() => handleSort('name')}
                                     title="Sort by Name"
                                   >
                                     Name {sortIcon('name')}
                                   </th>
                                   <th>Core Set</th>
-                                  <th>BF Qualifier</th>
-                                  <th>AP1 Qualifier</th>
                                   <th
-                                    className={`wp-th-sortable${sortCol === 'eff_qualifier' ? ' wp-th-sorted' : ''}`}
+                                    className={`wp-th-sortable${sortRules.some(rule => rule.col === 'eff_qualifier') ? ' wp-th-sorted' : ''}`}
                                     onClick={() => handleSort('eff_qualifier')}
-                                    title="Sort by Effective Qualifier"
+                                    title="Sort by Qualifier"
                                   >
-                                    Effective Qualifier {sortIcon('eff_qualifier')}
+                                    Qualifier Value {sortIcon('eff_qualifier')}
                                   </th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {filteredConditions.map((c, i) => {
                                   const eff = Math.max(c.bf_qualifier ?? 0, c.ap1_qualifier ?? 0);
-                                  return (
-                                    <tr key={`${c.icf_code}-${i}`}>
-                                      <td><span className="wp-icf-code">{c.icf_code}</span></td>
-                                      <td><span className="wp-icf-name">{c.icf_name || '—'}</span></td>
+                                  const isExpanded = expandedConditionCode === c.icf_code;
+                                  const parsedDescription = parseConditionDescription(c.description || '');
+                                  return [
+                                    <tr
+                                      key={`${c.icf_code}-${i}`}
+                                      className={`wp-condition-row${isExpanded ? ' is-expanded' : ''}`}
+                                      onClick={() => setExpandedConditionCode(prev => prev === c.icf_code ? null : c.icf_code)}
+                                    >
+                                      <td>
+                                        <div className="wp-icf-code-cell">
+                                          <span className={`wp-row-expander-arrow${isExpanded ? ' is-expanded' : ''}`} aria-hidden="true">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                              <polyline points="6 9 12 15 18 9"></polyline>
+                                            </svg>
+                                          </span>
+                                          <span className="wp-icf-code">{c.icf_code}</span>
+                                        </div>
+                                      </td>
+                                      <td>
+                                        <div className="wp-icf-name-cell">
+                                          <span className="wp-icf-name">{c.icf_name || '—'}</span>
+                                        </div>
+                                      </td>
                                       <td><span className="wp-icf-category" style={{ fontSize: '0.75rem', opacity: 0.8 }}>{(c.core_sets || []).join(', ') || '—'}</span></td>
-                                      <td>
-                                        {c.bf_qualifier != null
-                                          ? <span className="wp-qualifier-badge">{c.bf_qualifier}</span>
-                                          : <span className="wp-na">—</span>}
-                                      </td>
-                                      <td>
-                                        {c.ap1_qualifier != null
-                                          ? <span className="wp-qualifier-badge">{c.ap1_qualifier}</span>
-                                          : <span className="wp-na">—</span>}
-                                      </td>
                                       <td>
                                         <span className={`wp-qualifier-badge wp-qualifier-badge--eff wp-eff-${eff}`}>
                                           {eff}
                                         </span>
                                       </td>
-                                    </tr>
-                                  );
+                                    </tr>,
+                                    isExpanded ? (
+                                      <tr key={`${c.icf_code}-${i}-detail`} className="wp-condition-detail-row">
+                                        <td />
+                                        <td colSpan={3}>
+                                          <div className="wp-condition-description">
+                                            {c.description ? (
+                                              <>
+                                                {parsedDescription.main && (
+                                                  <p className="wp-condition-description-main">{parsedDescription.main}</p>
+                                                )}
+                                                {parsedDescription.inclusion && (
+                                                  <div className="wp-condition-description-section">
+                                                    <div className="wp-condition-description-label">Inclusion</div>
+                                                    <p className="wp-condition-description-text">{parsedDescription.inclusion}</p>
+                                                  </div>
+                                                )}
+                                                {parsedDescription.exclusion && (
+                                                  <div className="wp-condition-description-section">
+                                                    <div className="wp-condition-description-label">Exclusion</div>
+                                                    <p className="wp-condition-description-text">{parsedDescription.exclusion}</p>
+                                                  </div>
+                                                )}
+                                              </>
+                                            ) : (
+                                              'No ontology description available for this ICF code.'
+                                            )}
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    ) : null,
+                                  ];
                                 })}
                               </tbody>
                             </table>

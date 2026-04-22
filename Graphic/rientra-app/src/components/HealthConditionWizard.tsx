@@ -119,7 +119,7 @@ export default function HealthConditionWizard({ workerId, workerDisplayName, cur
       (c.core_sets || []).join(' ').toLowerCase().includes(q);
     const matchesFilter = (c: IcfCodeEntry) =>
       wizardSelectedCoreSets.length === 0 ||
-      (c.core_sets || []).some(cs => wizardSelectedCoreSets.includes(cs));
+      wizardSelectedCoreSets.every(cs => (c.core_sets || []).includes(cs));
     // selectedCategories holds ICF prefix chars ('b', 'd', …) — check directly against icf_code.
     const matchesCategory = (c: IcfCodeEntry) =>
       selectedCategories.length === 0 ||

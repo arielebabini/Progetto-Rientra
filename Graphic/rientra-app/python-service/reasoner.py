@@ -62,6 +62,7 @@ IRI_FIRST_NAME  = "http://www.stiima.cnr.it/FOAF-excerpt#first_name"
 IRI_SURNAME     = "http://www.stiima.cnr.it/FOAF-excerpt#surname"
 IRI_IS_DESCRIBED_BY   = "http://www.stiima.cnr.it/RientraHC#isDescribedBy"
 IRI_INVOLVES_ICF      = "http://www.stiima.cnr.it/RientraHC#involvesICFCode"
+IRI_ICF_DESCRIPTION   = "http://www.stiima.cnr.it/ICF-exc-coreset#description"
 
 # Suitability thresholds (Fig. 4 of the paper)
 JS_RED_INTERCEPT    = 21.0
@@ -432,10 +433,11 @@ def get_health_conditions(worker_id: str) -> dict:
         raise KeyError(f"Worker '{worker_id}' not found in ontology.")
 
     rows = _sparql(f"""
-        SELECT ?icf ?bfq ?ap1q WHERE {{
+        SELECT ?icf ?desc ?bfq ?ap1q WHERE {{
             <{person_ind.iri}> <{IRI_IS_IN_HC}> ?hc .
             ?hc  <{IRI_IS_DESCRIBED_BY}>  ?des .
             ?des <{IRI_INVOLVES_ICF}>      ?icf .
+            OPTIONAL {{ ?icf <{IRI_ICF_DESCRIPTION}> ?desc }}
             OPTIONAL {{ ?des <{IRI_BFQUAL}>  ?bfq  }}
             OPTIONAL {{ ?des <{IRI_AP1QUAL}> ?ap1q }}
         }}
@@ -443,7 +445,7 @@ def get_health_conditions(worker_id: str) -> dict:
 
     conditions = []
     seen_icf   = set()
-    for icf, bfq_raw, ap1q_raw in rows:
+    for icf, desc_raw, bfq_raw, ap1q_raw in rows:
         full_id  = local_name(icf)
         if full_id in seen_icf:
             continue
@@ -469,6 +471,7 @@ def get_health_conditions(worker_id: str) -> dict:
         conditions.append({
             "icf_code"     : icf_code,
             "icf_name"     : icf_name,
+            "description"  : str(desc_raw).strip() if desc_raw is not None else "",
             "core_sets"    : core_sets,
             "bf_qualifier" : int(bfq_raw)  if bfq_raw  is not None else None,
             "ap1_qualifier": int(ap1q_raw) if ap1q_raw is not None else None,
