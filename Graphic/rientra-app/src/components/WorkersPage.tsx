@@ -243,6 +243,30 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
+  // ── Click outside / Escape logic for dropdown ──
+  const coreSetDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (coreSetFilterOpen && coreSetDropdownRef.current && !coreSetDropdownRef.current.contains(event.target as Node)) {
+        setCoreSetFilterOpen(false);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (coreSetFilterOpen && event.key === 'Escape') {
+        setCoreSetFilterOpen(false);
+      }
+    }
+
+    if (coreSetFilterOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [coreSetFilterOpen]);
   // ── Table sort state ───────────────────────────────────────────────
   // icf_code cycles: 'b' → 'd' → removed
   // name / eff_qualifier cycle: 'asc' → 'desc' → removed
@@ -446,7 +470,18 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
             <span className="wp-nav-title">RIENTR@</span>
           </div>
         </div>
-        <div className="wp-breadcrumbs">
+        <div className="wp-breadcrumbs-container">
+          <button
+            className="wp-breadcrumb-back-btn"
+            onClick={onNavigateHome}
+            aria-label="Back to Home"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+          </button>
+          <div className="wp-breadcrumbs-box">
           {(() => {
             const navTitle = activeNav === 'workers' ? 'Worker Information' : activeNav === 'jobs-analysis' ? 'Job Analysis' : 'Job Positions';
             const breadcrumbItems = [];
@@ -481,6 +516,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
               );
             });
           })()}
+          </div>
         </div>
 
         {/* Service status pill */}
@@ -492,10 +528,6 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
               ? 'Error'
               : 'Starting…'}
         </div>
-
-        <button className="wp-nav-home-btn" onClick={onNavigateHome} title="Back to Home" id="btn-home">
-          <HomeIcon />
-        </button>
       </nav>
 
       {/* ── Body ── */}
@@ -632,7 +664,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                           </div>
 
                           {/* Core Set filter dropdown */}
-                          <div className="wp-dots-wrapper" style={{ position: 'relative' }}>
+                          <div className="wp-dots-wrapper" style={{ position: 'relative' }} ref={coreSetDropdownRef}>
                             <button
                               className={`wp-btn-dots ${coreSetFilterOpen || selectedCoreSets.length > 0 ? 'active' : ''}`}
                               id="btn-coreset-filter"
@@ -742,6 +774,12 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                             </div>
                           ) : (
                             <table className="wp-table" id="health-conditions-table" style={{ opacity: loadingConditions ? 0.6 : 1, transition: 'opacity 0.2s' }}>
+                              <colgroup>
+                                <col style={{ width: '15%' }} />
+                                <col style={{ width: '40%' }} />
+                                <col style={{ width: '30%' }} />
+                                <col style={{ width: '15%' }} />
+                              </colgroup>
                               <thead>
                                 <tr>
                                   <th
@@ -754,9 +792,9 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                                   <th
                                     className={`wp-th-sortable${sortRules.some(rule => rule.col === 'name') ? ' wp-th-sorted' : ''}`}
                                     onClick={() => handleSort('name')}
-                                    title="Sort by Name"
+                                    title="Sort by Code Name"
                                   >
-                                    Name {sortIcon('name')}
+                                    Code Name {sortIcon('name')}
                                   </th>
                                   <th>Core Set</th>
                                   <th
@@ -764,7 +802,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                                     onClick={() => handleSort('eff_qualifier')}
                                     title="Sort by Qualifier"
                                   >
-                                    Qualifier Value {sortIcon('eff_qualifier')}
+                                    Qualifier {sortIcon('eff_qualifier')}
                                   </th>
                                 </tr>
                               </thead>
@@ -804,7 +842,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                                     isExpanded ? (
                                       <tr key={`${c.icf_code}-${i}-detail`} className="wp-condition-detail-row">
                                         <td />
-                                        <td colSpan={3}>
+                                        <td colSpan={1}>
                                           <div className="wp-condition-description">
                                             {c.description ? (
                                               <>
@@ -829,6 +867,8 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                                             )}
                                           </div>
                                         </td>
+                                        <td />
+                                        <td />
                                       </tr>
                                     ) : null,
                                   ];

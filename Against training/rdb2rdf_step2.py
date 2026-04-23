@@ -5,33 +5,33 @@ Step 2 del progetto Rientra@: RDB2RDF con matching verso l'ontologia principale.
 
 Dataset in ingresso:
   - Tabella PostgreSQL  : ext_job  (ext01…ext09)
-    → creare con: psql -U postgres -d rientra_db -f rientra_ext_jobs.sql
   - Ontologia           : Rientra.rdf  (namespace http://www.stiima.cnr.it/JobList#)
   - Dati di training    : bert_training_data.xlsx  (60 lavori, 720 coppie)
 
 Strategie di matching:
-  S1 — String Matching      : Jaccard + Overlap + Levenshtein (baseline lessicale)
-  S2 — BERT base (raw)      : bert-base-uncased, embedding [CLS], cosine similarity
-  S3 — BERT fine-tuned      : bert-base-uncased fine-tuned su bert_training_data.xlsx
-                               con CosineSimilarityLoss (architettura Siamese)
-  S4 — MiniLM               : all-MiniLM-L6-v2 via sentence-transformers (riferimento)
+  S1 — String Matching          : Jaccard + Overlap + Levenshtein
+                                   Pre-processing esteso: normalizzazione simboli,
+                                   espansione abbreviazioni, rimozione stopwords.
+  S2 — all-mpnet-base-v2        : sentence-transformer nativo (768 dim), cosine similarity.
+                                   Superiore a MiniLM su testi lunghi. Nessun problema
+                                   di anisotropy perché ottimizzato per sentence similarity.
+  S3 — MPNet fine-tuned         : all-mpnet-base-v2 fine-tuned su bert_training_data.xlsx
+                                   con CosineSimilarityLoss (architettura Siamese).
+                                   Specializzato sul dominio Rientra@.
+  S4 — all-MiniLM-L6-v2        : sentence-transformer compatto (384 dim), riferimento.
 
-Fine-tuning BERT (S3):
-  Il modello viene addestrato su coppie (testo_A, testo_B, label) dove
-  label=1 indica lavori equivalenti e label=0 lavori diversi.
-  La loss CosineSimilarityLoss spinge il modello a produrre embedding vicini
-  per coppie positive e lontani per coppie negative — esattamente come MiniLM
-  è stato costruito, ma specializzato sul dominio Rientra@.
-  Il modello fine-tuned viene salvato in output/bert_finetuned/ e riutilizzato
-  nelle esecuzioni successive senza ri-addestrare.
+Nota sui modelli:
+  Tutti i modelli NLP usati (S2, S3, S4) sono sentence-transformers nativi,
+  non encoder BERT raw. Questo garantisce embedding di frase calibrati per
+  cosine similarity e assenza del fenomeno di anisotropy.
+  BERT base raw è stato rimosso in seguito alle osservazioni del referente.
 
 Requisiti:
-    pip install psycopg2-binary rdflib rich transformers torch scikit-learn openpyxl
-    pip install sentence-transformers   # per S3 fine-tuning e S4 MiniLM
+    pip install psycopg2-binary rdflib rich sentence-transformers openpyxl
 
 Uso:
     python rdb2rdf_step2.py
-    python rdb2rdf_step2.py --skip-training   # salta il fine-tuning se modello già salvato
+    python rdb2rdf_step2.py --skip-training   # riusa modello già salvato
 """
 
 import os
@@ -71,29 +71,64 @@ DB_CONFIG = {
 
 ONTOLOGY_FILE    = "Rientra.rdf"
 OUTPUT_DIR       = "output"
-TRAINING_FILE    = "bert_training_data.xlsx"   # generato da gen_training_data.py
-FINETUNED_DIR    = os.path.join("output", "bert_finetuned")  # modello salvato
+TRAINING_FILE    = "bert_training_data.xlsx"
+FINETUNED_DIR    = os.path.join("output", "mpnet_finetuned")  # modello fine-tuned salvato
 
 JOBLIST_BASE = "http://www.stiima.cnr.it/JobList#"
 RIENTRA_BASE = "https://www.stiima.cnr.it/rientra#"
 
 # Soglie cosine similarity
-S1_THRESHOLD      = 0.12
-BERT_THRESHOLD    = 0.70   # BERT raw: bassa discriminazione (anisotropy)
-FINETUNED_THRESHOLD = 0.50 # BERT fine-tuned: score calibrati come MiniLM
-MINILM_THRESHOLD  = 0.50
+# Tutti i modelli NLP sono sentence-transformers → stessa scala di score
+S1_THRESHOLD        = 0.12
+MPNET_THRESHOLD     = 0.50   # all-mpnet-base-v2: sentence-transformer nativo
+FINETUNED_THRESHOLD = 0.50   # MPNet fine-tuned: stessa scala
+MINILM_THRESHOLD    = 0.50   # all-MiniLM-L6-v2: riferimento
 
 # Iperparametri fine-tuning
-FT_EPOCHS      = 4      # numero di epoche di training
-FT_BATCH_SIZE  = 16     # batch size
-FT_LR          = 2e-5   # learning rate (standard per fine-tuning BERT)
-FT_WARMUP_STEPS = 50    # warmup scheduler
+FT_EPOCHS       = 4
+FT_BATCH_SIZE   = 16
+FT_LR           = 2e-5
+FT_WARMUP_STEPS = 50
 
-# Modelli
+# Modelli — tutti sentence-transformers nativi
 MODELS = {
-    "S2_BERT":     "bert-base-uncased",
-    "S3_FINETUNED": FINETUNED_DIR,       # path locale dopo il training
+    "S2_MPNET":    "sentence-transformers/all-mpnet-base-v2",
+    "S3_FINETUNED": FINETUNED_DIR,   # MPNet fine-tuned su dominio Rientra@
     "S4_MiniLM":   "all-MiniLM-L6-v2",
+}
+
+# Abbreviazioni comuni nel dominio IT/lavoro da espandere nel pre-processing S1
+ABBREVIATIONS = {
+    "ml":   "machine learning",
+    "ai":   "artificial intelligence",
+    "nlp":  "natural language processing",
+    "hr":   "human resources",
+    "pr":   "public relations",
+    "it":   "information technology",
+    "db":   "database",
+    "mgr":  "manager",
+    "mgmt": "management",
+    "admin": "administration",
+    "asst": "assistant",
+    "assoc": "associate",
+    "spec": "specialist",
+    "coord": "coordinator",
+    "dept": "department",
+    "exec": "executive",
+    "sr":   "senior",
+    "jr":   "junior",
+    "r&d":  "research and development",
+    "b2b":  "business to business",
+    "b2c":  "business to consumer",
+    "erp":  "enterprise resource planning",
+    "crm":  "customer relationship management",
+    "ui":   "user interface",
+    "ux":   "user experience",
+    "qa":   "quality assurance",
+    "ops":  "operations",
+    "dev":  "developer",
+    "sw":   "software",
+    "hw":   "hardware",
 }
 
 
@@ -196,11 +231,44 @@ def _build_onto_text(j: dict) -> str:
 
 
 # ═════════════════════════════════════════════════════════════
-# STRATEGIA 1 — STRING MATCHING
+# STRATEGIA 1 — STRING MATCHING (pre-processing esteso)
 # ═════════════════════════════════════════════════════════════
 
+# Stopwords leggere per il dominio job matching
+# (parole molto frequenti che non aggiungono discriminazione)
+_STOPWORDS = {
+    "and", "or", "the", "a", "an", "of", "in", "for", "to",
+    "with", "at", "by", "as", "on", "is", "are", "be", "been",
+    "from", "that", "this", "which", "who", "other", "related",
+}
+
 def _norm(s: str) -> str:
-    return s.lower().strip()
+    """
+    Pre-processing esteso per string matching.
+
+    Passi applicati in ordine:
+      1. Lowercase e strip degli spazi
+      2. Sostituzione dei separatori (-, /, _, .) con spazio
+      3. Rimozione della punteggiatura residua (',', '(', ')', ecc.)
+      4. Espansione delle abbreviazioni comuni (ML → machine learning)
+      5. Rimozione delle stopwords leggere
+      6. Collasso degli spazi multipli
+    """
+    import re
+    s = s.lower().strip()
+    # Separatori → spazio
+    s = re.sub(r"[-/_.]", " ", s)
+    # Punteggiatura residua
+    s = re.sub(r"[^a-z0-9\s]", " ", s)
+    # Espansione abbreviazioni (parola intera, non sottostringa)
+    tokens = s.split()
+    expanded = []
+    for tok in tokens:
+        expanded.append(ABBREVIATIONS.get(tok, tok))
+    # Rimozione stopwords + collasso spazi
+    tokens = " ".join(expanded).split()
+    tokens = [t for t in tokens if t not in _STOPWORDS and len(t) > 1]
+    return " ".join(tokens)
 
 def _jaccard(a: str, b: str) -> float:
     a, b = set(_norm(a).split()), set(_norm(b).split())
@@ -283,79 +351,56 @@ def cosine_similarity_matrix(query_emb: np.ndarray,
 # EMBEDDING CON BERT RAW (BERT base e BioBERT)
 # ═════════════════════════════════════════════════════════════
 
-def get_bert_embedding(text: str, tokenizer, model,
-                       max_length: int = 512) -> np.ndarray:
+# ═════════════════════════════════════════════════════════════
+# SENTENCE-TRANSFORMER MATCHING — funzione generica per S2, S3, S4
+# ═════════════════════════════════════════════════════════════
+
+def run_st_matching(db_jobs: list[dict],
+                    onto_jobs: list[dict],
+                    model_name_or_path: str,
+                    strategy_key: str,
+                    threshold: float) -> tuple[list[dict], str]:
     """
-    Calcola l'embedding di una frase con un modello BERT raw.
+    Esegue il matching con un qualsiasi modello sentence-transformers.
 
-    Strategia: estrae il vettore del token [CLS] dall'ultimo hidden state.
-    Il token [CLS] (Classification) è il primo token di ogni sequenza BERT
-    ed è stato progettato per catturare una rappresentazione aggregata
-    dell'intera sequenza — per questo è la scelta standard per embedding
-    di frasi con BERT non fine-tuned su sentence similarity.
+    Usato per S2 (all-mpnet-base-v2), S3 (MPNet fine-tuned) e S4 (MiniLM).
+    Tutti questi modelli sono sentence-transformers nativi: il loro .encode()
+    produce embedding ottimizzati per cosine similarity senza bisogno di
+    estrarre manualmente il token [CLS] o applicare pooling.
 
-    Alternativa possibile: mean pooling su tutti i token non-padding,
-    che spesso produce embedding leggermente più stabili ma richiede
-    la gestione della attention mask.
-    """
-    import torch
-    inputs = tokenizer(
-        text,
-        return_tensors="pt",
-        truncation=True,
-        max_length=max_length,
-        padding=True,
-    )
-    with torch.no_grad():
-        outputs = model(**inputs)
-    # outputs.last_hidden_state: shape [batch, seq_len, hidden_size]
-    # [:, 0, :] → token [CLS], primo token della sequenza
-    cls_embedding = outputs.last_hidden_state[:, 0, :].squeeze().numpy()
-    return cls_embedding
-
-
-def run_bert_matching(db_jobs: list[dict],
-                      onto_jobs: list[dict],
-                      model_name: str,
-                      strategy_key: str,
-                      threshold: float) -> tuple[list[dict], str]:
-    """
-    Esegue il matching con BERT base raw (S2).
-    Usa il token [CLS] dell'ultimo hidden state come embedding di frase.
+    La cosine similarity è calcolata esplicitamente con cosine_similarity_matrix
+    per uniformità metodologica tra tutte le strategie NLP.
     """
     try:
-        from transformers import AutoTokenizer, AutoModel
+        from sentence_transformers import SentenceTransformer
 
-        with console.status(f"  Caricamento [cyan]{model_name}[/]...", spinner="dots"):
-            tokenizer = AutoTokenizer.from_pretrained(model_name)
-            model     = AutoModel.from_pretrained(model_name)
-            model.eval()
-        console.print(f"  [bold green]✓[/] Modello caricato: [cyan]{model_name}[/]")
+        label = model_name_or_path.split("/")[-1]
+        with console.status(
+                f"  Caricamento [cyan]{label}[/]...", spinner="dots"):
+            model = SentenceTransformer(model_name_or_path)
+        console.print(
+            f"  [bold green]✓[/] Modello caricato: [cyan]{model_name_or_path}[/]")
 
         onto_texts = [_build_onto_text(j) for j in onto_jobs]
-        db_texts   = [f"{r['title']}. {r.get('description', '')}" for r in db_jobs]
+        db_texts   = [f"{r['title']}. {r.get('description', '')}"
+                      for r in db_jobs]
 
         with Progress(SpinnerColumn(), TextColumn("{task.description}"),
                       BarColumn(), TaskProgressColumn(),
                       console=console, transient=True) as p:
-            t1 = p.add_task("  Encoding O*NET...", total=len(onto_texts))
-            onto_embs = []
-            for txt in onto_texts:
-                onto_embs.append(get_bert_embedding(txt, tokenizer, model))
-                p.advance(t1)
-        onto_embs = np.vstack(onto_embs)
+            t1 = p.add_task("  Encoding O*NET...", total=1)
+            onto_embs = model.encode(onto_texts, convert_to_numpy=True)
+            p.advance(t1)
 
-        results = []
-        with Progress(SpinnerColumn(), TextColumn("{task.description}"),
-                      BarColumn(), TaskProgressColumn(),
-                      console=console, transient=True) as p:
+            results = []
             t2 = p.add_task("  Cosine similarity...", total=len(db_jobs))
             for i, row in enumerate(db_jobs):
-                q_emb = get_bert_embedding(db_texts[i], tokenizer, model)
+                q_emb = model.encode(db_texts[i], convert_to_numpy=True)
                 sims  = cosine_similarity_matrix(q_emb, onto_embs)
                 idx   = int(np.argmax(sims))
                 sc    = float(sims[idx])
-                m = {"job": onto_jobs[idx], "score": sc} if sc >= threshold else None
+                m = {"job": onto_jobs[idx], "score": sc} \
+                    if sc >= threshold else None
                 results.append({
                     "id":        row["id"],
                     "title":     row["title"],
@@ -365,10 +410,11 @@ def run_bert_matching(db_jobs: list[dict],
                 })
                 p.advance(t2)
 
-        return results, model_name
+        return results, model_name_or_path
 
     except Exception as e:
-        console.print(f"  [yellow]⚠[/] {model_name} non disponibile: [dim]{e}[/]")
+        console.print(
+            f"  [yellow]⚠[/] {model_name_or_path} non disponibile: [dim]{e}[/]")
         return None, None
 
 
@@ -494,22 +540,28 @@ def load_training_pairs(xlsx_path: str) -> list[tuple[str, str, float]]:
 
 
 
-def finetune_bert(training_pairs: list[tuple[str, str, float]],
-                  save_dir: str) -> str:
+def finetune_mpnet(training_pairs: list[tuple[str, str, float]],
+                   save_dir: str) -> str:
     """
-    Esegue il fine-tuning di BERT base su coppie (text_a, text_b, label)
+    Esegue il fine-tuning di all-mpnet-base-v2 su coppie (text_a, text_b, label)
     con CosineSimilarityLoss tramite sentence-transformers.
 
-    Architettura Siamese:
-      - Due passaggi identici di BERT (pesi condivisi) producono
-        due embedding.
-      - La loss minimizza la distanza coseno per coppie positive
-        e la massimizza per coppie negative.
-      - Dopo il training il modello si comporta come MiniLM ma
-        specializzato sul dominio Rientra@.
+    Perché MPNet invece di BERT base:
+      - MPNet è già un sentence-transformer nativo: produce embedding calibrati
+        per cosine similarity senza anisotropy.
+      - Il fine-tuning parte da uno spazio vettoriale già ben strutturato,
+        quindi converge più velocemente e produce risultati più affidabili.
+      - Gli embedding hanno 768 dimensioni (vs 384 di MiniLM): più capacità
+        rappresentativa, utile per testi lunghi come le descrizioni di lavoro.
 
-    Il modello viene salvato in save_dir e ricaricato nelle
-    esecuzioni successive, saltando il training.
+    Architettura Siamese con CosineSimilarityLoss:
+      - Due passaggi del modello (pesi condivisi) producono emb_A e emb_B.
+      - loss = MSE(cosine_sim(emb_A, emb_B), label)
+      - label=1 → spinge cosine_sim verso 1 (vettori paralleli)
+      - label=0 → spinge cosine_sim verso 0 (vettori ortogonali)
+
+    Il modello viene salvato in save_dir e ricaricato nelle esecuzioni
+    successive con --skip-training.
     """
     try:
         from sentence_transformers import (SentenceTransformer,
@@ -517,28 +569,24 @@ def finetune_bert(training_pairs: list[tuple[str, str, float]],
         from torch.utils.data import DataLoader
         import math
 
-        console.print(f"  [dim]Base model: bert-base-uncased[/]")
-        console.print(f"  [dim]Epoche: {FT_EPOCHS}  Batch: {FT_BATCH_SIZE}"
-                      f"  LR: {FT_LR}  Warmup: {FT_WARMUP_STEPS}[/]")
+        base_model = MODELS["S2_MPNET"]
+        console.print(f"  [dim]Base model: {base_model}[/]")
+        console.print(
+            f"  [dim]Epoche: {FT_EPOCHS}  Batch: {FT_BATCH_SIZE}"
+            f"  LR: {FT_LR}  Warmup: {FT_WARMUP_STEPS}[/]")
 
-        # Carica BERT base come SentenceTransformer
-        with console.status("  Caricamento bert-base-uncased...", spinner="dots"):
-            model = SentenceTransformer("bert-base-uncased")
+        with console.status(
+                f"  Caricamento {base_model.split('/')[-1]}...",
+                spinner="dots"):
+            model = SentenceTransformer(base_model)
 
-        # Costruisce gli InputExample
         examples = [
             InputExample(texts=[a, b], label=float(l))
             for a, b, l in training_pairs
         ]
-        loader = DataLoader(examples, shuffle=True,
-                            batch_size=FT_BATCH_SIZE)
-
-        # CosineSimilarityLoss:
-        #   loss = MSE(cosine_sim(emb_A, emb_B), label)
-        # Spinge cosine_sim → 1 per label=1 e cosine_sim → -1 per label=0
+        loader  = DataLoader(examples, shuffle=True,
+                             batch_size=FT_BATCH_SIZE)
         loss_fn = losses.CosineSimilarityLoss(model)
-
-        total_steps = math.ceil(len(examples) / FT_BATCH_SIZE) * FT_EPOCHS
 
         with Progress(
             SpinnerColumn(),
@@ -548,33 +596,23 @@ def finetune_bert(training_pairs: list[tuple[str, str, float]],
             console=console,
         ) as p:
             task = p.add_task(
-                f"  Fine-tuning BERT ({FT_EPOCHS} epoche, "
-                f"{len(examples)} coppie)...",
+                f"  Fine-tuning MPNet "
+                f"({FT_EPOCHS} epoche, {len(examples)} coppie)...",
                 total=FT_EPOCHS,
             )
-
-            # Callback per aggiornare la progress bar a ogni epoca
-            epoch_counter = [0]
-            original_fit = model.fit
-
-            def fit_with_progress(**kwargs):
-                # sentence-transformers chiama fit() con callback_after_epoch
-                # lo avvolgiamo per tracciare il progresso
-                original_fit(**kwargs)
-
             model.fit(
                 train_objectives=[(loader, loss_fn)],
                 epochs=FT_EPOCHS,
                 warmup_steps=FT_WARMUP_STEPS,
                 optimizer_params={"lr": FT_LR},
                 show_progress_bar=False,
-                callback=lambda score, epoch, steps:
-                    p.advance(task),
+                callback=lambda score, epoch, steps: p.advance(task),
             )
 
         os.makedirs(save_dir, exist_ok=True)
         model.save(save_dir)
-        console.print(f"  [bold green]✓[/] Modello salvato in: [cyan]{save_dir}[/]")
+        console.print(
+            f"  [bold green]✓[/] Modello salvato in: [cyan]{save_dir}[/]")
         return save_dir
 
     except Exception as e:
@@ -588,50 +626,15 @@ def run_finetuned_matching(db_jobs: list[dict],
                            model_path: str,
                            threshold: float) -> tuple[list[dict], str]:
     """
-    Esegue il matching usando il modello BERT fine-tuned salvato.
-    Usa sentence-transformers .encode() (come MiniLM) poiché dopo
-    il fine-tuning il modello è già ottimizzato per cosine similarity.
-    La cosine similarity viene calcolata esplicitamente per uniformità.
+    Matching con il modello MPNet fine-tuned su Rientra@.
+    Delega a run_st_matching con strategy_key S3_FINETUNED.
     """
-    try:
-        from sentence_transformers import SentenceTransformer
-
-        with console.status(f"  Caricamento modello fine-tuned...", spinner="dots"):
-            model = SentenceTransformer(model_path)
-        console.print(f"  [bold green]✓[/] Modello fine-tuned caricato da: [cyan]{model_path}[/]")
-
-        onto_texts = [_build_onto_text(j) for j in onto_jobs]
-        db_texts   = [f"{r['title']}. {r.get('description', '')}" for r in db_jobs]
-
-        with Progress(SpinnerColumn(), TextColumn("{task.description}"),
-                      BarColumn(), TaskProgressColumn(),
-                      console=console, transient=True) as p:
-            t1 = p.add_task("  Encoding O*NET...", total=1)
-            onto_embs = model.encode(onto_texts, convert_to_numpy=True)
-            p.advance(t1)
-
-            results = []
-            t2 = p.add_task("  Cosine similarity...", total=len(db_jobs))
-            for i, row in enumerate(db_jobs):
-                q_emb = model.encode(db_texts[i], convert_to_numpy=True)
-                sims  = cosine_similarity_matrix(q_emb, onto_embs)
-                idx   = int(np.argmax(sims))
-                sc    = float(sims[idx])
-                m = {"job": onto_jobs[idx], "score": sc} if sc >= threshold else None
-                results.append({
-                    "id":        row["id"],
-                    "title":     row["title"],
-                    "match":     m,
-                    "score_raw": sc,
-                    "strategy":  "S3_FINETUNED",
-                })
-                p.advance(t2)
-
-        return results, "bert-base-uncased (fine-tuned Rientra@)"
-
-    except Exception as e:
-        console.print(f"  [yellow]⚠[/] Modello fine-tuned non disponibile: [dim]{e}[/]")
-        return None, None
+    res, name = run_st_matching(
+        db_jobs, onto_jobs, model_path, "S3_FINETUNED", threshold)
+    if res:
+        # Rinomina il modello per chiarezza nell'output
+        return res, "all-mpnet-base-v2 (fine-tuned Rientra@)"
+    return None, None
 
 
 # ═════════════════════════════════════════════════════════════
@@ -642,54 +645,12 @@ def run_minilm_matching(db_jobs: list[dict],
                         onto_jobs: list[dict],
                         threshold: float) -> tuple[list[dict], str]:
     """
-    Esegue il matching con sentence-transformers/all-MiniLM-L6-v2.
-    A differenza di BERT raw, MiniLM è fine-tuned per sentence similarity:
-    il suo .encode() produce già embedding ottimizzati per cosine similarity,
-    senza bisogno di estrarre manualmente il token [CLS].
-    La cosine similarity viene comunque calcolata esplicitamente con la
-    nostra funzione cosine_similarity_matrix per uniformità metodologica.
+    Matching con all-MiniLM-L6-v2 (modello di riferimento compatto).
+    Delega a run_st_matching con strategy_key S4_MiniLM.
     """
-    try:
-        from sentence_transformers import SentenceTransformer
-
-        model_name = MODELS["S4_MiniLM"]
-        with console.status(f"  Caricamento [cyan]{model_name}[/]...", spinner="dots"):
-            model = SentenceTransformer(model_name)
-        console.print(f"  [bold green]✓[/] Modello caricato: [cyan]{model_name}[/]")
-
-        onto_texts = [_build_onto_text(j) for j in onto_jobs]
-        db_texts   = [f"{r['title']}. {r.get('description', '')}" for r in db_jobs]
-
-        with Progress(SpinnerColumn(), TextColumn("{task.description}"),
-                      BarColumn(), TaskProgressColumn(),
-                      console=console, transient=True) as p:
-            t1 = p.add_task("  Encoding O*NET...", total=1)
-            onto_embs = model.encode(onto_texts, convert_to_numpy=True)
-            p.advance(t1)
-
-            results = []
-            t2 = p.add_task("  Cosine similarity...", total=len(db_jobs))
-            for i, row in enumerate(db_jobs):
-                q_emb = model.encode(db_texts[i], convert_to_numpy=True)
-                # Cosine similarity calcolata esplicitamente (stessa formula di S2/S3)
-                sims  = cosine_similarity_matrix(q_emb, onto_embs)
-                idx   = int(np.argmax(sims))
-                sc    = float(sims[idx])
-                m = {"job": onto_jobs[idx], "score": sc} if sc >= threshold else None
-                results.append({
-                    "id":        row["id"],
-                    "title":     row["title"],
-                    "match":     m,
-                    "score_raw": sc,
-                    "strategy":  "S4_MiniLM",
-                })
-                p.advance(t2)
-
-        return results, model_name
-
-    except Exception as e:
-        console.print(f"  [yellow]⚠[/] MiniLM non disponibile: [dim]{e}[/]")
-        return None, None
+    return run_st_matching(
+        db_jobs, onto_jobs,
+        MODELS["S4_MiniLM"], "S4_MiniLM", threshold)
 
 
 # ═════════════════════════════════════════════════════════════
@@ -743,14 +704,14 @@ def print_full_comparison(s1_res: list[dict],
                           model_names: dict[str, str]):
     """
     Tabella unica con S1 + tutti i modelli NLP disponibili, una colonna per modello.
-    nlp_results: { "S2_BERT": [...], "S3_FINETUNED": [...], "S4_MiniLM": [...] }
-    model_names: { "S2_BERT": "bert-base-uncased", ... }
+    nlp_results: { "S2_MPNET": [...], "S3_FINETUNED": [...], "S4_MiniLM": [...] }
+    model_names: { "S2_MPNET": "all-mpnet-base-v2", ... }
     """
     # Indici per lookup rapido per ogni strategia
     idx = {key: {r["id"]: r for r in res}
            for key, res in nlp_results.items() if res}
 
-    available_strategies = [k for k in ["S2_BERT", "S3_FINETUNED", "S4_MiniLM"]
+    available_strategies = [k for k in ["S2_MPNET", "S3_FINETUNED", "S4_MiniLM"]
                             if k in idx]
 
     # Costruisce header dinamico
@@ -855,7 +816,7 @@ def print_cosine_detail(nlp_results: dict[str, list[dict]],
     console.print(Rule("[dim]Dettaglio score cosine per tutti i candidati O*NET[/]", style="dim"))
     console.print("[dim]  (i valori in verde sono quelli scelti come match migliore)[/]\n")
 
-    available = [k for k in ["S2_BERT", "S3_FINETUNED", "S4_MiniLM"]
+    available = [k for k in ["S2_MPNET", "S3_FINETUNED", "S4_MiniLM"]
                  if k in nlp_results and nlp_results[k]]
 
     for strategy_key in available:
@@ -900,12 +861,12 @@ def print_summary_multi(s1_res: list[dict],
     lines = [f"  Job totali nel DB  : [bold]{n_total}[/]",
              f"  Match da S1        : [bold {'green' if n_s1 else 'red'}]{n_s1}/{n_total}[/]  [dim](soglia {S1_THRESHOLD})[/]"]
 
-    for key in ["S2_BERT", "S3_FINETUNED", "S4_MiniLM"]:
+    for key in ["S2_MPNET", "S3_FINETUNED", "S4_MiniLM"]:
         res = nlp_results.get(key)
         if not res:
             lines.append(f"  Match da {key[:2]}         : [dim]— modello non disponibile —[/]")
             continue
-        thr = BERT_THRESHOLD if key == "S2_BERT" else MINILM_THRESHOLD
+        thr = MPNET_THRESHOLD if key == "S2_MPNET" else MINILM_THRESHOLD
         n   = sum(1 for r in res if r.get("match"))
         mname = model_names.get(key, key).split("/")[-1]
         lines.append(
@@ -985,7 +946,7 @@ def save_excel(db_jobs: list[dict],
     s1_idx  = {r["id"]: r for r in s1_res}
     nlp_idx = {key: {r["id"]: r for r in res}
                for key, res in nlp_results.items() if res}
-    avail   = [k for k in ["S2_BERT", "S3_FINETUNED", "S4_MiniLM"] if k in nlp_idx]
+    avail   = [k for k in ["S2_MPNET", "S3_FINETUNED", "S4_MiniLM"] if k in nlp_idx]
 
     # ── FOGLIO 1: Matching Results ────────────────────────────
     ws1 = wb.active
@@ -1066,7 +1027,7 @@ def save_excel(db_jobs: list[dict],
             r2    = nlp_idx[key].get(rid, {})
             m2    = r2.get("match")
             raw   = r2.get("score_raw", 0.0)
-            fills = {"S2_BERT":      _FILL_BERT,
+            fills = {"S2_MPNET":      _FILL_BERT,
                      "S3_FINETUNED": _FILL_BIO,   # riuso colore lilla per fine-tuned
                      "S4_MiniLM":    _FILL_MINI}
             sf = fills.get(key)
@@ -1188,7 +1149,7 @@ def save_excel(db_jobs: list[dict],
                 val = round(score_raw, 4) if is_best else None
                 cell = ws3.cell(row=r_idx, column=c_abs, value=val)
                 if is_best and val is not None:
-                    fills = {"S2_BERT": _FILL_BERT,
+                    fills = {"S2_MPNET": _FILL_BERT,
                              "S3_FINETUNED": _FILL_BIO,
                              "S4_MiniLM": _FILL_MINI}
                     _style_cell(cell, fill=fills.get(key),
@@ -1220,7 +1181,8 @@ def main():
     console.print()
     console.print(Panel(
         f"[bold white]Rientra@[/] — Step 2: RDB2RDF + String Matching + NLP\n"
-        f"[dim]Modelli: BERT base · BERT fine-tuned · MiniLM  |  Metrica: cosine similarity[/]\n"
+        f"[dim]Modelli: MPNet · MPNet fine-tuned · MiniLM  |  "
+        f"Tutti sentence-transformers nativi  |  Metrica: cosine similarity[/]\n"
         f"[dim]{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}[/]",
         border_style="blue", padding=(0, 2),
     ))
@@ -1256,41 +1218,42 @@ def main():
     console.print()
 
     # ── [2] Strategia 1 — String Matching ─────────────────────
-    console.print(Rule("[bold yellow]2 · Strategia 1 — String Matching[/]",
+    console.print(Rule("[bold yellow]2 · Strategia 1 — String Matching (pre-processing esteso)[/]",
                        style="yellow"))
-    console.print("  [dim]Jaccard (0.5) + Overlap (0.3) + Levenshtein (0.2)[/]")
+    console.print(
+        "  [dim]Jaccard (0.5) + Overlap (0.3) + Levenshtein (0.2)[/]\n"
+        "  [dim]Pre-processing: lowercase · simboli → spazio · "
+        "espansione abbreviazioni · rimozione stopwords[/]")
     console.print()
     s1_res = run_string_matching(db_jobs, onto_jobs)
     console.print(f"  [bold green]✓[/] Completato\n")
 
-    # ── [3] Strategia 2 — BERT base raw ───────────────────────
-    console.print(Rule("[bold blue]3 · Strategia 2 — BERT base (raw)[/]",
+    # ── [3] Strategia 2 — MPNet sentence-transformer ──────────
+    console.print(Rule("[bold blue]3 · Strategia 2 — all-mpnet-base-v2[/]",
                        style="blue"))
     console.print(
-        f"  [dim]Modello: {MODELS['S2_BERT']}  |  "
-        f"Embedding: token [CLS]  |  Soglia: {BERT_THRESHOLD}[/]")
-    console.print(
-        "  [dim]Nota: senza fine-tuning — score alti per tutti (anisotropy)[/]")
+        f"  [dim]Modello: {MODELS['S2_MPNET']}[/]\n"
+        f"  [dim]Sentence-transformer nativo · 768 dim · Soglia: {MPNET_THRESHOLD}[/]\n"
+        f"  [dim]Ottimizzato per testi lunghi · nessun problema di anisotropy[/]")
     console.print()
-    s2_res, s2_name = run_bert_matching(
+    s2_res, s2_name = run_st_matching(
         db_jobs, onto_jobs,
-        model_name=MODELS["S2_BERT"],
-        strategy_key="S2_BERT",
-        threshold=BERT_THRESHOLD,
+        model_name_or_path=MODELS["S2_MPNET"],
+        strategy_key="S2_MPNET",
+        threshold=MPNET_THRESHOLD,
     )
     if s2_res:
         console.print(f"  [bold green]✓[/] Completato\n")
     else:
         console.print(
-            f"  [yellow]⚠[/] Saltato — installa [cyan]transformers torch[/]\n")
+            f"  [yellow]⚠[/] Saltato — installa [cyan]sentence-transformers[/]\n")
 
-    # ── [4] Strategia 3 — BERT fine-tuned ────────────────────
-    console.print(Rule("[bold magenta]4 · Strategia 3 — BERT fine-tuned (Rientra@)[/]",
+    # ── [4] Strategia 3 — MPNet fine-tuned ───────────────────
+    console.print(Rule("[bold magenta]4 · Strategia 3 — MPNet fine-tuned (Rientra@)[/]",
                        style="magenta"))
     console.print(
-        f"  [dim]Base: bert-base-uncased  |  "
-        f"Training: {TRAINING_FILE}  |  Soglia: {FINETUNED_THRESHOLD}[/]")
-    console.print(
+        f"  [dim]Base: {MODELS['S2_MPNET']}[/]\n"
+        f"  [dim]Training: {TRAINING_FILE}  |  Soglia: {FINETUNED_THRESHOLD}[/]\n"
         f"  [dim]Loss: CosineSimilarityLoss  |  "
         f"Epoche: {FT_EPOCHS}  |  Batch: {FT_BATCH_SIZE}[/]")
     console.print()
@@ -1326,7 +1289,7 @@ def main():
 
         # Fine-tuning
         console.print()
-        ft_path = finetune_bert(training_pairs, FINETUNED_DIR)
+        ft_path = finetune_mpnet(training_pairs, FINETUNED_DIR)
 
         if ft_path:
             console.print()
@@ -1358,8 +1321,8 @@ def main():
     nlp_results: dict[str, list[dict]] = {}
     model_names: dict[str, str]        = {}
     if s2_res:
-        nlp_results["S2_BERT"]      = s2_res
-        model_names["S2_BERT"]      = s2_name
+        nlp_results["S2_MPNET"]     = s2_res
+        model_names["S2_MPNET"]     = s2_name
     if s3_res:
         nlp_results["S3_FINETUNED"] = s3_res
         model_names["S3_FINETUNED"] = s3_name
