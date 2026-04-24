@@ -57,12 +57,6 @@ const PdfIcon = () => (
     <polyline points="14 2 14 8 20 8" />
   </svg>
 );
-const HomeIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-    <polyline points="9 22 9 12 15 12 15 22" />
-  </svg>
-);
 const RefreshIcon = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" />
@@ -241,6 +235,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
 
   const [switchingWorkerId, setSwitchingWorkerId] = useState<string | null>(null);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [healthWizardStep, setHealthWizardStep] = useState<'select' | 'review' | 'saving' | 'done'>('select');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // ── Click outside / Escape logic for dropdown ──
@@ -490,6 +485,9 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
             if (activeNav === 'workers' && isWizardOpen) {
               breadcrumbItems.push({ label: 'Modify Health Conditions' });
             }
+            if (activeNav === 'workers' && isWizardOpen && healthWizardStep === 'review') {
+              breadcrumbItems.push({ label: 'Assign Points & Review Changes' });
+            }
 
             return breadcrumbItems.map((item, index) => {
               const isCurrent = index === breadcrumbItems.length - 1;
@@ -626,9 +624,6 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                             </span>
                           )}
                           <span>Jobs evaluated: <strong>{selectedWorker.evaluated_for_jobs.length}</strong></span>
-                          <span className={`wp-selected-badge ${selectedWorker.is_selected ? 'active' : ''}`}>
-                            {selectedWorker.is_selected ? '● Selected' : '○ Not selected'}
-                          </span>
                         </div>
                       </div>
                     )}
@@ -638,10 +633,12 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                       <div className="wp-section wp-section--wizard">
                         <HealthConditionWizard
                           workerId={selectedWorker.id}
-                          workerDisplayName={displayName(selectedWorker)}
                           currentConditions={conditions}
                           allCoreSets={allCoreSets}
-                          onClose={() => setIsWizardOpen(false)}
+                          onClose={() => {
+                            setIsWizardOpen(false);
+                            setHealthWizardStep('select');
+                          }}
                           onSaved={() => {
                             setLoadingConditions(true);
                             fetchHealthConditions(selectedWorker.id)
@@ -649,6 +646,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                               .catch(e => console.error('fetchHealthConditions:', e))
                               .finally(() => setLoadingConditions(false));
                           }}
+                          onStepChange={setHealthWizardStep}
                         />
                       </div>
                     ) : (
@@ -735,7 +733,10 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                           </div>
 
                           <div className="wp-section-actions">
-                            <button className="wp-btn-primary" id="btn-modify-health" onClick={() => setIsWizardOpen(true)}>
+                            <button className="wp-btn-primary" id="btn-modify-health" onClick={() => {
+                              setHealthWizardStep('select');
+                              setIsWizardOpen(true);
+                            }}>
                               <EditIcon /> Modify Health Conditions
                             </button>
                             <div className="wp-dots-wrapper">
