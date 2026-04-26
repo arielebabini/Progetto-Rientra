@@ -445,6 +445,7 @@ def get_health_conditions(worker_id: str) -> dict:
 
     conditions = []
     seen_icf   = set()
+    import re as _re
     for icf, desc_raw, bfq_raw, ap1q_raw in rows:
         full_id  = local_name(icf)
         if full_id in seen_icf:
@@ -455,8 +456,7 @@ def get_health_conditions(worker_id: str) -> dict:
         # into pure code ("b1408") and embedded name ("AuditoryAttention").
         if '-' in full_id:
             icf_code, embedded_name = full_id.split('-', 1)
-            # Add spaces before capital letters for readability: "AuditoryAttention" → "Auditory Attention"
-            import re as _re
+            # Add spaces before capital letters: "AuditoryAttention" → "Auditory Attention"
             embedded_name = _re.sub(r'(?<=[a-z0-9])(?=[A-Z])', ' ', embedded_name)
         else:
             icf_code      = full_id
@@ -800,13 +800,14 @@ def get_all_icf_codes() -> list[dict]:
     import re as _re
 
     rows = _sparql(f"""
-        SELECT DISTINCT ?icf WHERE {{
+        SELECT DISTINCT ?icf ?desc WHERE {{
             ?des <{IRI_INVOLVES_ICF}> ?icf .
+            OPTIONAL {{ ?icf <{IRI_ICF_DESCRIPTION}> ?desc }}
         }}
     """)
 
     by_code: dict[str, dict] = {}
-    for (icf,) in rows:
+    for icf, desc_raw in rows:
         full_id = local_name(icf)
 
         # Split "b1408-AuditoryAttention" → code + name
@@ -840,6 +841,7 @@ def get_all_icf_codes() -> list[dict]:
             by_code[icf_code] = {
                 "icf_code" : icf_code,
                 "icf_name" : icf_name,
+                "description": str(desc_raw).strip() if desc_raw is not None else "",
                 "category" : category,
                 "core_sets": core_sets,
                 "iri"      : str(icf.iri),
@@ -850,6 +852,8 @@ def get_all_icf_codes() -> list[dict]:
         # individuals that collapse to the same code must be merged into one row.
         if not existing["icf_name"] and icf_name:
             existing["icf_name"] = icf_name
+        if not existing["description"] and desc_raw is not None:
+            existing["description"] = str(desc_raw).strip()
         if existing["category"] == "Other" and category != "Other":
             existing["category"] = category
         existing["core_sets"] = sorted(set(existing["core_sets"]) | set(core_sets))
