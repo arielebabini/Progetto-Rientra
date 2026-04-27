@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import './HealthConditionWizard.css';
 import {
   fetchAllIcfCodes,
@@ -9,6 +10,12 @@ import {
 } from '../api/semanticService';
 
 type Step = 'select' | 'review' | 'saving' | 'done';
+
+type ParsedDescription = {
+  main: string;
+  inclusion: string;
+  exclusion: string;
+};
 
 interface HealthConditionWizardProps {
   workerId: string;
@@ -44,6 +51,58 @@ const ChevronDownIcon = () => (
   </svg>
 );
 
+const RowExpanderIcon = ({ expanded }: { expanded: boolean }) => (
+  <span className={`hc-row-expander-arrow${expanded ? ' is-expanded' : ''}`} aria-hidden="true">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="6 9 12 15 18 9"></polyline>
+    </svg>
+  </span>
+);
+
+const SearchIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </svg>
+);
+
+const ArrowDownIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="5" x2="12" y2="19" />
+    <polyline points="5 12 12 19 19 12" />
+  </svg>
+);
+
+function parseConditionDescription(description: string): ParsedDescription {
+  const normalized = (description || '').replace(/\r\n/g, '\n').trim();
+  if (!normalized) return { main: '', inclusion: '', exclusion: '' };
+
+  const inclusionMatch = normalized.match(/\bInclusions?:/i);
+  const exclusionMatch = normalized.match(/\bExclusions?:/i);
+
+  const firstMarkerIndex = [inclusionMatch?.index, exclusionMatch?.index]
+    .filter((index): index is number => index != null)
+    .sort((a, b) => a - b)[0];
+
+  const main = (firstMarkerIndex == null ? normalized : normalized.slice(0, firstMarkerIndex)).trim();
+
+  let inclusion = '';
+  if (inclusionMatch?.index != null) {
+    const start = inclusionMatch.index + inclusionMatch[0].length;
+    const end = exclusionMatch?.index != null && exclusionMatch.index > inclusionMatch.index
+      ? exclusionMatch.index
+      : normalized.length;
+    inclusion = normalized.slice(start, end).trim();
+  }
+
+  let exclusion = '';
+  if (exclusionMatch?.index != null) {
+    const start = exclusionMatch.index + exclusionMatch[0].length;
+    exclusion = normalized.slice(start).trim();
+  }
+
+  return { main, inclusion, exclusion };
+}
+
 export default function HealthConditionWizard({ workerId, currentConditions, allCoreSets, onClose, onSaved, onStepChange }: HealthConditionWizardProps) {
   const [step, setStep] = useState<Step>('select');
   const [allIcfCodes, setAllIcfCodes] = useState<IcfCodeEntry[]>([]);
@@ -56,6 +115,16 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
   const [wizardSelectedCoreSets, setWizardSelectedCoreSets] = useState<string[]>([]);
   const [categoryFilterOpen, setCategoryFilterOpen] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [expandedReviewCode, setExpandedReviewCode] = useState<string | null>(null);
+  const [showScrollToast, setShowScrollToast] = useState(false);
+  const [showMissingValueToast, setShowMissingValueToast] = useState(false);
+  const [showSavedToast, setShowSavedToast] = useState(false);
+  const [showDiscardPopup, setShowDiscardPopup] = useState(false);
+  const [scrollToastDismissedStep, setScrollToastDismissedStep] = useState<Step | null>(null);
+  const coreSetFilterRef = useRef<HTMLDivElement>(null);
+  const categoryFilterRef = useRef<HTMLDivElement>(null);
+  const selectScrollRef = useRef<HTMLDivElement>(null);
+  const reviewScrollRef = useRef<HTMLDivElement>(null);
 
   // Each category maps a display label to the ICF code first-character prefix.
   // The filter state stores prefixes ('b', 'd', …) — never label strings.
@@ -73,6 +142,68 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
   useEffect(() => {
     onStepChange?.(step);
   }, [onStepChange, step]);
+
+  useEffect(() => {
+    setScrollToastDismissedStep(null);
+    setShowScrollToast(false);
+    setShowMissingValueToast(false);
+  }, [step]);
+
+  useEffect(() => {
+    const hasOpenFilter = coreSetFilterOpen || categoryFilterOpen;
+    if (!hasOpenFilter) return;
+
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as Node;
+
+      if (coreSetFilterOpen && coreSetFilterRef.current && !coreSetFilterRef.current.contains(target)) {
+        setCoreSetFilterOpen(false);
+      }
+
+      if (categoryFilterOpen && categoryFilterRef.current && !categoryFilterRef.current.contains(target)) {
+        setCategoryFilterOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setCoreSetFilterOpen(false);
+        setCategoryFilterOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [coreSetFilterOpen, categoryFilterOpen]);
+
+  useEffect(() => {
+    const hasOpenToast = showScrollToast || showMissingValueToast || showSavedToast;
+    if (!hasOpenToast) return;
+
+    function handleGlobalClick() {
+      setShowScrollToast(false);
+      setShowMissingValueToast(false);
+      setShowSavedToast(false);
+      if (showScrollToast) {
+        setScrollToastDismissedStep(step);
+      }
+    }
+
+    // Delay attaching to prevent the event that opened the toast from immediately closing it
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handleGlobalClick);
+    }, 50);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('mousedown', handleGlobalClick);
+    };
+  }, [showScrollToast, showMissingValueToast, showSavedToast, step]);
 
   useEffect(() => {
     // initialize selectedCodes with worker's current conditions
@@ -105,6 +236,7 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
       if (!existing) {
         byCode.set(code.icf_code, {
           ...code,
+          description: code.description || '',
           core_sets: [...new Set(code.core_sets || [])],
         });
         return;
@@ -113,6 +245,7 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
       byCode.set(code.icf_code, {
         ...existing,
         icf_name: existing.icf_name || code.icf_name,
+        description: existing.description || code.description || '',
         category: existing.category !== 'Other' ? existing.category : code.category,
         core_sets: [...new Set([...(existing.core_sets || []), ...(code.core_sets || [])])],
       });
@@ -154,6 +287,28 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
     setAssignedQualifiers(prev => ({ ...prev, [code]: q }));
   };
 
+  const hasUnsavedChanges = () => {
+    const currentMap = new Map(currentConditions.map(c => [c.icf_code, c]));
+    for (const c of currentConditions) {
+      if (!selectedCodes.has(c.icf_code)) return true;
+    }
+    for (const code of Array.from(selectedCodes)) {
+      if (!currentMap.has(code)) return true;
+      const oldQual = currentMap.get(code)?.bf_qualifier ?? currentMap.get(code)?.ap1_qualifier ?? null;
+      const newQual = assignedQualifiers[code] ?? null;
+      if (oldQual !== newQual) return true;
+    }
+    return false;
+  };
+
+  const handleCloseClick = () => {
+    if (step !== 'saving' && step !== 'done' && hasUnsavedChanges()) {
+      setShowDiscardPopup(true);
+    } else {
+      onClose();
+    }
+  };
+
   const handleConfirm = async () => {
     if (step === 'select') {
       setStep('review');
@@ -162,7 +317,9 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
 
     if (step === 'review') {
       const hasMissing = Array.from(selectedCodes).some(code => assignedQualifiers[code] == null);
+      const hasMissingNewCodeValue = Array.from(selectedCodes).some(code => !currentSet.has(code) && assignedQualifiers[code] == null);
       if (hasMissing) {
+        setShowMissingValueToast(hasMissingNewCodeValue);
         const container = document.querySelector('.hc-wizard-review-container');
         const firstErrorEl = document.querySelector('.hc-row-error');
         if (container && firstErrorEl) {
@@ -212,11 +369,12 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
 
       try {
         await updateHealthConditions(workerId, changes);
+        setShowSavedToast(true);
         setStep('done');
         setTimeout(() => {
           onSaved();
           onClose();
-        }, 800);
+        }, 1800);
       } catch (err: any) {
         setError(err.message || 'Failed to save changes.');
         setStep('review');
@@ -233,9 +391,73 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
     return c.icf_code.toLowerCase().includes(reviewSearchQuery) || (c.icf_name || '').toLowerCase().includes(reviewSearchQuery);
   };
 
+  const getPreviousQualifier = (icfCode: string) => {
+    const currentCondition = currentConditions.find(x => x.icf_code === icfCode);
+    return currentCondition?.bf_qualifier ?? currentCondition?.ap1_qualifier ?? null;
+  };
+
+  const hasQualifierChanged = (icfCode: string) => {
+    const previousQualifier = getPreviousQualifier(icfCode);
+    const nextQualifier = assignedQualifiers[icfCode] ?? null;
+    return previousQualifier !== null && nextQualifier !== null && previousQualifier !== nextQualifier;
+  };
+
+  const getReviewDescription = (icfCode: string) => {
+    const currentDescription = currentConditions.find(x => x.icf_code === icfCode)?.description;
+    const catalogDescription = normalizedIcfCodes.find(x => x.icf_code === icfCode)?.description;
+    return currentDescription || catalogDescription || '';
+  };
+
+  const toggleReviewExpansion = (icfCode: string) => {
+    setExpandedReviewCode(prev => prev === icfCode ? null : icfCode);
+  };
+
   const toModify = normalizedIcfCodes.filter(c => currentSet.has(c.icf_code) && selectedCodes.has(c.icf_code) && filterReview(c));
   const toAdd = normalizedIcfCodes.filter(c => !currentSet.has(c.icf_code) && selectedCodes.has(c.icf_code) && filterReview(c));
   const toRemove = currentConditions.filter(c => !selectedCodes.has(c.icf_code) && filterReview(c));
+
+  useEffect(() => {
+    const activeContainer = step === 'select'
+      ? selectScrollRef.current
+      : step === 'review'
+        ? reviewScrollRef.current
+        : null;
+
+    if (!activeContainer || scrollToastDismissedStep === step) {
+      setShowScrollToast(false);
+      return;
+    }
+
+    const updateScrollToast = () => {
+      const hasOverflow = activeContainer.scrollHeight - activeContainer.clientHeight > 8;
+      const hasMoreBelow = activeContainer.scrollTop + activeContainer.clientHeight < activeContainer.scrollHeight - 8;
+      setShowScrollToast(hasOverflow && hasMoreBelow);
+    };
+
+    updateScrollToast();
+    activeContainer.addEventListener('scroll', updateScrollToast);
+    window.addEventListener('resize', updateScrollToast);
+
+    return () => {
+      activeContainer.removeEventListener('scroll', updateScrollToast);
+      window.removeEventListener('resize', updateScrollToast);
+    };
+  }, [
+    step,
+    loading,
+    filteredCodes.length,
+    toModify.length,
+    toAdd.length,
+    toRemove.length,
+    expandedReviewCode,
+    scrollToastDismissedStep,
+  ]);
+
+  useEffect(() => {
+    if (!showSavedToast) return;
+    const timer = window.setTimeout(() => setShowSavedToast(false), 2200);
+    return () => window.clearTimeout(timer);
+  }, [showSavedToast]);
 
 
   return (
@@ -251,7 +473,7 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
               }
             </p>
           </div>
-          <button className="hc-wizard-close-btn" onClick={onClose}><CloseIcon /></button>
+          <button className="hc-wizard-close-btn" onClick={handleCloseClick}><CloseIcon /></button>
         </div>
 
         {/* Content */}
@@ -264,47 +486,33 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
 
           {step === 'select' && (
             <>
-              <div className="hc-wizard-search-bar" style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'flex-start' }}>
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  style={{ width: 260, maxWidth: '100%' }}
-                />
+              <div className="hc-wizard-toolbar">
+                <div className="hc-search-wrapper">
+                  <span className="hc-search-icon"><SearchIcon /></span>
+                  <input
+                    type="text"
+                    className="hc-search-input"
+                    placeholder="Search..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                  />
+                </div>
 
                 {/* Filters Group */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginLeft: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)', fontSize: '0.875rem', fontWeight: 500 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 500 }}>
                     <FilterIcon /> Filters:
                   </div>
 
                   {/* Core Set filter */}
-                  <div style={{ position: 'relative' }}>
+                  <div ref={coreSetFilterRef} style={{ position: 'relative' }}>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         if (!coreSetFilterOpen) setCategoryFilterOpen(false);
                         setCoreSetFilterOpen(v => !v);
                       }}
-                      style={{
-                        background: coreSetFilterOpen || wizardSelectedCoreSets.length > 0
-                          ? 'rgba(77,217,192,0.15)' : 'rgba(255,255,255,0.08)',
-                        border: `1px solid ${coreSetFilterOpen || wizardSelectedCoreSets.length > 0 ? '#4DD9C0' : 'transparent'}`,
-                        borderRadius: 99,
-                        color: coreSetFilterOpen || wizardSelectedCoreSets.length > 0 ? '#4DD9C0' : 'var(--text-muted)',
-                        cursor: 'pointer',
-                        fontSize: '0.875rem',
-                        fontWeight: 500,
-                        transition: 'all 0.2s',
-                        whiteSpace: 'nowrap',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        padding: '6px 14px',
-                        outline: 'none',
-                        fontFamily: 'inherit',
-                      }}
+                      className={`hc-filter-btn ${coreSetFilterOpen || wizardSelectedCoreSets.length > 0 ? 'active' : ''}`}
                       title="Filter by Core Set"
                     >
                       Core Set
@@ -392,31 +600,14 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
                   </div>
 
                   {/* Category filter */}
-                  <div style={{ position: 'relative' }}>
+                  <div ref={categoryFilterRef} style={{ position: 'relative' }}>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         if (!categoryFilterOpen) setCoreSetFilterOpen(false);
                         setCategoryFilterOpen(v => !v);
                       }}
-                      style={{
-                        background: categoryFilterOpen || selectedCategories.length > 0
-                          ? 'rgba(77,217,192,0.15)' : 'rgba(255,255,255,0.08)',
-                        border: `1px solid ${categoryFilterOpen || selectedCategories.length > 0 ? '#4DD9C0' : 'transparent'}`,
-                        borderRadius: 99,
-                        color: categoryFilterOpen || selectedCategories.length > 0 ? '#4DD9C0' : 'var(--text-muted)',
-                        cursor: 'pointer',
-                        fontSize: '0.875rem',
-                        fontWeight: 500,
-                        transition: 'all 0.2s',
-                        whiteSpace: 'nowrap',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        padding: '6px 14px',
-                        outline: 'none',
-                        fontFamily: 'inherit',
-                      }}
+                      className={`hc-filter-btn ${categoryFilterOpen || selectedCategories.length > 0 ? 'active' : ''}`}
                       title="Filter by Category"
                     >
                       Category
@@ -501,7 +692,7 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
                 </div>
               </div>
 
-              <div className="hc-wizard-table-container">
+              <div ref={selectScrollRef} className="hc-wizard-table-container">
                 {loading ? (
                   <div className="hc-wizard-loading">Loading ICF codes...</div>
                 ) : (
@@ -550,38 +741,49 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
             <>
               <div className="hc-review-toolbar">
                 <h4 className="hc-group-title hc-group-title--toolbar">Codes to be modified</h4>
-                <div className="hc-wizard-search-bar hc-wizard-search-bar--review">
+                <div className="hc-search-wrapper hc-search-wrapper--review">
+                  <span className="hc-search-icon"><SearchIcon /></span>
                   <input
                     type="text"
+                    className="hc-search-input"
                     placeholder="Search..."
                     value={reviewSearch}
                     onChange={e => setReviewSearch(e.target.value)}
-                    style={{ width: 260, maxWidth: '100%' }}
                   />
                 </div>
               </div>
-              <div className="hc-wizard-review-container">
+              <div ref={reviewScrollRef} className="hc-wizard-review-container">
 
               {toModify.length > 0 && (
                 <div className="hc-review-group">
                   <div className="hc-review-table-wrapper">
                     <ReviewTableHeader />
                     {toModify.map(c => {
-                      const prevQ = currentConditions.find(x => x.icf_code === c.icf_code)?.bf_qualifier ?? '-';
+                      const prevQ = getPreviousQualifier(c.icf_code);
+                      const showPrevious = hasQualifierChanged(c.icf_code);
+                      const isExpanded = expandedReviewCode === c.icf_code;
+                      const description = getReviewDescription(c.icf_code);
+                      const parsedDescription = parseConditionDescription(description);
                       return (
-                        <div className={`hc-review-row ${assignedQualifiers[c.icf_code] == null ? 'hc-row-error' : ''}`} key={c.icf_code}>
-                          <div className="col-code hc-table-code">{c.icf_code}</div>
-                          <div className="col-name">{c.icf_name}</div>
-                          <div className="col-status"><span className="hc-status-badge hc-badge-modify">Modify</span></div>
-                          <div className="col-qualifier">
+                        <ReviewExpandableRow
+                          key={c.icf_code}
+                          icfCode={c.icf_code}
+                          icfName={c.icf_name}
+                          description={description}
+                          parsedDescription={parsedDescription}
+                          isExpanded={isExpanded}
+                          isError={assignedQualifiers[c.icf_code] == null}
+                          statusBadge={<span className="hc-status-badge hc-badge-modify">Modify</span>}
+                          qualifierContent={(
                             <QualifierSelector
                               val={assignedQualifiers[c.icf_code] ?? null}
                               onChange={(q) => handleQualifierSelect(c.icf_code, q)}
                               allowZero={true}
                             />
-                          </div>
-                          <div className="col-prev">{prevQ}</div>
-                        </div>
+                          )}
+                          previousContent={showPrevious ? prevQ : '-'}
+                          onToggle={() => toggleReviewExpansion(c.icf_code)}
+                        />
                       );
                     })}
                   </div>
@@ -593,20 +795,31 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
                   <h4 className="hc-group-title">New added codes</h4>
                   <div className="hc-review-table-wrapper">
                     <ReviewTableHeader />
-                    {toAdd.map(c => (
-                      <div className={`hc-review-row ${assignedQualifiers[c.icf_code] == null ? 'hc-row-error' : ''}`} key={c.icf_code}>
-                        <div className="col-code hc-table-code">{c.icf_code}</div>
-                        <div className="col-name">{c.icf_name}</div>
-                        <div className="col-status"><span className="hc-status-badge hc-badge-add">New addition</span></div>
-                        <div className="col-qualifier">
-                          <QualifierSelector
-                            val={assignedQualifiers[c.icf_code] ?? null}
-                            onChange={(q) => handleQualifierSelect(c.icf_code, q)}
-                          />
-                        </div>
-                        <div className="col-prev">—</div>
-                      </div>
-                    ))}
+                    {toAdd.map(c => {
+                      const isExpanded = expandedReviewCode === c.icf_code;
+                      const description = getReviewDescription(c.icf_code);
+                      const parsedDescription = parseConditionDescription(description);
+                      return (
+                        <ReviewExpandableRow
+                          key={c.icf_code}
+                          icfCode={c.icf_code}
+                          icfName={c.icf_name}
+                          description={description}
+                          parsedDescription={parsedDescription}
+                          isExpanded={isExpanded}
+                          isError={assignedQualifiers[c.icf_code] == null}
+                          statusBadge={<span className="hc-status-badge hc-badge-add">New addition</span>}
+                          qualifierContent={(
+                            <QualifierSelector
+                              val={assignedQualifiers[c.icf_code] ?? null}
+                              onChange={(q) => handleQualifierSelect(c.icf_code, q)}
+                            />
+                          )}
+                          previousContent={'-'}
+                          onToggle={() => toggleReviewExpansion(c.icf_code)}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -616,15 +829,26 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
                   <h4 className="hc-group-title">Codes to be removed</h4>
                   <div className="hc-review-table-wrapper">
                     <ReviewTableHeader />
-                    {toRemove.map(c => (
-                      <div className="hc-review-row hc-row-dimmed" key={c.icf_code}>
-                        <div className="col-code hc-table-code">{c.icf_code}</div>
-                        <div className="col-name">{c.icf_name}</div>
-                        <div className="col-status"><span className="hc-status-badge hc-badge-remove">For removal</span></div>
-                        <div className="col-qualifier">—</div>
-                        <div className="col-prev">{c.bf_qualifier ?? c.ap1_qualifier ?? '-'}</div>
-                      </div>
-                    ))}
+                    {toRemove.map(c => {
+                      const isExpanded = expandedReviewCode === c.icf_code;
+                      const description = c.description || '';
+                      const parsedDescription = parseConditionDescription(description);
+                      return (
+                        <ReviewExpandableRow
+                          key={c.icf_code}
+                          icfCode={c.icf_code}
+                          icfName={c.icf_name}
+                          description={description}
+                          parsedDescription={parsedDescription}
+                          isExpanded={isExpanded}
+                          isDimmed={true}
+                          statusBadge={<span className="hc-status-badge hc-badge-remove">For removal</span>}
+                          qualifierContent={'-'}
+                          previousContent={'-'}
+                          onToggle={() => toggleReviewExpansion(c.icf_code)}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -683,8 +907,149 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
           </div>
         )}
 
+        <div className="hc-toast-stack" aria-live="polite">
+          {showScrollToast && (
+            <div className="hc-toast hc-toast--info">
+              <span className="hc-toast-message">More lines below - Scroll down</span>
+              <span className="hc-toast-icon" aria-hidden="true"><ArrowDownIcon /></span>
+              <button
+                type="button"
+                className="hc-toast-close"
+                aria-label="Dismiss scroll hint"
+                onClick={() => {
+                  setShowScrollToast(false);
+                  setScrollToastDismissedStep(step);
+                }}
+              >
+                <CloseIcon />
+              </button>
+            </div>
+          )}
+
+          {showSavedToast && (
+            <div className="hc-toast hc-toast--success">
+              <span className="hc-toast-message">All changes are saved.</span>
+              <button
+                type="button"
+                className="hc-toast-close"
+                aria-label="Dismiss saved message"
+                onClick={() => setShowSavedToast(false)}
+              >
+                <CloseIcon />
+              </button>
+            </div>
+          )}
+
+          {showMissingValueToast && (
+            <div className="hc-toast hc-toast--error">
+              <span className="hc-toast-message">Changes couldn&apos;t be saved.</span>
+              <button
+                type="button"
+                className="hc-toast-close"
+                aria-label="Dismiss save error"
+                onClick={() => setShowMissingValueToast(false)}
+              >
+                <CloseIcon />
+              </button>
+            </div>
+          )}
+        </div>
+
       </div>
+
+      {showDiscardPopup && createPortal(
+        <div className="hc-discard-overlay">
+          <div className="hc-discard-popup">
+            <h3 className="hc-discard-title">Discard unsaved changes?</h3>
+            <p className="hc-discard-text">Your changes haven't been saved. Any modification you have made will be lost if you leave this screen.</p>
+            <div className="hc-discard-actions">
+              <button className="hc-discard-btn-continue" onClick={() => setShowDiscardPopup(false)}>Continue Editing</button>
+              <button className="hc-discard-btn-discard" onClick={onClose}>Discard Changes</button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
+  );
+}
+
+function ReviewExpandableRow({
+  icfCode,
+  icfName,
+  description,
+  parsedDescription,
+  isExpanded,
+  isError = false,
+  isDimmed = false,
+  statusBadge,
+  qualifierContent,
+  previousContent,
+  onToggle,
+}: {
+  icfCode: string;
+  icfName: string;
+  description: string;
+  parsedDescription: ParsedDescription;
+  isExpanded: boolean;
+  isError?: boolean;
+  isDimmed?: boolean;
+  statusBadge: ReactNode;
+  qualifierContent: ReactNode;
+  previousContent: ReactNode;
+  onToggle: () => void;
+}) {
+  return (
+    <>
+      <div
+        className={`hc-review-row${isExpanded ? ' is-expanded' : ''}${isError ? ' hc-row-error' : ''}${isDimmed ? ' hc-row-dimmed' : ''}`}
+        onClick={onToggle}
+      >
+        <div className="col-code hc-table-code">
+          <div className="hc-review-code-cell">
+            <RowExpanderIcon expanded={isExpanded} />
+            <span>{icfCode}</span>
+          </div>
+        </div>
+        <div className="col-name">{icfName}</div>
+        <div className="col-status">{statusBadge}</div>
+        <div className="col-qualifier">{qualifierContent}</div>
+        <div className="col-prev">{previousContent}</div>
+      </div>
+      {isExpanded && (
+        <div className="hc-review-detail-row">
+          <div className="col-code" />
+          <div className="col-name hc-review-detail-content">
+            <div className="hc-review-description">
+              {description ? (
+                <>
+                  {parsedDescription.main && (
+                    <p className="hc-review-description-main">{parsedDescription.main}</p>
+                  )}
+                  {parsedDescription.inclusion && (
+                    <div className="hc-review-description-section">
+                      <div className="hc-review-description-label">Inclusion</div>
+                      <p className="hc-review-description-text">{parsedDescription.inclusion}</p>
+                    </div>
+                  )}
+                  {parsedDescription.exclusion && (
+                    <div className="hc-review-description-section">
+                      <div className="hc-review-description-label">Exclusion</div>
+                      <p className="hc-review-description-text">{parsedDescription.exclusion}</p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                'No ontology description available for this ICF code.'
+              )}
+            </div>
+          </div>
+          <div className="col-status" />
+          <div className="col-qualifier" />
+          <div className="col-prev" />
+        </div>
+      )}
+    </>
   );
 }
 
@@ -697,7 +1062,7 @@ function QualifierSelector({ val, onChange, allowZero }: { val: number | null, o
         <button
           key={q}
           className={`hc-qualifier-btn ${val === q ? 'active' : ''}`}
-          onClick={() => onChange(q)}
+          onClick={(e) => { e.stopPropagation(); onChange(q); }}
         >
           {q}
         </button>

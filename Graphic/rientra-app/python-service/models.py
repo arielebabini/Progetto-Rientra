@@ -141,6 +141,7 @@ class SelectWorkerResponse(BaseModel):
 class IcfCodeEntry(BaseModel):
     icf_code:  str
     icf_name:  str = ""
+    description: str = ""
     category:  str = ""
     core_sets: list[str] = []
     iri:       str = ""

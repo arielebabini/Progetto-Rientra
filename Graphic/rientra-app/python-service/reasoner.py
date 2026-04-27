@@ -445,6 +445,7 @@ def get_health_conditions(worker_id: str) -> dict:
 
     conditions = []
     seen_icf   = set()
+    import re as _re
     for icf, desc_raw, bfq_raw, ap1q_raw in rows:
         full_id  = local_name(icf)
         if full_id in seen_icf:
@@ -455,8 +456,7 @@ def get_health_conditions(worker_id: str) -> dict:
         # into pure code ("b1408") and embedded name ("AuditoryAttention").
         if '-' in full_id:
             icf_code, embedded_name = full_id.split('-', 1)
-            # Add spaces before capital letters for readability: "AuditoryAttention" → "Auditory Attention"
-            import re as _re
+            # Add spaces before capital letters: "AuditoryAttention" → "Auditory Attention"
             embedded_name = _re.sub(r'(?<=[a-z0-9])(?=[A-Z])', ' ', embedded_name)
         else:
             icf_code      = full_id
@@ -800,13 +800,14 @@ def get_all_icf_codes() -> list[dict]:
     import re as _re
 
     rows = _sparql(f"""
-        SELECT DISTINCT ?icf WHERE {{
+        SELECT DISTINCT ?icf ?desc WHERE {{
             ?des <{IRI_INVOLVES_ICF}> ?icf .
+            OPTIONAL {{ ?icf <{IRI_ICF_DESCRIPTION}> ?desc }}
         }}
     """)
 
     by_code: dict[str, dict] = {}
-    for (icf,) in rows:
+    for icf, desc_raw in rows:
         full_id = local_name(icf)
 
         # Split "b1408-AuditoryAttention" → code + name
@@ -840,6 +841,7 @@ def get_all_icf_codes() -> list[dict]:
             by_code[icf_code] = {
                 "icf_code" : icf_code,
                 "icf_name" : icf_name,
+                "description": str(desc_raw).strip() if desc_raw is not None else "",
                 "category" : category,
                 "core_sets": core_sets,
                 "iri"      : str(icf.iri),
@@ -850,6 +852,8 @@ def get_all_icf_codes() -> list[dict]:
         # individuals that collapse to the same code must be merged into one row.
         if not existing["icf_name"] and icf_name:
             existing["icf_name"] = icf_name
+        if not existing["description"] and desc_raw is not None:
+            existing["description"] = str(desc_raw).strip()
         if existing["category"] == "Other" and category != "Other":
             existing["category"] = category
         existing["core_sets"] = sorted(set(existing["core_sets"]) | set(core_sets))
@@ -863,147 +867,264 @@ def get_all_icf_codes() -> list[dict]:
 #  Mutation — Update health conditions for a worker
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Lock for HC mutations (shared with selection lock to be safe)
+# Lock for HC mutations
 _hc_lock = threading.Lock()
+
+# Cache: pure ICF code (e.g. "b1408") -> owlready2 individual object
+_icf_ind_cache: dict[str, object] = {}
+
+
+def _build_icf_ind_cache() -> None:
+    """
+    Populate _icf_ind_cache by scanning all involvesICFCode triples.
+    Maps the pure code prefix (e.g. "b1408") to the owlready2 individual.
+    """
+    global _icf_ind_cache
+    cache: dict[str, object] = {}
+    rows = _sparql(
+        "SELECT DISTINCT ?icf WHERE { ?des <" + IRI_INVOLVES_ICF + "> ?icf . }"
+    )
+    for (icf_ind,) in rows:
+        raw  = local_name(icf_ind)
+        code = raw.split("-")[0]
+        if code not in cache:
+            cache[code] = icf_ind
+    _icf_ind_cache = cache
+
+
+def _resolve_icf_individual(icf_code: str) -> object | None:
+    """
+    Find the owlready2 individual for a given pure ICF code.
+    Uses the pre-built cache; falls back to live ontology search.
+    """
+    if icf_code in _icf_ind_cache:
+        return _icf_ind_cache[icf_code]
+    # Wildcard prefix (handles "b1408-AuditoryAttention")
+    ind = default_world.search_one(iri="*#" + icf_code + "-*")
+    if ind is not None:
+        _icf_ind_cache[icf_code] = ind
+        return ind
+    # Exact match
+    ind = default_world.search_one(iri="*#" + icf_code)
+    if ind is not None:
+        _icf_ind_cache[icf_code] = ind
+        return ind
+    # Linear scan (last resort)
+    for candidate in default_world.individuals():
+        cname = local_name(candidate)
+        if cname == icf_code or cname.startswith(icf_code + "-"):
+            _icf_ind_cache[icf_code] = candidate
+            return candidate
+    return None
+
+
+def _is_ap1_code(icf_code: str) -> bool:
+    """
+    Return True for Activities & Participation codes (d-prefix),
+    which use AP1qual instead of BFqual.
+    """
+    return icf_code.lower().startswith("d")
 
 
 def update_health_conditions(worker_id: str, changes: list[dict]) -> dict:
     """
-    Apply a list of health-condition changes for the given worker.
+    Apply a batch of health-condition changes for the given worker and update
+    the in-memory owlready2 ontology graph.
 
-    Each change dict has:
-        { "icf_code": str, "action": "add"|"remove"|"modify", "qualifier": int|None }
+    Each change dict must contain:
+        {
+            "icf_code" : str,             # e.g. "b1408"
+            "action"   : "add" | "remove" | "modify",
+            "qualifier": int | None       # 0-4; required for add/modify
+        }
 
-    Implementation strategy (owlready2 in-memory only, no RDF save):
-    - "add"    : create a new descriptor individual under the worker's HC,
-                 set involvesICFCode + BFqual.
-    - "remove" : find the descriptor whose involvesICFCode matches, destroy it.
-    - "modify" : find the descriptor and update BFqual.
+    Ontological implications handled:
+    ─────────────────────────────────
+    ADD
+      * Resolves the ICF individual from the ontology (cache then live search).
+      * Creates a new Descriptor individual of the appropriate class.
+      * Sets involvesICFCode -> ICF individual.
+      * Sets BFqual for b-codes, AP1qual for d-codes (clears the other).
+      * Links the descriptor to the worker's HealthCondition via isDescribedBy.
+      * If the worker has no HC yet, a new HealthCondition individual is created
+        and linked via isInHealthCondition.
+      * If the ICF code already has a descriptor (duplicate add), treated as
+        a modify of the existing qualifier.
+
+    REMOVE
+      * Locates the Descriptor whose involvesICFCode matches the given code.
+      * Removes it from HC.isDescribedBy.
+      * Calls owlready2.destroy_entity() to remove all triples for the descriptor.
+      * If the HealthCondition ends up with no descriptors, it is also destroyed
+        and unlinked from the person (clean HC lifecycle).
+
+    MODIFY
+      * Locates the Descriptor for the given ICF code.
+      * Updates BFqual (b-codes) or AP1qual (d-codes) to the new qualifier value.
+      * Clears the other qualifier property to avoid stale data.
+
+    Note: Pellet is NOT re-run after mutations. GCS/AISA calculation reads
+    BFqual/AP1qual directly, so match results update correctly without re-reasoning.
     """
-    person_ind = default_world.search_one(iri=f"*#{worker_id}")
+    person_ind = default_world.search_one(iri="*#" + worker_id)
     if person_ind is None:
-        raise KeyError(f"Worker '{worker_id}' not found in ontology.")
+        raise KeyError("Worker '" + worker_id + "' not found in ontology.")
 
-    # Resolve property objects once
     is_in_hc_prop   = default_world.search_one(iri=IRI_IS_IN_HC)
     is_described_by = default_world.search_one(iri=IRI_IS_DESCRIBED_BY)
     involves_icf    = default_world.search_one(iri=IRI_INVOLVES_ICF)
     bfqual_prop     = default_world.search_one(iri=IRI_BFQUAL)
+    ap1qual_prop    = default_world.search_one(iri=IRI_AP1QUAL)
 
-    if None in (is_in_hc_prop, is_described_by, involves_icf, bfqual_prop):
-        raise RuntimeError(
-            "Cannot find required ontology properties "
-            "(isInHealthCondition, isDescribedBy, involvesICFCode, BFqual)."
-        )
+    missing = [
+        n for n, p in [
+            ("isInHealthCondition", is_in_hc_prop),
+            ("isDescribedBy",       is_described_by),
+            ("involvesICFCode",     involves_icf),
+            ("BFqual",              bfqual_prop),
+            ("AP1qual",             ap1qual_prop),
+        ] if p is None
+    ]
+    if missing:
+        raise RuntimeError("Cannot find ontology properties: " + str(missing))
 
     added = removed = modified = 0
+    errors: list[str] = []
 
     with _hc_lock:
-        # ── Collect existing (hc_ind, des_ind, icf_local_name) triples ──────
-        # Build a map: icf_code_prefix → descriptor individual
-        # (we strip the camelCase suffix so "b1408-AuditoryAttention" → "b1408")
-        desc_map: dict[str, object] = {}   # icf_code → descriptor_individual
 
-        hc_inds = is_in_hc_prop[person_ind] or []
+        # Populate ICF cache if needed
+        if not _icf_ind_cache:
+            _build_icf_ind_cache()
+
+        # Build descriptor map: icf_code -> {"hc": hc_ind, "des": des_ind}
+        desc_map: dict[str, dict] = {}
+        hc_inds: list = list(is_in_hc_prop[person_ind] or [])
         for hc_ind in hc_inds:
-            des_inds = is_described_by[hc_ind] or []
-            for des_ind in des_inds:
-                icf_inds = involves_icf[des_ind] or []
-                for icf_ind in icf_inds:
-                    raw = local_name(icf_ind)
-                    code = raw.split('-')[0]   # strip camelCase suffix
-                    desc_map[code] = des_ind
+            for des_ind in list(is_described_by[hc_ind] or []):
+                for icf_ind in list(involves_icf[des_ind] or []):
+                    code = local_name(icf_ind).split("-")[0]
+                    if code not in desc_map:
+                        desc_map[code] = {"hc": hc_ind, "des": des_ind}
 
-        # ── Ensure there is at least one HC individual ───────────────────────
-        if not hc_inds:
-            # Create a bare HC individual of the first available HC class
-            hc_classes = list(default_world.search(iri=f"*#HealthCondition"))
-            if not hc_classes:
-                hc_classes = [c for c in default_world.classes()
-                              if "HealthCondition" in local_name(c)]
-            if not hc_classes:
-                raise RuntimeError("Cannot find HealthCondition class in ontology.")
-            hc_class = hc_classes[0]
-            hc_ind   = hc_class()
-            is_in_hc_prop[person_ind].append(hc_ind)
-        else:
-            hc_ind = hc_inds[0]   # use existing HC
+        # Helper: get or create HealthCondition
+        def _get_or_create_hc() -> object:
+            nonlocal hc_inds
+            if hc_inds:
+                return hc_inds[0]
+            hc_class = None
+            for c in default_world.classes():
+                cn = local_name(c)
+                if cn in ("HealthCondition", "HC") or "HealthCondition" in cn:
+                    hc_class = c
+                    break
+            if hc_class is None:
+                raise RuntimeError("Cannot find HealthCondition class.")
+            new_hc = hc_class()
+            cur = list(is_in_hc_prop[person_ind] or [])
+            cur.append(new_hc)
+            is_in_hc_prop[person_ind] = cur
+            hc_inds = list(is_in_hc_prop[person_ind] or [])
+            return new_hc
 
-        # ── Collect descriptor class (for creating new ones) ─────────────────
-        des_classes = [c for c in default_world.classes()
-                       if "Descriptor" in local_name(c) or "descriptor" in local_name(c).lower()]
-        des_class = des_classes[0] if des_classes else None
+        # Find Descriptor class
+        des_class = None
+        for c in default_world.classes():
+            cn = local_name(c)
+            if "Descriptor" in cn or "descriptor" in cn.lower():
+                des_class = c
+                break
 
-        # ── Apply each change ────────────────────────────────────────────────
+        # Apply each change
         for change in changes:
-            icf_code = change["icf_code"]
-            action   = change["action"]
-            qualifier = change.get("qualifier")
+            icf_code   = change["icf_code"]
+            action     = change["action"]
+            qualifier  = change.get("qualifier")
+            use_ap1    = _is_ap1_code(icf_code)
+            q_prop     = ap1qual_prop if use_ap1 else bfqual_prop
+            other_prop = bfqual_prop  if use_ap1 else ap1qual_prop
 
+            # REMOVE
             if action == "remove":
-                des_ind = desc_map.get(icf_code)
-                if des_ind is not None:
-                    # Remove descriptor from HC's isDescribedBy list
-                    des_list = is_described_by[hc_ind]
-                    if des_list and des_ind in des_list:
-                        des_list.remove(des_ind)
-                        is_described_by[hc_ind] = des_list
-                    # Destroy the descriptor individual
+                entry = desc_map.get(icf_code)
+                if entry is None:
+                    errors.append("remove: '" + icf_code + "' not found in worker's HC.")
+                    continue
+                hc_ind  = entry["hc"]
+                des_ind = entry["des"]
+                cur = list(is_described_by[hc_ind] or [])
+                if des_ind in cur:
+                    cur.remove(des_ind)
+                    is_described_by[hc_ind] = cur
+                try:
+                    owlready2.destroy_entity(des_ind)
+                except Exception:
+                    pass
+                # Destroy empty HC
+                if not list(is_described_by[hc_ind] or []):
+                    cur_hcs = list(is_in_hc_prop[person_ind] or [])
+                    if hc_ind in cur_hcs:
+                        cur_hcs.remove(hc_ind)
+                        is_in_hc_prop[person_ind] = cur_hcs
                     try:
-                        owlready2.destroy_entity(des_ind)
+                        owlready2.destroy_entity(hc_ind)
                     except Exception:
                         pass
-                    removed += 1
+                    if hc_ind in hc_inds:
+                        hc_inds.remove(hc_ind)
+                desc_map.pop(icf_code, None)
+                removed += 1
 
+            # MODIFY
             elif action == "modify":
-                des_ind = desc_map.get(icf_code)
-                if des_ind is not None and qualifier is not None:
-                    bfqual_prop[des_ind] = [int(qualifier)]
-                    modified += 1
-
-            elif action == "add":
-                if icf_code in desc_map:
-                    # Code already exists — treat as modify
-                    if qualifier is not None:
-                        bfqual_prop[desc_map[icf_code]] = [int(qualifier)]
-                        modified += 1
+                if qualifier is None:
+                    errors.append("modify: qualifier required for '" + icf_code + "'.")
                     continue
+                entry = desc_map.get(icf_code)
+                if entry is None:
+                    errors.append("modify: '" + icf_code + "' not found in worker's HC.")
+                    continue
+                des_ind = entry["des"]
+                q_prop[des_ind]     = [int(qualifier)]
+                other_prop[des_ind] = []
+                modified += 1
 
-                # Find the ICF individual by local name prefix
-                icf_ind = default_world.search_one(iri=f"*#{icf_code}*")
+            # ADD
+            elif action == "add":
+                if qualifier is None:
+                    errors.append("add: qualifier required for '" + icf_code + "'.")
+                    continue
+                if icf_code in desc_map:
+                    # Already present -> treat as modify
+                    des_ind = desc_map[icf_code]["des"]
+                    q_prop[des_ind]     = [int(qualifier)]
+                    other_prop[des_ind] = []
+                    modified += 1
+                    continue
+                icf_ind = _resolve_icf_individual(icf_code)
                 if icf_ind is None:
-                    # Try exact match
-                    icf_ind = default_world.search_one(iri=f"*#{icf_code}")
-                if icf_ind is None:
-                    # Try substring search among all known ICF codes
-                    for ind in default_world.individuals():
-                        if local_name(ind).startswith(icf_code):
-                            icf_ind = ind
-                            break
-                if icf_ind is None:
-                    continue   # skip unknown code
-
-                # Create descriptor
-                if des_class:
-                    des_ind = des_class()
-                else:
-                    # Fallback: just instantiate Thing
-                    des_ind = Thing()
-
+                    errors.append("add: ICF individual '" + icf_code + "' not found in ontology.")
+                    continue
+                hc_ind  = _get_or_create_hc()
+                des_ind = des_class() if des_class is not None else Thing()
                 involves_icf[des_ind] = [icf_ind]
-                if qualifier is not None:
-                    bfqual_prop[des_ind] = [int(qualifier)]
-
-                # Link descriptor to HC
-                cur_des_list = is_described_by[hc_ind] or []
-                cur_des_list.append(des_ind)
-                is_described_by[hc_ind] = cur_des_list
+                q_prop[des_ind]       = [int(qualifier)]
+                other_prop[des_ind]   = []
+                cur = list(is_described_by[hc_ind] or [])
+                cur.append(des_ind)
+                is_described_by[hc_ind] = cur
+                desc_map[icf_code] = {"hc": hc_ind, "des": des_ind}
                 added += 1
 
-    return {
+            else:
+                errors.append("Unknown action '" + action + "' for code '" + icf_code + "'.")
+
+    result: dict = {
         "worker_id": worker_id,
         "added"    : added,
         "removed"  : removed,
         "modified" : modified,
     }
-
+    if errors:
+        result["errors"] = errors
+    return result

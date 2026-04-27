@@ -160,6 +160,7 @@ export function selectWorker(workerId: string): Promise<SelectWorkerResponse> {
 export interface IcfCodeEntry {
   icf_code: string;
   icf_name: string;
+  description: string;
   category: string;
   core_sets: string[];
   iri: string;
