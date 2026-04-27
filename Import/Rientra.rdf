@@ -18305,14 +18305,12 @@ Associated Health Condition: HCFrancaNeri.</rdfs:comment>
     <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/Person-CommonBox#GinoRossi">
         <rdf:type rdf:resource="http://www.stiima.cnr.it/FOAF-excerpt#Person"/>
         <RientraHC:isInHealthCondition rdf:resource="http://www.stiima.cnr.it/Person-CommonBox#HC1"/>
-        <RientraOnt3:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#Carpenter"/>
         <FOAF-excerpt:ZIPcode rdf:datatype="http://www.w3.org/2001/XMLSchema#int">20100</FOAF-excerpt:ZIPcode>
         <FOAF-excerpt:birthday rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">1948-04-12T13:20:00</FOAF-excerpt:birthday>
         <FOAF-excerpt:city>Milan</FOAF-excerpt:city>
         <FOAF-excerpt:country>Italy</FOAF-excerpt:country>
         <FOAF-excerpt:first_name>Gino</FOAF-excerpt:first_name>
         <FOAF-excerpt:surname>Rossi</FOAF-excerpt:surname>
-        <isSelected rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</isSelected>
     </owl:NamedIndividual>
     
 
@@ -18540,38 +18538,6 @@ Associated Health Condition: HCFrancaNeri.</rdfs:comment>
         <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#desTest_C_63"/>
         <rdfs:comment>STR
 Post ictus, paraplegia con lieve difficoltÃ  linguaggio produzione scritta e orale messaggi, debolezza e perditÃ  sensibilitÃ  arti superiori e tronco causa inattivitÃ , disturbi visivi lievi.</rdfs:comment>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/Person-CommonBox#HCMarioBianchi -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/Person-CommonBox#HCMarioBianchi">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#Health_Condition"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b110"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b1144"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b1261"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b130"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b134"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b140"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b144"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b1440"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b152"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b164"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b1646"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b176"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b2301"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b4550"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d172"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d175"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d1751"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d310"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d345"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d440"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d475"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d570"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d710"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d859-ManagementOfMaterialResources"/>
     </owl:NamedIndividual>
     
 
@@ -18807,22 +18773,6 @@ Ex trauma, paraplegia + dolore e debolezza muscolare. Debolezza marcata arti sup
     
 
 
-    <!-- http://www.stiima.cnr.it/Person-CommonBox#MarioBianchi -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/Person-CommonBox#MarioBianchi">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/FOAF-excerpt#Person"/>
-        <RientraHC:isInHealthCondition rdf:resource="http://www.stiima.cnr.it/Person-CommonBox#HCMarioBianchi"/>
-        <FOAF-excerpt:TIN>BNSMRA75C12H501Z</FOAF-excerpt:TIN>
-        <FOAF-excerpt:ZIPcode rdf:datatype="http://www.w3.org/2001/XMLSchema#int">20100</FOAF-excerpt:ZIPcode>
-        <FOAF-excerpt:birthday rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">1975-03-12T00:00:00</FOAF-excerpt:birthday>
-        <FOAF-excerpt:city>Milano</FOAF-excerpt:city>
-        <FOAF-excerpt:country>Italy</FOAF-excerpt:country>
-        <FOAF-excerpt:first_name>Mario</FOAF-excerpt:first_name>
-        <FOAF-excerpt:surname>Bianchi</FOAF-excerpt:surname>
-    </owl:NamedIndividual>
-    
-
-
     <!-- http://www.stiima.cnr.it/Person-CommonBox#PaoloBianchi -->
 
     <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/Person-CommonBox#PaoloBianchi">
@@ -18830,7 +18780,6 @@ Ex trauma, paraplegia + dolore e debolezza muscolare. Debolezza marcata arti sup
         <RientraHC:isInHealthCondition rdf:resource="http://www.stiima.cnr.it/Person-CommonBox#HCPaoloBianchi"/>
         <FOAF-excerpt:first_name>John</FOAF-excerpt:first_name>
         <FOAF-excerpt:surname>B</FOAF-excerpt:surname>
-        <isSelected rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</isSelected>
         <rdfs:comment>Second Test Person - Paolo Bianchi.
 Associated Health Condition: HCPaoloBianchi.</rdfs:comment>
     </owl:NamedIndividual>
@@ -23062,246 +23011,6 @@ Associated Health Condition: HCSandraVerdi.</rdfs:comment>
     <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#desTest_C_63">
         <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
         <rdfs:comment>DO NOT USE</rdfs:comment>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b110 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b110">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b110"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b1144 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b1144">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1144"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:BFqual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b1261 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b1261">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1261"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</RientraHC:BFqual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b130 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b130">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b130"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:BFqual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b134 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b134">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b134"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:BFqual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b140 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b140">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b140"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b144 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b144">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b144"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:BFqual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b1440 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b1440">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1440"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</RientraHC:BFqual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b152 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b152">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b152"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b164 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b164">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b164"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:BFqual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b1646 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b1646">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1646"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:BFqual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b176 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b176">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b176"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b2301 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b2301">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b2301"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</RientraHC:BFqual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b4550 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_b4550">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b4550"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:BFqual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d172 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d172">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d172"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d175 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d175">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d175"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d1751 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d1751">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d1751"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d310 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d310">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d310"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d345 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d345">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d345"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d440 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d440">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d440"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d475 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d475">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d475"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d570 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d570">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d570"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d710 -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d710">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d710"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d859-ManagementOfMaterialResources -->
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarioBianchi_d859-ManagementOfMaterialResources">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d859-ManagementOfMaterialResources"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
     </owl:NamedIndividual>
     
 
