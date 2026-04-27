@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import './HealthConditionWizard.css';
 import {
   fetchAllIcfCodes,
@@ -118,6 +119,7 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
   const [showScrollToast, setShowScrollToast] = useState(false);
   const [showMissingValueToast, setShowMissingValueToast] = useState(false);
   const [showSavedToast, setShowSavedToast] = useState(false);
+  const [showDiscardPopup, setShowDiscardPopup] = useState(false);
   const [scrollToastDismissedStep, setScrollToastDismissedStep] = useState<Step | null>(null);
   const coreSetFilterRef = useRef<HTMLDivElement>(null);
   const categoryFilterRef = useRef<HTMLDivElement>(null);
@@ -178,6 +180,30 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [coreSetFilterOpen, categoryFilterOpen]);
+
+  useEffect(() => {
+    const hasOpenToast = showScrollToast || showMissingValueToast || showSavedToast;
+    if (!hasOpenToast) return;
+
+    function handleGlobalClick() {
+      setShowScrollToast(false);
+      setShowMissingValueToast(false);
+      setShowSavedToast(false);
+      if (showScrollToast) {
+        setScrollToastDismissedStep(step);
+      }
+    }
+
+    // Delay attaching to prevent the event that opened the toast from immediately closing it
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handleGlobalClick);
+    }, 50);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('mousedown', handleGlobalClick);
+    };
+  }, [showScrollToast, showMissingValueToast, showSavedToast, step]);
 
   useEffect(() => {
     // initialize selectedCodes with worker's current conditions
@@ -259,6 +285,28 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
 
   const handleQualifierSelect = (code: string, q: number) => {
     setAssignedQualifiers(prev => ({ ...prev, [code]: q }));
+  };
+
+  const hasUnsavedChanges = () => {
+    const currentMap = new Map(currentConditions.map(c => [c.icf_code, c]));
+    for (const c of currentConditions) {
+      if (!selectedCodes.has(c.icf_code)) return true;
+    }
+    for (const code of Array.from(selectedCodes)) {
+      if (!currentMap.has(code)) return true;
+      const oldQual = currentMap.get(code)?.bf_qualifier ?? currentMap.get(code)?.ap1_qualifier ?? null;
+      const newQual = assignedQualifiers[code] ?? null;
+      if (oldQual !== newQual) return true;
+    }
+    return false;
+  };
+
+  const handleCloseClick = () => {
+    if (step !== 'saving' && step !== 'done' && hasUnsavedChanges()) {
+      setShowDiscardPopup(true);
+    } else {
+      onClose();
+    }
   };
 
   const handleConfirm = async () => {
@@ -425,7 +473,7 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
               }
             </p>
           </div>
-          <button className="hc-wizard-close-btn" onClick={onClose}><CloseIcon /></button>
+          <button className="hc-wizard-close-btn" onClick={handleCloseClick}><CloseIcon /></button>
         </div>
 
         {/* Content */}
@@ -908,6 +956,20 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
         </div>
 
       </div>
+
+      {showDiscardPopup && createPortal(
+        <div className="hc-discard-overlay">
+          <div className="hc-discard-popup">
+            <h3 className="hc-discard-title">Discard unsaved changes?</h3>
+            <p className="hc-discard-text">Your changes haven't been saved. Any modification you have made will be lost if you leave this screen.</p>
+            <div className="hc-discard-actions">
+              <button className="hc-discard-btn-continue" onClick={() => setShowDiscardPopup(false)}>Continue Editing</button>
+              <button className="hc-discard-btn-discard" onClick={onClose}>Discard Changes</button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
