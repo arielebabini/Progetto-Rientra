@@ -576,11 +576,21 @@
   vertical-align: middle;
   color: rgba(255,255,255,0.78);
 }
+.ja-skills-tbl th:first-child,
+.ja-skills-tbl td:first-child {
+  padding-left: 36px;
+}
 .ja-skills-tbl tbody tr:last-child td { border-bottom: none; }
 .ja-skills-tbl tbody tr { transition: background 0.11s; }
 .ja-skills-tbl tbody tr:hover { background: rgba(77,217,192,0.05); }
 
-.ja-td-skill { font-size: 0.82rem; }
+.ja-td-skill {
+  font-size: 0.82rem;
+}
+.ja-td-skill .ja-skill-name {
+  flex: 1;
+  min-width: 0;
+}
 .ja-td-num   { text-align: center; color: rgba(255,255,255,0.58); font-size: 0.82rem; font-variant-numeric: tabular-nums; }
 .ja-td-crit  { font-size: 0.70rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
 .ja-td-bar   { width: 110px; padding-right: 16px; }
@@ -598,6 +608,63 @@
 .ja-cs-bar-fill {
   height: 100%; border-radius: 99px;
   transition: width 0.45s ease;
+}
+
+/* ── Clickable skill row with O*NET definition expand ── */
+.ja-skill-row--clickable {
+  cursor: pointer;
+}
+.ja-skill-row--clickable:hover {
+  background: rgba(77,217,192,0.07) !important;
+}
+.ja-skill-row--expanded {
+  background: rgba(77,217,192,0.05) !important;
+}
+
+.ja-skill-name-cell {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.ja-row-expander-arrow {
+  position: absolute;
+  left: -22px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #4DD9C0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  opacity: 0.6;
+}
+
+.ja-row-expander-arrow.is-expanded {
+  transform: rotate(180deg);
+  opacity: 1;
+}
+
+/* Description expand row */
+.ja-desc-row {
+  animation: ja-desc-in 0.18s ease;
+}
+@keyframes ja-desc-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ja-desc-row td {
+  background: rgba(9, 19, 36, 0.24);
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+.ja-desc-cell {
+  padding: 2px 24px 10px 36px !important;
+}
+.ja-desc-text {
+  margin: 0;
+  font-size: 0.84rem;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.6;
+  max-width: 720px;
 }
 
 /* ═══════════════════════════════════════════

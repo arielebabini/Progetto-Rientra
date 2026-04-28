@@ -63,6 +63,7 @@ IRI_SURNAME     = "http://www.stiima.cnr.it/FOAF-excerpt#surname"
 IRI_IS_DESCRIBED_BY   = "http://www.stiima.cnr.it/RientraHC#isDescribedBy"
 IRI_INVOLVES_ICF      = "http://www.stiima.cnr.it/RientraHC#involvesICFCode"
 IRI_ICF_DESCRIPTION   = "http://www.stiima.cnr.it/ICF-exc-coreset#description"
+IRI_ONET_DEFINITION   = "http://www.stiima.cnr.it/SkAb#O*Net_definition"
 
 # Suitability thresholds (Fig. 4 of the paper)
 JS_RED_INTERCEPT    = 21.0
@@ -708,22 +709,28 @@ def get_skill_detail(worker_id: str, job_id: str) -> dict:
         raise KeyError(f"Job '{job_id}' not found.")
 
     rows = _sparql(f"""
-        SELECT ?skab ?cs ?score WHERE {{
+        SELECT ?skab ?cs ?score ?def WHERE {{
             ?skab   <{IRI_HAS_CRIT}>    ?cs .
             ?jde    <{IRI_CONCERNS}>    ?skab .
             <{job_ind.iri}> <{IRI_REQUIRES}> ?jde .
             ?jde    <{IRI_HAS_SCORE}>   ?score .
             <{person_ind.iri}> <{IRI_IS_EVAL_JOB}> <{job_ind.iri}> .
+            OPTIONAL {{
+                ?skab <{IRI_ONET_DEFINITION}> ?def .
+            }}
         }}
     """)
 
     best: dict = {}
-    for skab, cs_raw, score_raw in rows:
+    for skab, cs_raw, score_raw, def_raw in rows:
         cs    = int(cs_raw)    if cs_raw    is not None else 0
         score = int(score_raw) if score_raw is not None else 0
         key   = str(skab)
+        defn  = str(def_raw).strip() if def_raw is not None else ""
         if key not in best or cs > best[key]["cs"]:
-            best[key] = {"cs": cs, "score": score, "obj": skab}
+            best[key] = {"cs": cs, "score": score, "obj": skab, "desc": defn}
+        elif not best[key]["desc"] and defn:
+            best[key]["desc"] = defn
 
     anchor_to_label: dict[int, str] = {
         3: "isVeryImportantFor",
@@ -747,6 +754,7 @@ def get_skill_detail(worker_id: str, job_id: str) -> dict:
             "cs"               : cs,
             "cs_normalized"    : round(cs / 12.0, 6),
             "criticality_label": criticality_label(cs),
+            "description"      : entry.get("desc", ""),
         })
 
     skills.sort(key=lambda s: (-s["cs"], s["id"]))

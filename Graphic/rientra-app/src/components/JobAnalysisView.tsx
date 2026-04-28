@@ -283,6 +283,7 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
   const [sortsA, setSortsA] = useState<SortState>([]);
   const [skillSearchA, setSkillSearchA] = useState('');
   const [showSearchA, setShowSearchA] = useState(false);
+  const [expandedSkillA, setExpandedSkillA] = useState<string | null>(null);
 
   const [splitMode, setSplitMode] = useState(false);
   const [jobB, setJobB] = useState<string | null>(null);
@@ -292,6 +293,7 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
   const [sortsB, setSortsB] = useState<SortState>([]);
   const [skillSearchB, setSkillSearchB] = useState('');
   const [showSearchB, setShowSearchB] = useState(false);
+  const [expandedSkillB, setExpandedSkillB] = useState<string | null>(null);
 
   /* job demand profiles (worker-independent, for radar) */
   const [profileA, setProfileA] = useState<JobSkillEntry[]>([]);
@@ -570,6 +572,7 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
     sorts: SortState, setSorts: (s: SortState) => void,
     search: string, setSearch: (v: string) => void,
     showSearch: boolean, setShowSearch: (v: boolean) => void,
+    expandedSkill: string | null, setExpandedSkill: (id: string | null) => void,
   ) => {
     const result = matchResults.find(r => r.job_id === jobId) ?? null;
     if (!result) return null;
@@ -686,26 +689,54 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
                 {sorted.map((s, i) => {
                   const col = CRIT_COLOR[s.criticality_label] ?? 'rgba(255,255,255,0.4)';
                   const barW = Math.min((s.cs / 12) * 100, 100);
+                  const rowKey = `${s.id}-${i}`;
+                  const isExpanded = expandedSkill === rowKey;
+                  const hasDesc = s.description && s.description.trim().length > 0;
                   return (
-                    <tr key={`${s.id}-${i}`}>
-                      <td className="ja-td-skill" style={{ color: col }}>{s.id.replace(/_/g, ' ')}</td>
-                      <td className="ja-td-num">{s.score}</td>
-                      {!splitMode && (
-                        <td className="ja-td-num">
-                          <span className={`ja-anchor ja-anchor-${s.anchor}`}>{ANCHOR_ICON[s.anchor] ?? '—'}</span>
-                        </td>
-                      )}
-                      <td className="ja-td-num">{s.qualifier}</td>
-                      {!splitMode && <td className="ja-td-num"><strong style={{ color: col }}>{s.cs}</strong></td>}
-                      {!splitMode && (
-                        <td className="ja-td-bar">
-                          <div className="ja-cs-bar-track">
-                            <div className="ja-cs-bar-fill" style={{ width: `${barW}%`, background: col }} />
+                    <>
+                      <tr
+                        key={rowKey}
+                        className={`ja-skill-row${hasDesc ? ' ja-skill-row--clickable' : ''}${isExpanded ? ' ja-skill-row--expanded' : ''}`}
+                        onClick={() => hasDesc && setExpandedSkill(isExpanded ? null : rowKey)}
+                        title={hasDesc ? 'Click to see O*NET definition' : undefined}
+                      >
+                        <td className="ja-td-skill" style={{ color: col }}>
+                          <div className="ja-skill-name-cell">
+                            {hasDesc && (
+                              <span className={`ja-row-expander-arrow${isExpanded ? ' is-expanded' : ''}`} aria-hidden="true">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                              </span>
+                            )}
+                            <span className="ja-skill-name">{s.id.replace(/_/g, ' ')}</span>
                           </div>
                         </td>
+                        <td className="ja-td-num">{s.score}</td>
+                        {!splitMode && (
+                          <td className="ja-td-num">
+                            <span className={`ja-anchor ja-anchor-${s.anchor}`}>{ANCHOR_ICON[s.anchor] ?? '—'}</span>
+                          </td>
+                        )}
+                        <td className="ja-td-num">{s.qualifier}</td>
+                        {!splitMode && <td className="ja-td-num"><strong style={{ color: col }}>{s.cs}</strong></td>}
+                        {!splitMode && (
+                          <td className="ja-td-bar">
+                            <div className="ja-cs-bar-track">
+                              <div className="ja-cs-bar-fill" style={{ width: `${barW}%`, background: col }} />
+                            </div>
+                          </td>
+                        )}
+                        <td className="ja-td-crit" style={{ color: col }}>{s.criticality_label}</td>
+                      </tr>
+                      {isExpanded && hasDesc && (
+                        <tr key={`${rowKey}-desc`} className="ja-desc-row">
+                          <td colSpan={splitMode ? 4 : 7} className="ja-desc-cell">
+                            <p className="ja-desc-text">{s.description}</p>
+                          </td>
+                        </tr>
                       )}
-                      <td className="ja-td-crit" style={{ color: col }}>{s.criticality_label}</td>
-                    </tr>
+                    </>
                   );
                 })}
               </tbody>
@@ -893,10 +924,12 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
               {jobA && renderSkillsTable(
                 'A', jobA, setJobA, skillDataA, loadingA, menuOpenA, setMenuOpenA,
                 sortsA, setSortsA, skillSearchA, setSkillSearchA, showSearchA, setShowSearchA,
+                expandedSkillA, setExpandedSkillA,
               )}
               {splitMode && jobB && renderSkillsTable(
                 'B', jobB, setJobB, skillDataB, loadingB, menuOpenB, setMenuOpenB,
                 sortsB, setSortsB, skillSearchB, setSkillSearchB, showSearchB, setShowSearchB,
+                expandedSkillB, setExpandedSkillB,
               )}
             </div>
           </div>

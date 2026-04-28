@@ -101,6 +101,7 @@ export interface SkillDetail {
   cs: number;
   cs_normalized: number;
   criticality_label: string;
+  description: string;
 }
 
 export interface SkillDetailResponse {
