@@ -109,6 +109,7 @@ class SkillDetail(BaseModel):
     cs:                int   = Field(..., description="Criticality Score = qualifier × anchor")
     cs_normalized:     float = Field(..., description="CS / 12 (normalized)")
     criticality_label: str   = Field(..., examples=["MODERATELY CRITICAL"])
+    description:       str   = Field("", description="Ontology description of the linked ICF code")
 
 class SkillDetailResponse(BaseModel):
     worker_id: str
