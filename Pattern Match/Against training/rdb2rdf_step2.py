@@ -866,7 +866,12 @@ def print_summary_multi(s1_res: list[dict],
         if not res:
             lines.append(f"  Match da {key[:2]}         : [dim]— modello non disponibile —[/]")
             continue
-        thr = MPNET_THRESHOLD if key == "S2_MPNET" else MINILM_THRESHOLD
+        _thresholds = {
+            "S2_MPNET":     MPNET_THRESHOLD,
+            "S3_FINETUNED": FINETUNED_THRESHOLD,
+            "S4_MiniLM":    MINILM_THRESHOLD,
+        }
+        thr = _thresholds.get(key, 0.50)
         n   = sum(1 for r in res if r.get("match"))
         mname = model_names.get(key, key).split("/")[-1]
         lines.append(
@@ -876,8 +881,8 @@ def print_summary_multi(s1_res: list[dict],
 
     lines += [
         "",
-        "  [dim]Nota: BERT base (S2) usa embedding [CLS] raw — non fine-tuned per sentence",
-        "  similarity. Score tendenzialmente più bassi di MiniLM ma confrontabili tra loro.[/]",
+        "  [dim]Modelli NLP: S2=all-mpnet-base-v2 · S3=MPNet fine-tuned",
+        "  S4=all-MiniLM-L6-v2  |  Tutti sentence-transformers nativi[/]",
     ]
 
     console.print(Panel("\n".join(lines),

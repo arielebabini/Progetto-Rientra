@@ -27,6 +27,7 @@ from fastapi.responses import JSONResponse
 from reasoner import (
     state,
     load_and_reason,
+    load_snapshot_cache,
     get_workers,
     get_jobs,
     get_health_conditions,
@@ -68,6 +69,7 @@ from models import (
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     rdf_path = os.environ.get("ONTOLOGY_PATH", "")
+    load_snapshot_cache(rdf_path)
     thread = threading.Thread(
         target=load_and_reason,
         args=(rdf_path,),
@@ -523,6 +525,8 @@ def update_worker_health_conditions(
         return UpdateHealthConditionsResponse(**data)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 

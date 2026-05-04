@@ -867,7 +867,7 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
               {step === 'saving' ? (
                 <>
                   <div className="hc-spinner" />
-                  <p>Saving modifications...</p>
+                  <p>Saving modifications, updating the ontology and rerunning the reasoner...</p>
                 </>
               ) : (
                 <>
