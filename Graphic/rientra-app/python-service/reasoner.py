@@ -9,8 +9,10 @@ All public functions are safe to call after `load_and_reason()` completes.
 from __future__ import annotations
 
 import io
+import json
 import os
 import re
+import hashlib
 import contextlib
 import threading
 import warnings
@@ -63,7 +65,7 @@ IRI_SURNAME     = "http://www.stiima.cnr.it/FOAF-excerpt#surname"
 IRI_IS_DESCRIBED_BY   = "http://www.stiima.cnr.it/RientraHC#isDescribedBy"
 IRI_INVOLVES_ICF      = "http://www.stiima.cnr.it/RientraHC#involvesICFCode"
 IRI_ICF_DESCRIPTION   = "http://www.stiima.cnr.it/ICF-exc-coreset#description"
-IRI_ONET_DEFINITION   = "http://www.stiima.cnr.it/SkAb#O*Net_definition"
+IRI_ONET_DEFINITION   = "http://www.stiima.cnr.it/SkAb#ONet_definition"
 
 # Suitability thresholds (Fig. 4 of the paper)
 JS_RED_INTERCEPT    = 21.0
@@ -110,6 +112,19 @@ class ReasonerState:
                 msg += f" in {elapsed:.1f}s"
             self.message = msg
 
+    def set_ready_from_cache(self, path: str, stats: dict) -> None:
+        with self._lock:
+            self.status = "ready"
+            self.ontology_path = path
+            self.elapsed_pellet = None
+            self.stats = stats
+            self.message = "Inference snapshot loaded from local cache."
+
+    def set_loading(self, message: str) -> None:
+        with self._lock:
+            self.status = "loading"
+            self.message = message
+
     def set_error(self, error: str) -> None:
         with self._lock:
             self.status  = "error"
@@ -127,6 +142,10 @@ _selection_lock = threading.Lock()
 
 # Cache: local ICF code name -> sorted list of core set labels
 _icf_core_set_map: dict[str, list[str]] = {}
+_snapshot_cache: dict | None = None
+_live_reasoner_ready = False
+_pending_selected_worker_id: Optional[str] = None
+_loaded_ontology = None
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -168,6 +187,9 @@ def get_all_core_sets() -> list[str]:
     Return a sorted list of all distinct core set names present in the ontology.
     Built from _icf_core_set_map, so must be called after _build_icf_core_set_map.
     """
+    if _use_snapshot_cache():
+        return list(_snapshot_cache["core_sets"])
+
     labels: set[str] = set()
     for cs_list in _icf_core_set_map.values():
         labels.update(cs_list)
@@ -237,6 +259,196 @@ def _find_rdf_file() -> str:
         except PermissionError:
             continue
     return ""
+
+
+def _resolve_rdf_path(rdf_path: str = "") -> str:
+    """Resolve the ontology path from arg, env var, or autodetection."""
+    return rdf_path or os.environ.get("ONTOLOGY_PATH", "") or _find_rdf_file()
+
+
+def _ontology_fingerprint(path: str) -> str:
+    """
+    Build a cheap fingerprint for the ontology source so cached snapshots are
+    invalidated when the RDF file changes.
+    """
+    abs_path = os.path.abspath(path)
+    stat = os.stat(abs_path)
+    payload = f"{abs_path}|{stat.st_size}|{stat.st_mtime_ns}".encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()[:16]
+
+
+def _snapshot_cache_path(path: str) -> str:
+    cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reasoning_cache")
+    os.makedirs(cache_dir, exist_ok=True)
+    return os.path.join(cache_dir, f"inference_{_ontology_fingerprint(path)}.json")
+
+
+def _use_snapshot_cache() -> bool:
+    return _snapshot_cache is not None and not _live_reasoner_ready
+
+
+def is_live_reasoner_ready() -> bool:
+    return _live_reasoner_ready
+
+
+def load_snapshot_cache(rdf_path: str = "", update_state: bool = True) -> bool:
+    """
+    Load a previously saved reasoning snapshot, if present and still valid.
+    Returns True when the snapshot was loaded and the service can serve cached
+    read-only data immediately.
+    """
+    global _snapshot_cache
+
+    path = _resolve_rdf_path(rdf_path)
+    if not path:
+        return False
+
+    try:
+        cache_path = _snapshot_cache_path(path)
+    except OSError:
+        return False
+
+    if not os.path.exists(cache_path):
+        return False
+
+    try:
+        with open(cache_path, "r", encoding="utf-8") as fh:
+            payload = json.load(fh)
+    except (OSError, json.JSONDecodeError):
+        return False
+
+    required_keys = {
+        "source_hash",
+        "source_path",
+        "stats",
+        "workers",
+        "jobs",
+        "core_sets",
+        "icf_codes",
+        "health_conditions",
+        "importance_by_job",
+        "job_profiles",
+        "match_results_by_worker",
+        "skill_details_by_worker_job",
+    }
+    if not required_keys.issubset(payload):
+        return False
+
+    _snapshot_cache = payload
+    if update_state:
+        state.set_ready_from_cache(path, payload.get("stats", {}))
+    return True
+
+
+def _save_snapshot_cache(source_path: str, elapsed: Optional[float], stats: dict) -> None:
+    """
+    Persist the inferred read models so the next startup can serve them
+    instantly while the live reasoner warms in background.
+    """
+    cache_path = _snapshot_cache_path(source_path)
+    workers = get_workers()
+    jobs = get_jobs()
+
+    selected_before = next((w["id"] for w in workers if w.get("is_selected")), None)
+    match_results_by_worker: dict[str, list[dict]] = {}
+    skill_details_by_worker_job: dict[str, dict[str, dict]] = {}
+    health_conditions: dict[str, dict] = {}
+
+    for worker in workers:
+        worker_id = worker["id"]
+        health_conditions[worker_id] = get_health_conditions(worker_id)
+        prev = set_selected_worker(worker_id)
+        try:
+            match_results_by_worker[worker_id] = get_match_results(worker_id)
+            worker_jobs = {}
+            for job_id in worker.get("evaluated_for_jobs", []):
+                worker_jobs[job_id] = get_skill_detail(worker_id, job_id)
+            skill_details_by_worker_job[worker_id] = worker_jobs
+        finally:
+            if prev["previous"] and prev["previous"] != worker_id:
+                set_selected_worker(prev["previous"])
+
+    if selected_before:
+        set_selected_worker(selected_before)
+    else:
+        sel_prop = default_world.search_one(iri=IRI_IS_SELECTED)
+        if sel_prop is not None:
+            for ind in default_world.individuals():
+                if sel_prop[ind]:
+                    sel_prop[ind] = [False]
+
+    importance_by_job: dict[str, list[dict]] = {}
+    job_profiles: dict[str, list[dict]] = {}
+    for job in jobs:
+        job_id = job["id"]
+        importance_by_job[job_id] = get_importance_summary(job_id)
+        job_profiles[job_id] = get_job_skill_profile(job_id)
+
+    payload = {
+        "source_hash": _ontology_fingerprint(source_path),
+        "source_path": os.path.abspath(source_path),
+        "elapsed_pellet_s": elapsed,
+        "stats": stats,
+        "workers": workers,
+        "jobs": jobs,
+        "core_sets": get_all_core_sets(),
+        "icf_codes": get_all_icf_codes(),
+        "health_conditions": health_conditions,
+        "importance_by_job": importance_by_job,
+        "job_profiles": job_profiles,
+        "match_results_by_worker": match_results_by_worker,
+        "skill_details_by_worker_job": skill_details_by_worker_job,
+    }
+
+    tmp_path = f"{cache_path}.tmp"
+    with open(tmp_path, "w", encoding="utf-8") as fh:
+        json.dump(payload, fh, indent=2, ensure_ascii=True)
+    os.replace(tmp_path, cache_path)
+
+
+def _save_live_ontology(path: str) -> None:
+    """Persist the current in-memory ontology graph back to the RDF file."""
+    if _loaded_ontology is None:
+        raise RuntimeError("Ontology is not loaded in memory.")
+    _loaded_ontology.save(file=os.path.abspath(path), format="rdfxml")
+
+
+def _refresh_reasoning_artifacts() -> None:
+    """
+    Re-run Pellet on the updated ontology, then regenerate the local JSON
+    snapshot used for fast startup.
+    """
+    global _snapshot_cache, _live_reasoner_ready
+
+    ontology_path = state.ontology_path
+    if not ontology_path:
+        raise RuntimeError("Ontology path is unknown; cannot refresh reasoning artifacts.")
+    if _loaded_ontology is None:
+        raise RuntimeError("Ontology is not loaded in memory.")
+
+    state.set_loading("Applying health-condition changes and recomputing inference...")
+    _live_reasoner_ready = False
+    _snapshot_cache = None
+
+    try:
+        _save_live_ontology(ontology_path)
+        elapsed = _run_pellet(_loaded_ontology)
+        _build_icf_core_set_map()
+        _build_icf_ind_cache()
+
+        stats = {
+            "classes": len(list(default_world.classes())),
+            "individuals": len(list(default_world.individuals())),
+            "properties": len(list(default_world.properties())),
+        }
+
+        _live_reasoner_ready = True
+        state.set_ready(ontology_path, elapsed, stats)
+        _save_snapshot_cache(ontology_path, elapsed, stats)
+        load_snapshot_cache(ontology_path, update_state=False)
+    except Exception as exc:
+        state.set_error(str(exc))
+        raise
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -312,7 +524,9 @@ def load_and_reason(rdf_path: str = "") -> None:
     Updates the global `state` object when done (or on error).
     Designed to run in a background thread so the HTTP server starts immediately.
     """
-    path = rdf_path or os.environ.get("ONTOLOGY_PATH", "") or _find_rdf_file()
+    global _live_reasoner_ready, _pending_selected_worker_id, _loaded_ontology
+
+    path = _resolve_rdf_path(rdf_path)
     if not path:
         state.set_error(
             "No .rdf/.owl/.ttl/.n3 file found. "
@@ -323,6 +537,7 @@ def load_and_reason(rdf_path: str = "") -> None:
 
     try:
         onto = _load_ontology(path)
+        _loaded_ontology = onto
     except RuntimeError as exc:
         state.set_error(str(exc))
         return
@@ -338,9 +553,22 @@ def load_and_reason(rdf_path: str = "") -> None:
         "individuals" : len(list(default_world.individuals())),
         "properties"  : len(list(default_world.properties())),
     }
+    _live_reasoner_ready = True
+    if _pending_selected_worker_id:
+        try:
+            set_selected_worker(_pending_selected_worker_id)
+            _pending_selected_worker_id = None
+        except Exception:
+            pass
     state.set_ready(path, elapsed, stats)
     # Build ICF → Core Set lookup map once, after reasoning is complete
     _build_icf_core_set_map()
+    try:
+        _save_snapshot_cache(path, elapsed, stats)
+        load_snapshot_cache(path, update_state=False)
+    except Exception:
+        # Cache persistence is best-effort; the live API must remain available.
+        pass
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -352,6 +580,9 @@ def get_workers() -> list[dict]:
     Return a list of all Person individuals that have isEvaluatedForJob.
     Falls back to querying by isSelected if the first query is empty.
     """
+    if _use_snapshot_cache():
+        return list(_snapshot_cache["workers"])
+
     fn_prop  = default_world.search_one(iri=IRI_FIRST_NAME)
     sur_prop = default_world.search_one(iri=IRI_SURNAME)
     sel_prop = default_world.search_one(iri=IRI_IS_SELECTED)
@@ -399,6 +630,9 @@ def get_workers() -> list[dict]:
 
 def get_jobs() -> list[dict]:
     """Return all Job individuals (those that have at least one 'requires' triple)."""
+    if _use_snapshot_cache():
+        return list(_snapshot_cache["jobs"])
+
     rows = _sparql(f"""
         SELECT DISTINCT ?job WHERE {{
             ?job <{IRI_REQUIRES}> ?jde .
@@ -429,6 +663,12 @@ def get_health_conditions(worker_id: str) -> dict:
     Queries: person → isInHealthCondition → HC → isDescribedBy → descriptor
              descriptor → involvesICFCode, BFqual, AP1qual
     """
+    if _use_snapshot_cache():
+        cached = _snapshot_cache["health_conditions"].get(worker_id)
+        if cached is None:
+            raise KeyError(f"Worker '{worker_id}' not found in cache.")
+        return cached
+
     person_ind = default_world.search_one(iri=f"*#{worker_id}")
     if person_ind is None:
         raise KeyError(f"Worker '{worker_id}' not found in ontology.")
@@ -495,6 +735,14 @@ def get_importance_summary(job_id: Optional[str] = None) -> list[dict]:
     If job_id is given, returns only that job's summary.
     Returns a list of { job_id, importance_level, skills: [{id, score}] }.
     """
+    if _use_snapshot_cache():
+        if job_id:
+            return list(_snapshot_cache["importance_by_job"].get(job_id, []))
+        result: list[dict] = []
+        for entries in _snapshot_cache["importance_by_job"].values():
+            result.extend(entries)
+        return result
+
     raw: dict = defaultdict(lambda: defaultdict(list))
 
     for label, iri in IMPORTANCE_IRIS.items():
@@ -541,6 +789,12 @@ def get_job_skill_profile(job_id: str) -> list[dict]:
     Used by the frontend radar chart to show what a job 'tends toward'
     (e.g. Carpenter → high Physical scores).
     """
+    if _use_snapshot_cache():
+        entries = _snapshot_cache["job_profiles"].get(job_id)
+        if entries is None:
+            raise KeyError(f"Job '{job_id}' not found in cache.")
+        return list(entries)
+
     job_ind = default_world.search_one(iri=f"*#{job_id}")
     if job_ind is None:
         raise KeyError(f"Job '{job_id}' not found in ontology.")
@@ -575,6 +829,21 @@ def get_match_results(worker_id: Optional[str] = None) -> list[dict]:
     If worker_id is given, filters to that person only.
     Mirrors query_gcs_aisa() from ontology_reasoner.py.
     """
+    if _use_snapshot_cache():
+        if worker_id:
+            return list(_snapshot_cache["match_results_by_worker"].get(worker_id, []))
+        result: list[dict] = []
+        selected_ids = {
+            worker["id"]
+            for worker in _snapshot_cache["workers"]
+            if worker.get("is_selected")
+        }
+        for wid, entries in _snapshot_cache["match_results_by_worker"].items():
+            if selected_ids and wid not in selected_ids:
+                continue
+            result.extend(entries)
+        return result
+
     rows = _sparql(f"""
         SELECT ?person ?job ?skab ?score ?bfq ?ap1q WHERE {{
             ?person <{IRI_IS_EVAL_JOB}> ?job .
@@ -700,6 +969,13 @@ def get_skill_detail(worker_id: str, job_id: str) -> dict:
     Q3 — Full Skill/Ability breakdown for one (worker, job) pair.
     Returns computed CS, anchor, qualifier, and criticality label per SkAb.
     """
+    if _use_snapshot_cache():
+        worker_cache = _snapshot_cache["skill_details_by_worker_job"].get(worker_id, {})
+        cached = worker_cache.get(job_id)
+        if cached is None:
+            raise KeyError(f"No cached detail found for worker '{worker_id}' and job '{job_id}'.")
+        return cached
+
     person_ind = default_world.search_one(iri=f"*#{worker_id}")
     job_ind    = default_world.search_one(iri=f"*#{job_id}")
 
@@ -775,6 +1051,21 @@ def set_selected_worker(worker_id: str) -> dict:
     Uses a threading.Lock so concurrent requests cannot corrupt the state.
     Returns {"previous": old_id_or_None, "selected": worker_id}.
     """
+    if _use_snapshot_cache():
+        global _pending_selected_worker_id
+        workers = _snapshot_cache["workers"]
+        target = next((w for w in workers if w["id"] == worker_id), None)
+        if target is None:
+            raise KeyError(f"Worker '{worker_id}' not found in cache.")
+
+        old_id: Optional[str] = None
+        for worker in workers:
+            if worker.get("is_selected"):
+                old_id = worker["id"]
+            worker["is_selected"] = (worker["id"] == worker_id)
+        _pending_selected_worker_id = worker_id
+        return {"previous": old_id, "selected": worker_id}
+
     sel_prop = default_world.search_one(iri=IRI_IS_SELECTED)
     if sel_prop is None:
         raise KeyError("isSelected property not found in ontology.")
@@ -805,6 +1096,9 @@ def get_all_icf_codes() -> list[dict]:
     descriptor (involvesICFCode triples).  Used to populate the selection
     table in the Modify-Health-Condition wizard.
     """
+    if _use_snapshot_cache():
+        return list(_snapshot_cache["icf_codes"])
+
     import re as _re
 
     rows = _sparql(f"""
@@ -971,9 +1265,17 @@ def update_health_conditions(worker_id: str, changes: list[dict]) -> dict:
       * Updates BFqual (b-codes) or AP1qual (d-codes) to the new qualifier value.
       * Clears the other qualifier property to avoid stale data.
 
-    Note: Pellet is NOT re-run after mutations. GCS/AISA calculation reads
-    BFqual/AP1qual directly, so match results update correctly without re-reasoning.
+    After the mutation batch is applied:
+      * the ontology is saved back to the RDF file on disk
+      * Pellet is re-run on the updated ontology
+      * the local JSON snapshot is overwritten with the new inferred data
     """
+    if not _live_reasoner_ready:
+        raise RuntimeError(
+            "The live ontology is still warming up in background. "
+            "Health-condition updates will be available as soon as the reasoner finishes."
+        )
+
     person_ind = default_world.search_one(iri="*#" + worker_id)
     if person_ind is None:
         raise KeyError("Worker '" + worker_id + "' not found in ontology.")
@@ -1135,4 +1437,5 @@ def update_health_conditions(worker_id: str, changes: list[dict]) -> dict:
     }
     if errors:
         result["errors"] = errors
+    _refresh_reasoning_artifacts()
     return result
