@@ -28867,10 +28867,16 @@ Esclusione: vita politica e cittadinanza (d950)</ICF-exc-coreset:descrizioneITA>
 
     <!-- ===== PAZIENTI IMPORTATI (RDB2RDF via R2RML) ===== -->
 
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_b730">
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d450">
         <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b730"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:BFqual>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d450"/>
+        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_s730">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#s730"/>
+        <RientraHC:BS1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BS1qual>
     </owl:NamedIndividual>
 
     <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d440">
@@ -28879,34 +28885,10 @@ Esclusione: vita politica e cittadinanza (d950)</ICF-exc-coreset:descrizioneITA>
         <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
     </owl:NamedIndividual>
 
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d510">
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_b730">
         <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d510"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_s710">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#s710"/>
-        <RientraHC:BS1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BS1qual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_b765">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b765"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:BFqual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d415">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d415"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_b760">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b760"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b730"/>
+        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:BFqual>
     </owl:NamedIndividual>
 
     <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d540">
@@ -28921,46 +28903,22 @@ Esclusione: vita politica e cittadinanza (d950)</ICF-exc-coreset:descrizioneITA>
         <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
     </owl:NamedIndividual>
 
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d445">
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_b810">
         <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d445"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:AP1qual>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b810"/>
+        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:BFqual>
     </owl:NamedIndividual>
 
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d410">
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d415">
         <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d410"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_s730">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#s730"/>
-        <RientraHC:BS1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BS1qual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d430">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d430"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d450">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d450"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_s720">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#s720"/>
-        <RientraHC:BS1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:BS1qual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d465">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d465"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d415"/>
         <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_s710">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#s710"/>
+        <RientraHC:BS1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BS1qual>
     </owl:NamedIndividual>
 
     <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_s7301">
@@ -28975,40 +28933,82 @@ Esclusione: vita politica e cittadinanza (d950)</ICF-exc-coreset:descrizioneITA>
         <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
     </owl:NamedIndividual>
 
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d445">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d445"/>
+        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d430">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d430"/>
+        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:AP1qual>
+    </owl:NamedIndividual>
+
     <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_s7300">
         <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
         <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#s7300"/>
         <RientraHC:BS1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:BS1qual>
     </owl:NamedIndividual>
 
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_b810">
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d510">
         <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b810"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d510"/>
+        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_b760">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b760"/>
+        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d465">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d465"/>
+        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_b765">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b765"/>
         <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d410">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d410"/>
+        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_s720">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#s720"/>
+        <RientraHC:BS1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:BS1qual>
     </owl:NamedIndividual>
 
     <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/Person-CommonBox#HCElenaConti">
         <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#Health_Condition"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_b730"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d450"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_s730"/>
         <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d440"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d510"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_s710"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_b765"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d415"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_b760"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_b730"/>
         <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d540"/>
         <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_b710"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d445"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d410"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_s730"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d430"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d450"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_s720"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d465"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_b810"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d415"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_s710"/>
         <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_s7301"/>
         <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_b740"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d445"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d430"/>
         <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_s7300"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_b810"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d510"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_b760"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d465"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_b765"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_d410"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaConti_s720"/>
     </owl:NamedIndividual>
 
     <!-- Person: ElenaConti -->
@@ -29022,16 +29022,91 @@ Esclusione: vita politica e cittadinanza (d950)</ICF-exc-coreset:descrizioneITA>
         <FOAF-excerpt:country>Italy</FOAF-excerpt:country>
         <FOAF-excerpt:birthday rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">1990-04-12T00:00:00</FOAF-excerpt:birthday>
         <FOAF-excerpt:ZIPcode rdf:datatype="http://www.w3.org/2001/XMLSchema#int">185</FOAF-excerpt:ZIPcode>
-        <RientraOnt3:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#Carpenter"/>
-        <RientraOnt3:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#GemWorker"/>
-        <RientraOnt3:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#Landscaping_and_Groundskeeping_Workers"/>
         <isSelected rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</isSelected>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d335">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d335"/>
+        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d330">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d330"/>
+        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b230">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b230"/>
+        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d740">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d740"/>
+        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d315">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d315"/>
+        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d310">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d310"/>
+        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d720">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d720"/>
+        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
     </owl:NamedIndividual>
 
     <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b240">
         <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
         <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b240"/>
         <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b320">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b320"/>
+        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d325">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d325"/>
+        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b330">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b330"/>
+        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b122">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b122"/>
+        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b126">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b126"/>
+        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b310">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b310"/>
+        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:BFqual>
     </owl:NamedIndividual>
 
     <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d710">
@@ -29046,109 +29121,31 @@ Esclusione: vita politica e cittadinanza (d950)</ICF-exc-coreset:descrizioneITA>
         <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
     </owl:NamedIndividual>
 
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b230">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b230"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d310">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d310"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b320">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b320"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b310">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b310"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:BFqual>
-    </owl:NamedIndividual>
-
     <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d345">
         <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
         <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d345"/>
         <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
     </owl:NamedIndividual>
 
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b330">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b330"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:BFqual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d720">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d720"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d740">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d740"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b122">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b122"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:BFqual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d335">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d335"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b126">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b126"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d325">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d325"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d315">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d315"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d330">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d330"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-
     <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/Person-CommonBox#HCGiuseppeFerrari">
         <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#Health_Condition"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d335"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d330"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b230"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d740"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d315"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d310"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d720"/>
         <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b240"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b320"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d325"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b330"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b122"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b126"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b310"/>
         <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d710"/>
         <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b130"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b230"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d310"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b320"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b310"/>
         <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d345"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b330"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d720"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d740"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b122"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d335"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_b126"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d325"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d315"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GiuseppeFerrari_d330"/>
     </owl:NamedIndividual>
 
     <!-- Person: GiuseppeFerrari -->
@@ -29162,21 +29159,25 @@ Esclusione: vita politica e cittadinanza (d950)</ICF-exc-coreset:descrizioneITA>
         <FOAF-excerpt:country>Italy</FOAF-excerpt:country>
         <FOAF-excerpt:birthday rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">1955-08-10T00:00:00</FOAF-excerpt:birthday>
         <FOAF-excerpt:ZIPcode rdf:datatype="http://www.w3.org/2001/XMLSchema#int">80100</FOAF-excerpt:ZIPcode>
-        <RientraOnt3:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#Travel_guide"/>
-        <RientraOnt3:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#Insurance_claims_clerks"/>
         <isSelected rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</isSelected>
     </owl:NamedIndividual>
 
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d175">
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b1441">
         <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d175"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1441"/>
+        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d160">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d160"/>
         <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
     </owl:NamedIndividual>
 
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d310">
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b140">
         <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d310"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:AP1qual>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b140"/>
+        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:BFqual>
     </owl:NamedIndividual>
 
     <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b1440">
@@ -29185,10 +29186,22 @@ Esclusione: vita politica e cittadinanza (d950)</ICF-exc-coreset:descrizioneITA>
         <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:BFqual>
     </owl:NamedIndividual>
 
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b152">
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b110">
         <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b152"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:BFqual>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b110"/>
+        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b144">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b144"/>
+        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b1401">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1401"/>
+        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:BFqual>
     </owl:NamedIndividual>
 
     <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d172">
@@ -29203,6 +29216,24 @@ Esclusione: vita politica e cittadinanza (d950)</ICF-exc-coreset:descrizioneITA>
         <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
     </owl:NamedIndividual>
 
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b114">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b114"/>
+        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d175">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d175"/>
+        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d163">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d163"/>
+        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:AP1qual>
+    </owl:NamedIndividual>
+
     <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b164">
         <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
         <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b164"/>
@@ -29215,45 +29246,9 @@ Esclusione: vita politica e cittadinanza (d950)</ICF-exc-coreset:descrizioneITA>
         <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:AP1qual>
     </owl:NamedIndividual>
 
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d163">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d163"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b144">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b144"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b110">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b110"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:BFqual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b114">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b114"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b1401">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1401"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:BFqual>
-    </owl:NamedIndividual>
-
     <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d220">
         <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
         <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d220"/>
-        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
-    </owl:NamedIndividual>
-
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d160">
-        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d160"/>
         <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
     </owl:NamedIndividual>
 
@@ -29263,38 +29258,38 @@ Esclusione: vita politica e cittadinanza (d950)</ICF-exc-coreset:descrizioneITA>
         <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:AP1qual>
     </owl:NamedIndividual>
 
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b140">
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b152">
         <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b140"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</RientraHC:BFqual>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b152"/>
+        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:BFqual>
     </owl:NamedIndividual>
 
-    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b1441">
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d310">
         <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1441"/>
-        <RientraHC:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</RientraHC:BFqual>
+        <RientraHC:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d310"/>
+        <RientraHC:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</RientraHC:AP1qual>
     </owl:NamedIndividual>
 
     <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/Person-CommonBox#HCLucaMartini">
         <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#Health_Condition"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d175"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d310"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b1441"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d160"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b140"/>
         <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b1440"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b152"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b110"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b144"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b1401"/>
         <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d172"/>
         <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b1400"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b114"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d175"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d163"/>
         <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b164"/>
         <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d210"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d163"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b144"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b110"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b114"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b1401"/>
         <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d220"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d160"/>
         <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d166"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b140"/>
-        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b1441"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_b152"/>
+        <RientraHC:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LucaMartini_d310"/>
     </owl:NamedIndividual>
 
     <!-- Person: LucaMartini -->
@@ -29308,9 +29303,6 @@ Esclusione: vita politica e cittadinanza (d950)</ICF-exc-coreset:descrizioneITA>
         <FOAF-excerpt:country>Italy</FOAF-excerpt:country>
         <FOAF-excerpt:birthday rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">1982-05-20T00:00:00</FOAF-excerpt:birthday>
         <FOAF-excerpt:ZIPcode rdf:datatype="http://www.w3.org/2001/XMLSchema#int">10100</FOAF-excerpt:ZIPcode>
-        <RientraOnt3:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#Receptionist"/>
-        <RientraOnt3:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#WordProcessors"/>
-        <RientraOnt3:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#FileClerk"/>
         <isSelected rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</isSelected>
     </owl:NamedIndividual>
 
