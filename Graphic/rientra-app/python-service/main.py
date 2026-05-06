@@ -8,6 +8,7 @@ Architecture:
   • All endpoints return 503 while Pellet is still running
   • CORS enabled for React (localhost:5173) and Spring Boot (localhost:8080)
   • Auto-generated OpenAPI docs at http://localhost:8000/docs
+  • POST /import/workers — import new Person individuals from a .sql dataset
 
 Run with:
   uvicorn main:app --host 0.0.0.0 --port 8000 --reload
@@ -17,10 +18,12 @@ from __future__ import annotations
 
 import os
 import threading
+import tempfile
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -39,6 +42,7 @@ from reasoner import (
     get_all_icf_codes,
     get_all_core_sets,
     update_health_conditions,
+    inject_imported_workers,
 )
 from models import (
     StatusResponse,
@@ -69,6 +73,22 @@ from models import (
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     rdf_path = os.environ.get("ONTOLOGY_PATH", "")
+
+    # ── Ensure the R2RML mapping file exists before the first import ──────────
+    try:
+        from import_workers.importer import ensure_mapping
+        service_dir = Path(__file__).parent
+        ontology_file = rdf_path or str(next(
+            (service_dir / f for f in os.listdir(service_dir)
+             if f.lower().endswith((".rdf", ".owl"))), Path()
+        ))
+        mapping_file = str(service_dir / "import_workers" / "rientra_mapping.ttl")
+        if ontology_file and Path(ontology_file).exists():
+            ensure_mapping(ontology_file, mapping_file)
+    except Exception as _map_err:
+        import logging as _log
+        _log.getLogger(__name__).warning("[startup] Could not ensure mapping: %s", _map_err)
+
     load_snapshot_cache(rdf_path)
     thread = threading.Thread(
         target=load_and_reason,
@@ -529,6 +549,115 @@ def update_worker_health_conditions(
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  POST /import/workers — import new persons from a .sql dataset
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.post(
+    "/import/workers",
+    summary="Import new Person individuals from a SQL dataset (RDB2RDF via R2RML)",
+    tags=["Import"],
+)
+async def import_workers_endpoint(request: Request) -> JSONResponse:
+    """
+    Accepts the raw `.sql` file bytes as `application/octet-stream` body.
+    Pass the original filename in the `X-Filename` header (optional).
+
+    No `python-multipart` required — uses Starlette's native `request.body()`.
+
+    Returns a JSON summary:
+    ```json
+    {
+      "persons_added": 3,
+      "persons_skipped": 0,
+      "icf_valid": 42,
+      "icf_skipped": 2,
+      "jobs_valid": 7,
+      "jobs_skipped": 1,
+      "new_person_ids": ["LucaMartini", "ElenaConti", "GiuseppeFerrari"],
+      "skipped_ids": [],
+      "backup_path": "/abs/path/Rientra.rdf.bak",
+      "error": null
+    }
+    ```
+    """
+    from import_workers.importer import import_sql_dataset, ensure_mapping
+
+    # -- Read raw body (no python-multipart needed) --
+    contents = await request.body()
+    if not contents:
+        raise HTTPException(status_code=422, detail="Request body is empty — send the SQL file as raw bytes.")
+
+    filename = request.headers.get("x-filename", "dataset.sql")
+    suffix   = Path(filename).suffix or ".sql"
+
+    # -- Resolve ontology and mapping paths --
+    service_dir   = Path(__file__).parent
+    ontology_path = state.ontology_path or os.environ.get("ONTOLOGY_PATH", "")
+    if not ontology_path:
+        for fname in os.listdir(service_dir):
+            if fname.lower().endswith((".rdf", ".owl")):
+                ontology_path = str(service_dir / fname)
+                break
+    if not ontology_path or not Path(ontology_path).exists():
+        raise HTTPException(
+            status_code=503,
+            detail="Ontology file not found. Cannot run import before the service is ready.",
+        )
+
+    mapping_path = str(service_dir / "import_workers" / "rientra_mapping.ttl")
+
+    # -- Ensure R2RML mapping exists --
+    try:
+        ensure_mapping(ontology_path, mapping_path)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Mapping generation failed: {exc}") from exc
+
+    # -- Write bytes to a temp .sql file and run the pipeline --
+    tmp_sql = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
+    try:
+        tmp_sql.write(contents)
+        tmp_sql.close()
+
+        result = import_sql_dataset(
+            sql_path      = tmp_sql.name,
+            ontology_path = ontology_path,
+            mapping_path  = mapping_path,
+        )
+    finally:
+        Path(tmp_sql.name).unlink(missing_ok=True)
+
+    if result.error:
+        raise HTTPException(status_code=500, detail=result.error)
+
+    # Update the live in-memory ontology and snapshot cache so the new workers'
+    # isEvaluatedForJob links are immediately visible on the scatter plot.
+    if result.new_person_ids:
+        try:
+            inject_imported_workers(
+                new_person_ids=result.new_person_ids,
+                ontology_path=ontology_path,
+            )
+        except Exception as _inj_err:
+            import logging as _log
+            _log.getLogger(__name__).warning(
+                "[import] inject_imported_workers failed (non-fatal): %s", _inj_err
+            )
+
+    return JSONResponse({
+        "persons_added"  : result.persons_added,
+        "persons_skipped": result.persons_skipped,
+        "icf_valid"      : result.icf_valid,
+        "icf_skipped"    : result.icf_skipped,
+        "jobs_valid"     : result.jobs_valid,
+        "jobs_skipped"   : result.jobs_skipped,
+        "new_person_ids" : result.new_person_ids,
+        "skipped_ids"    : result.skipped_ids,
+        "backup_path"    : result.backup_path,
+        "error"          : None,
+    })
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

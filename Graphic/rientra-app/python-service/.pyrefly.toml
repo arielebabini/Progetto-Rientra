@@ -1,0 +1,5 @@
+# Pyrefly configuration — Rientra Python microservice
+# Points Pyrefly to the project virtual environment so that fastapi,
+# owlready2, morph-kgc, etc. are resolved correctly.
+
+python_interpreter = ".venv/bin/python"

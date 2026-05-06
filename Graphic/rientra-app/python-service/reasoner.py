@@ -413,6 +413,96 @@ def _save_live_ontology(path: str) -> None:
     _loaded_ontology.save(file=os.path.abspath(path), format="rdfxml")
 
 
+def inject_imported_workers(
+    new_person_ids: list[str],
+    ontology_path: str,
+) -> dict:
+    """
+    Update the live ontology and snapshot cache after a successful SQL import.
+
+    The import pipeline writes new Person individuals (with isEvaluatedForJob
+    triples) to the RDF file on disk, but the in-memory owlready2 graph and
+    snapshot cache are NOT automatically updated.  Calling this function:
+
+      1. Re-reads the isEvaluatedForJob triples for each new person from the
+         updated RDF file (using rdflib, not owlready2) and injects them into
+         the live owlready2 ontology.
+      2. Updates the snapshot cache in-memory so subsequent calls to
+         get_match_results / get_workers / get_health_conditions return fresh
+         data without requiring a full Pellet re-run.
+      3. Persists the updated snapshot to disk.
+
+    Returns a dict with counts of workers whose data was successfully updated.
+    """
+    global _snapshot_cache
+
+    if not _live_reasoner_ready:
+        # Reasoner not ready yet — skip; next startup will rebuild the cache
+        return {"updated": 0, "note": "reasoner_not_ready"}
+
+    try:
+        from rdflib import Graph, URIRef
+        from rdflib.namespace import RDF
+    except ImportError:
+        return {"updated": 0, "note": "rdflib_not_installed"}
+
+    IRI_EVAL_PROP = URIRef(IRI_IS_EVAL_JOB)
+    IRI_IS_IN_HC_URI = URIRef(IRI_IS_IN_HC)
+    IRI_IS_SEL_URI = URIRef(IRI_IS_SELECTED)
+
+    # Parse the updated RDF file with rdflib to extract new triples
+    g = Graph()
+    g.parse(ontology_path, format="xml")
+
+    eval_prop  = default_world.search_one(iri=IRI_IS_EVAL_JOB)
+    sel_prop   = default_world.search_one(iri=IRI_IS_SELECTED)
+    fn_prop    = default_world.search_one(iri=IRI_FIRST_NAME)
+    sur_prop   = default_world.search_one(iri=IRI_SURNAME)
+
+    updated_count = 0
+
+    for person_id in new_person_ids:
+        person_iri = URIRef(f"http://www.stiima.cnr.it/Person-CommonBox#{person_id}")
+        person_ind = default_world.search_one(iri=str(person_iri))
+        if person_ind is None:
+            # Person not found in live ontology — skip (Pellet re-run will fix)
+            continue
+
+        # Inject isEvaluatedForJob links from the updated RDF file
+        if eval_prop is not None:
+            new_jobs = [
+                default_world.search_one(iri=str(job_iri))
+                for job_iri in g.objects(person_iri, IRI_EVAL_PROP)
+            ]
+            new_jobs = [j for j in new_jobs if j is not None]
+            if new_jobs:
+                existing = list(eval_prop[person_ind]) if eval_prop[person_ind] else []
+                existing_iris = {j.iri for j in existing}
+                for job in new_jobs:
+                    if job.iri not in existing_iris:
+                        existing.append(job)
+                eval_prop[person_ind] = existing
+
+        # Ensure isSelected = false for new workers
+        if sel_prop is not None and not sel_prop[person_ind]:
+            sel_prop[person_ind] = [False]
+
+        updated_count += 1
+
+    # Refresh snapshot cache to include new workers
+    if _snapshot_cache is not None:
+        try:
+            _save_snapshot_cache(ontology_path, None, _snapshot_cache.get("stats", {}))
+            load_snapshot_cache(ontology_path, update_state=False)
+        except Exception as exc:
+            logging.getLogger(__name__).warning(
+                "[inject_imported_workers] Cache refresh failed: %s", exc
+            )
+
+    return {"updated": updated_count}
+
+
+
 def _refresh_reasoning_artifacts() -> None:
     """
     Re-run Pellet on the updated ontology, then regenerate the local JSON

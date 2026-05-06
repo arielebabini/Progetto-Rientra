@@ -203,3 +203,46 @@ export function updateHealthConditions(
   });
 }
 
+// ── Worker import from SQL dataset ────────────────────────────────────────────
+
+export interface ImportWorkersResult {
+  persons_added: number;
+  persons_skipped: number;
+  icf_valid: number;
+  icf_skipped: number;
+  jobs_valid: number;
+  jobs_skipped: number;
+  new_person_ids: string[];
+  skipped_ids: string[];
+  backup_path: string;
+  error: string | null;
+}
+
+/**
+ * Upload a .sql dataset file to the Python service and run the RDB2RDF pipeline.
+ * Sends the raw bytes as application/octet-stream — no python-multipart needed.
+ */
+export async function importWorkers(
+  fileBytes: number[],
+  fileName: string,
+): Promise<ImportWorkersResult> {
+  const body = new Uint8Array(fileBytes);
+
+  const res = await fetch(`${BASE_URL}/import/workers`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/octet-stream',
+      'X-Filename': fileName,
+    },
+    body,
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({ detail: res.statusText }));
+    throw Object.assign(
+      new Error(data?.detail?.message ?? data?.detail ?? res.statusText),
+      { status: res.status, body: data },
+    );
+  }
+  return res.json() as Promise<ImportWorkersResult>;
+}

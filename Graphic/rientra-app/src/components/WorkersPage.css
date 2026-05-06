@@ -1252,3 +1252,114 @@
   to   { opacity: 1;   transform: scale(1.2); }
 }
 
+
+/* ═══════════════════════════════════════════
+   IMPORT WORKERS MODAL
+═══════════════════════════════════════════ */
+
+.wp-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: backdropFadeIn 0.2s ease;
+}
+
+@keyframes backdropFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.wp-modal {
+  background: linear-gradient(160deg, #1c344e 0%, #1a2d46 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  padding: 36px 32px 28px;
+  min-width: 360px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(77, 217, 192, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0;
+  animation: modalSlideIn 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes modalSlideIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+.wp-modal-icon {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+}
+
+.wp-modal-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 10px;
+}
+
+.wp-modal-sub {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 8px;
+  line-height: 1.5;
+}
+
+.wp-modal-note {
+  font-size: 0.78rem;
+  color: rgba(77, 217, 192, 0.75);
+  margin: 6px 0 0;
+  line-height: 1.5;
+}
+
+/* Stats table inside the modal */
+.wp-modal-stats {
+  width: 100%;
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.wp-modal-stat-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.55);
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.wp-modal-stat-val {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: right;
+  word-break: break-all;
+  max-width: 55%;
+}
+
+/* Disabled state for the Add Worker button during upload */
+.wp-add-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  filter: none;
+  transform: none;
+}

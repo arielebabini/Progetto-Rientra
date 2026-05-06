@@ -7,9 +7,11 @@ import {
   fetchHealthConditions,
   fetchCoreSets,
   selectWorker,
+  importWorkers,
   type ServiceStatus,
   type Worker,
   type HealthCondition,
+  type ImportWorkersResult,
 } from '../api/semanticService';
 import HealthConditionWizard from './HealthConditionWizard';
 
@@ -238,6 +240,13 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
   const [healthWizardStep, setHealthWizardStep] = useState<'select' | 'review' | 'saving' | 'done'>('select');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
+  // ── Import modal state ────────────────────────────────────────────────────
+  type ImportPhase = 'idle' | 'picking' | 'uploading' | 'done' | 'error';
+  const [importPhase, setImportPhase] = useState<ImportPhase>('idle');
+  const [importResult, setImportResult] = useState<ImportWorkersResult | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importModalOpen, setImportModalOpen] = useState(false);
+
   // ── Click outside / Escape logic for dropdown ──
   const coreSetDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -439,6 +448,66 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
   };
 
 
+  // ── Add Worker: open native dialog → upload SQL → reload workers ───────
+  const handleAddWorker = async () => {
+    if (importPhase === 'uploading') return;
+
+    // 1. Open native file dialog via Electron IPC
+    const electronAPI = (window as any).electronAPI;
+    if (!electronAPI?.showOpenDialog) {
+      setImportError('File dialog not available (Electron API missing).');
+      setImportModalOpen(true);
+      return;
+    }
+
+    setImportPhase('picking');
+    setImportModalOpen(true);
+    setImportResult(null);
+    setImportError(null);
+
+    const dialogResult = await electronAPI.showOpenDialog({
+      title: 'Select SQL Dataset',
+      filters: [{ name: 'SQL Files', extensions: ['sql'] }],
+      properties: ['openFile'],
+    });
+
+    if (dialogResult.canceled || !dialogResult.filePaths?.length) {
+      setImportPhase('idle');
+      setImportModalOpen(false);
+      return;
+    }
+
+    const filePath = dialogResult.filePaths[0];
+    const fileName = filePath.split('/').pop() || 'dataset.sql';
+
+    // 2. Read file bytes via Electron IPC
+    setImportPhase('uploading');
+    const readResult = await electronAPI.readFileBuffer(filePath);
+    if (!readResult.ok) {
+      setImportError(`Cannot read file: ${readResult.error}`);
+      setImportPhase('error');
+      return;
+    }
+
+    // 3. Upload to Python service
+    try {
+      const result = await importWorkers(readResult.data as number[], fileName);
+      setImportResult(result);
+      setImportPhase('done');
+
+      // 4. Reload worker list
+      if (result.persons_added > 0) {
+        fetchWorkers()
+          .then(setWorkers)
+          .catch(e => console.error('fetchWorkers after import:', e));
+      }
+    } catch (err: any) {
+      setImportError(err?.message ?? 'Import failed.');
+      setImportPhase('error');
+    }
+  };
+
+
   // ── Render ─────────────────────────────────────────────────────────
   return (
     <div className="wp-page">
@@ -575,8 +644,16 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
             )}
           </ul>
 
-          <button className="wp-add-btn" id="btn-add-worker">
-            <PlusIcon /> Add Worker
+          <button
+            className="wp-add-btn"
+            id="btn-add-worker"
+            onClick={handleAddWorker}
+            disabled={importPhase === 'uploading'}
+          >
+            {importPhase === 'uploading'
+              ? <><span className="wp-spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Importing…</>
+              : <><PlusIcon /> Add Worker</>
+            }
           </button>
         </aside>
 
@@ -918,6 +995,129 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
           </div>
         </main>
       </div>
+
+      {/* ── Import Workers Modal ── */}
+      {importModalOpen && (
+        <div
+          className="wp-modal-backdrop"
+          onClick={() => {
+            if (importPhase === 'done' || importPhase === 'error') {
+              setImportModalOpen(false);
+              setImportPhase('idle');
+            }
+          }}
+        >
+          <div className="wp-modal" onClick={e => e.stopPropagation()}>
+            {/* Uploading */}
+            {importPhase === 'uploading' && (
+              <>
+                <div className="wp-modal-icon">
+                  <div className="wp-spinner" style={{ width: 40, height: 40, borderWidth: 3 }} />
+                </div>
+                <h3 className="wp-modal-title">Importing Dataset…</h3>
+                <p className="wp-modal-sub">
+                  Running R2RML pipeline. This may take a few seconds.
+                </p>
+              </>
+            )}
+
+            {/* Picking file */}
+            {importPhase === 'picking' && (
+              <>
+                <div className="wp-modal-icon" style={{ fontSize: 40 }}>📂</div>
+                <h3 className="wp-modal-title">Opening file dialog…</h3>
+              </>
+            )}
+
+            {/* Success */}
+            {importPhase === 'done' && importResult && (
+              <>
+                <div className="wp-modal-icon" style={{ fontSize: 36 }}>
+                  {importResult.persons_added > 0 ? '✅' : 'ℹ️'}
+                </div>
+                <h3 className="wp-modal-title">
+                  {importResult.persons_added > 0
+                    ? `${importResult.persons_added} worker${importResult.persons_added > 1 ? 's' : ''} imported`
+                    : 'No new workers to import'}
+                </h3>
+                <div className="wp-modal-stats">
+                  {importResult.new_person_ids.length > 0 && (
+                    <div className="wp-modal-stat-row">
+                      <span>Added</span>
+                      <span className="wp-modal-stat-val" style={{ color: '#4DD9C0' }}>
+                        {importResult.new_person_ids.join(', ')}
+                      </span>
+                    </div>
+                  )}
+                  {importResult.skipped_ids.length > 0 && (
+                    <div className="wp-modal-stat-row">
+                      <span>Already present (skipped)</span>
+                      <span className="wp-modal-stat-val">
+                        {importResult.skipped_ids.join(', ')}
+                      </span>
+                    </div>
+                  )}
+                  <div className="wp-modal-stat-row">
+                    <span>ICF descriptors valid</span>
+                    <span className="wp-modal-stat-val">{importResult.icf_valid}</span>
+                  </div>
+                  {importResult.icf_skipped > 0 && (
+                    <div className="wp-modal-stat-row">
+                      <span>ICF codes not in ontology</span>
+                      <span className="wp-modal-stat-val" style={{ color: '#f59e0b' }}>
+                        {importResult.icf_skipped}
+                      </span>
+                    </div>
+                  )}
+                  <div className="wp-modal-stat-row">
+                    <span>Job links valid</span>
+                    <span className="wp-modal-stat-val">{importResult.jobs_valid}</span>
+                  </div>
+                  {importResult.jobs_skipped > 0 && (
+                    <div className="wp-modal-stat-row">
+                      <span>Unknown jobs skipped</span>
+                      <span className="wp-modal-stat-val" style={{ color: '#f59e0b' }}>
+                        {importResult.jobs_skipped}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {importResult.persons_added > 0 && (
+                  <p className="wp-modal-note">
+                    The ontology has been updated. Restart the service or reload the app to run
+                    the reasoner on the new data.
+                  </p>
+                )}
+                <button
+                  className="wp-btn-primary"
+                  style={{ marginTop: 20, width: '100%' }}
+                  onClick={() => { setImportModalOpen(false); setImportPhase('idle'); }}
+                >
+                  Close
+                </button>
+              </>
+            )}
+
+            {/* Error */}
+            {importPhase === 'error' && (
+              <>
+                <div className="wp-modal-icon" style={{ fontSize: 36 }}>⚠️</div>
+                <h3 className="wp-modal-title">Import failed</h3>
+                <p className="wp-modal-sub" style={{ color: '#ef4444', wordBreak: 'break-word' }}>
+                  {importError}
+                </p>
+                <button
+                  className="wp-btn-primary"
+                  style={{ marginTop: 20, width: '100%' }}
+                  onClick={() => { setImportModalOpen(false); setImportPhase('idle'); }}
+                >
+                  Close
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

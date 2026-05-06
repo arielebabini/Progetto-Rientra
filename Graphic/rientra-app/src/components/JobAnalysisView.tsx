@@ -3,10 +3,8 @@ import './JobAnalysisView.css';
 import {
   fetchMatchResults,
   fetchSkillDetail,
-  fetchJobProfile,
   type MatchResult,
   type SkillDetailResponse,
-  type JobSkillEntry,
 } from '../api/semanticService';
 
 /* ═══════════════════════════════════════════════════════════════
@@ -14,9 +12,17 @@ import {
    PAD is in SVG user-units and stays fixed so labels never scale.
 ═══════════════════════════════════════════════════════════════ */
 const PAD = { l: 62, r: 24, t: 20, b: 50 };
-const X_MAX = 55, Y_MAX = 25;
-const X_TICKS = [0, 10, 20, 30, 40, 50];
-const Y_TICKS = [0, 5, 10, 15, 20, 25];
+
+/** Round v up to the nearest multiple of step, with a minimum of min. */
+function axisMax(v: number, step: number, min: number): number {
+  return Math.max(min, Math.ceil(v / step) * step);
+}
+/** Generate evenly-spaced tick marks from 0 to max, inclusive. */
+function makeTicks(max: number, step: number): number[] {
+  const ticks: number[] = [];
+  for (let t = 0; t <= max; t += step) ticks.push(t);
+  return ticks;
+}
 
 /* ═══════════════════════════════════════════════════════════════
    ScatterPlot component
@@ -48,11 +54,30 @@ function ScatterPlot({ matchResults, jobA, jobB, onSelect }: ScatterPlotProps) {
     return () => ro.disconnect();
   }, []);
 
+  /* ── Dynamic axis ranges — always show all data points ── */
+  const X_MAX = useMemo(() => {
+    const dataMax = matchResults.length ? Math.max(...matchResults.map(r => r.aisa_pct)) : 0;
+    return axisMax(dataMax + 2, 10, 55);   // minimum 55 so threshold lines always fit
+  }, [matchResults]);
+  const Y_MAX = useMemo(() => {
+    const dataMax = matchResults.length ? Math.max(...matchResults.map(r => r.gcs_pct)) : 0;
+    return axisMax(dataMax + 1, 5, 25);    // minimum 25
+  }, [matchResults]);
+
+  const X_TICKS = useMemo(() => makeTicks(X_MAX, 10), [X_MAX]);
+  const Y_TICKS = useMemo(() => makeTicks(Y_MAX, 5),  [Y_MAX]);
+
   const { w, h } = size;
   const PW = w - PAD.l - PAD.r;
   const PH = h - PAD.t - PAD.b;
   const toX = (a: number) => PAD.l + (a / X_MAX) * PW;
   const toY = (g: number) => PAD.t + PH - (g / Y_MAX) * PH;
+
+  /* ── Suitability threshold line endpoints, clipped to the visible plot ── */
+  // NOT SUITABLE:     GCS = -0.5*AISA + 21  →  x-intercept at AISA=42
+  // WITH PRECAUTIONS: GCS = -0.5*AISA + 15.5 → x-intercept at AISA=31
+  const nsX2 = Math.min(42, X_MAX);   // clip to visible range
+  const wpX2 = Math.min(31, X_MAX);
 
   return (
     <div ref={wrapRef} style={{ flex: 1, minHeight: 0, minWidth: 0, position: 'relative' }}>
@@ -81,9 +106,9 @@ function ScatterPlot({ matchResults, jobA, jobB, onSelect }: ScatterPlotProps) {
         {/* suitability threshold lines — muted, clipped to plot area */}
         <g clipPath="url(#ja-clip)">
           {/* NOT SUITABLE boundary */}
-          <line x1={toX(0)} y1={toY(21)} x2={toX(42)} y2={toY(0)} stroke="rgba(210,80,80,0.30)" strokeWidth="1.2" strokeDasharray="6,4" />
+          <line x1={toX(0)} y1={toY(21)} x2={toX(nsX2)} y2={toY(Math.max(0, 21 - 0.5 * nsX2))} stroke="rgba(210,80,80,0.30)" strokeWidth="1.2" strokeDasharray="6,4" />
           {/* WITH PRECAUTIONS boundary */}
-          <line x1={toX(0)} y1={toY(15.5)} x2={toX(31)} y2={toY(0)} stroke="rgba(190,145,55,0.30)" strokeWidth="1.2" strokeDasharray="6,4" />
+          <line x1={toX(0)} y1={toY(15.5)} x2={toX(wpX2)} y2={toY(Math.max(0, 15.5 - 0.5 * wpX2))} stroke="rgba(190,145,55,0.30)" strokeWidth="1.2" strokeDasharray="6,4" />
         </g>
 
         {/* X axis */}
@@ -111,20 +136,22 @@ function ScatterPlot({ matchResults, jobA, jobB, onSelect }: ScatterPlotProps) {
           GENERAL CRITICALITY SCORE — GCS (%)
         </text>
 
-        {/* data points */}
-        {matchResults.map(r => {
-          const cx = toX(r.aisa_pct), cy = toY(r.gcs_pct);
-          const active = r.job_id === jobA || r.job_id === jobB;
-          return (
-            <g key={r.job_id} style={{ cursor: 'pointer' }}
-              onClick={() => onSelect(r.job_id)}
-              onMouseEnter={() => setTooltip({ dataX: r.aisa_pct, dataY: r.gcs_pct, result: r })}
-              onMouseLeave={() => setTooltip(null)}>
-              {active && <circle cx={cx} cy={cy} r="11" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.4" />}
-              <circle cx={cx} cy={cy} r={active ? 7 : 5.5} fill={r.suitability_color} opacity={active ? 1 : 0.82} />
-            </g>
-          );
-        })}
+        {/* data points — clipped so they never overflow the plot area */}
+        <g clipPath="url(#ja-clip)">
+          {matchResults.map(r => {
+            const cx = toX(r.aisa_pct), cy = toY(r.gcs_pct);
+            const active = r.job_id === jobA || r.job_id === jobB;
+            return (
+              <g key={r.job_id} style={{ cursor: 'pointer' }}
+                onClick={() => onSelect(r.job_id)}
+                onMouseEnter={() => setTooltip({ dataX: r.aisa_pct, dataY: r.gcs_pct, result: r })}
+                onMouseLeave={() => setTooltip(null)}>
+                {active && <circle cx={cx} cy={cy} r="11" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.4" />}
+                <circle cx={cx} cy={cy} r={active ? 7 : 5.5} fill={r.suitability_color} opacity={active ? 1 : 0.82} />
+              </g>
+            );
+          })}
+        </g>
 
         {/* tooltip */}
         {tooltip && (() => {
@@ -159,6 +186,9 @@ function ScatterPlot({ matchResults, jobA, jobB, onSelect }: ScatterPlotProps) {
 }
 
 
+
+
+
 const CRIT_COLOR: Record<string, string> = {
   'not critical': 'rgba(255,255,255,0.30)',
   'SLIGHTLY CRITICAL': '#6aad8c',
@@ -175,85 +205,7 @@ const CRIT_RANK: Record<string, number> = {
 };
 const ANCHOR_ICON = ['—', '↑', '↑↑', '↑↑↑'];
 
-/* ═══════════════════════════════════════════════════════════════
-   Skill-area classification for radar
-═══════════════════════════════════════════════════════════════ */
-const SKILL_AREAS = [
-  { label: 'Physical', keys: ['Strength', 'Stamina', 'Steadiness', 'Flexibility', 'Gross', 'Reaction', 'Manual', 'Arm', 'Finger', 'Wrist', 'Hand', 'Trunk', 'Static', 'Dynamic', 'Explosive', 'Movement'] },
-  { label: 'Sensory', keys: ['Vision', 'Hearing', 'Touch', 'Night', 'Depth', 'Color', 'Sound', 'Speech', 'Vocal'] },
-  { label: 'Cognitive', keys: ['Reasoning', 'Learning', 'Memory', 'Attention', 'Problem', 'Math', 'Writing', 'Reading', 'Comprehension', 'Inductive', 'Deductive', 'Fluency', 'Information', 'Number', 'Oral'] },
-  { label: 'Social', keys: ['Listening', 'Service', 'Persuasion', 'Negotiation', 'Instructing', 'Social', 'Communication', 'Empathy'] },
-  { label: 'Technical', keys: ['Technology', 'Equipment', 'Operation', 'Programming', 'Quality', 'Science', 'Engineering', 'Install', 'Repair', 'Trouble', 'Monitoring', 'Computer', 'Systems'] },
-  { label: 'Creative', keys: ['Originality', 'Artistic', 'Creative', 'Design', 'Imagination'] },
-];
-const RADAR_AXES = [...SKILL_AREAS.map(a => a.label), 'Other'];
-const RADAR_COLORS = ['#4DD9C0', '#f59e0b', '#818cf8'];
 
-const ALL_JOBS_COLORS = [
-  '#ef4444', '#f97316', '#eab308', '#22c55e', 
-  '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#f43f5e'
-];
-
-function classifySkill(id: string): string {
-  const name = id.toLowerCase();
-  for (const area of SKILL_AREAS) {
-    if (area.keys.some(k => name.includes(k.toLowerCase()))) return area.label;
-  }
-  return 'Other';
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   Radar SVG — clean, no glow
-═══════════════════════════════════════════════════════════════ */
-interface RadarDataset { label: string; color: string; values: number[]; }
-
-function RadarChart({ datasets }: { datasets: RadarDataset[] }) {
-  const n = RADAR_AXES.length;
-  const size = 260, cx = size / 2, cy = (size / 2) + 8, R = size * 0.36;
-  const levels = 4;
-  const ang = (i: number) => (Math.PI * 2 * i) / n - Math.PI / 2;
-  const pt = (i: number, r: number) => ({ x: cx + r * Math.cos(ang(i)), y: cy + r * Math.sin(ang(i)) });
-
-  return (
-    <svg viewBox={`-15 -15 ${size + 30} ${size + 30}`} style={{ width: '100%', maxWidth: 480, maxHeight: '100%', display: 'block', margin: '0 auto', overflow: 'visible' }}>
-      {/* level rings */}
-      {Array.from({ length: levels }, (_, k) => {
-        const r = R * ((k + 1) / levels);
-        const d = Array.from({ length: n }, (__, i) => {
-          const p = pt(i, r);
-          return `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`;
-        }).join(' ') + ' Z';
-        return <path key={k} d={d} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.7" />;
-      })}
-      {/* spokes */}
-      {Array.from({ length: n }, (_, i) => {
-        const end = pt(i, R);
-        return <line key={i} x1={cx} y1={cy} x2={end.x} y2={end.y} stroke="rgba(255,255,255,0.08)" strokeWidth="0.7" />;
-      })}
-      {/* datasets */}
-      {datasets.map((ds, di) => {
-        const pts = ds.values.map((v, i) => pt(i, R * v));
-        const d = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ') + ' Z';
-        return (
-          <g key={di}>
-            <path d={d} fill={ds.color} fillOpacity="0.14" stroke={ds.color} strokeWidth="1.5" />
-            {pts.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r="3" fill={ds.color} opacity="0.85" />)}
-          </g>
-        );
-      })}
-      {/* labels */}
-      {Array.from({ length: n }, (_, i) => {
-        const p = pt(i, R + 20);
-        return (
-          <text key={i} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="middle"
-            fontSize="9" fill="rgba(255,255,255,0.50)" fontWeight="600">
-            {RADAR_AXES[i]}
-          </text>
-        );
-      })}
-    </svg>
-  );
-}
 
 /* ═══════════════════════════════════════════════════════════════
    Sort types
@@ -261,7 +213,7 @@ function RadarChart({ datasets }: { datasets: RadarDataset[] }) {
 export type SortCol = 'score' | 'anchor' | 'qualifier' | 'criticality_label';
 export type SortDir = 'asc' | 'desc';
 export type SortState = { col: SortCol; dir: SortDir }[];
-type MainTab = 'map' | 'radar' | 'detail';
+type MainTab = 'map' | 'detail';
 
 /* ═══════════════════════════════════════════════════════════════
    Main component
@@ -295,14 +247,7 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
   const [showSearchB, setShowSearchB] = useState(false);
   const [expandedSkillB, setExpandedSkillB] = useState<string | null>(null);
 
-  /* job demand profiles (worker-independent, for radar) */
-  const [profileA, setProfileA] = useState<JobSkillEntry[]>([]);
-  const [profileB, setProfileB] = useState<JobSkillEntry[]>([]);
-  const [loadingProfileA, setLoadingProfileA] = useState(false);
-  const [, setLoadingProfileB] = useState(false);
 
-  const [allProfiles, setAllProfiles] = useState<Record<string, JobSkillEntry[]>>({});
-  const [loadingAllProfiles, setLoadingAllProfiles] = useState(false);
 
   /* ── Per-worker session cache ──────────────────────────────────────────
      Saves each worker's job-comparison state so switching back restores it.
@@ -364,11 +309,7 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
     setSkillDataB(null);
     setMenuOpenA(false);
     setMenuOpenB(false);
-    setShowSearchA(false);
     setShowSearchB(false);
-    setProfileA([]);
-    setProfileB([]);
-    setAllProfiles({});
   }, [workerId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* fetch match results */
@@ -384,41 +325,18 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
       .finally(() => setLoadingMatch(false));
   }, [workerId]);
 
-  useEffect(() => {
-    if (matchResults.length === 0) return;
-    const fetchAll = async () => {
-      setLoadingAllProfiles(true);
-      const newProfiles: Record<string, JobSkillEntry[]> = {};
-      await Promise.all(matchResults.map(async (mr) => {
-        try {
-          const prof = await fetchJobProfile(mr.job_id);
-          newProfiles[mr.job_id] = prof;
-        } catch (e) {
-          console.error(e);
-        }
-      }));
-      setAllProfiles(newProfiles);
-      setLoadingAllProfiles(false);
-    };
-    fetchAll();
-  }, [matchResults]);
+
 
   useEffect(() => {
     if (!jobA) return;
     setLoadingA(true);
     fetchSkillDetail(workerId, jobA).then(setSkillDataA).catch(console.error).finally(() => setLoadingA(false));
-    // Also fetch the job's own demand profile for the radar
-    setLoadingProfileA(true);
-    fetchJobProfile(jobA).then(setProfileA).catch(console.error).finally(() => setLoadingProfileA(false));
   }, [workerId, jobA]);
 
   useEffect(() => {
     if (!jobB) return;
     setLoadingB(true);
     fetchSkillDetail(workerId, jobB).then(setSkillDataB).catch(console.error).finally(() => setLoadingB(false));
-    // Also fetch the job's own demand profile for the radar
-    setLoadingProfileB(true);
-    fetchJobProfile(jobB).then(setProfileB).catch(console.error).finally(() => setLoadingProfileB(false));
   }, [workerId, jobB]);
 
   const toggleSplit = () => {
@@ -465,71 +383,7 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
     avgAISA: matchResults.length ? matchResults.reduce((s, r) => s + r.aisa_pct, 0) / matchResults.length : 0,
   }), [matchResults]);
 
-  /* ── Radar datasets — built from the job's O*NET scores (score/100), NOT from
-     the worker's cs_normalized.  This shows what each job DEMANDS (its
-     inclination), so a Carpenter will always score high on Physical regardless
-     of which worker is selected. ── */
-  const radarDatasets = useMemo<RadarDataset[]>(() => {
-    const slots: { profile: JobSkillEntry[]; id: string | null; di: number }[] = splitMode
-      ? [{ profile: profileA, id: jobA, di: 0 }, { profile: profileB, id: jobB, di: 1 }]
-      : [{ profile: profileA, id: jobA, di: 0 }];
 
-    return slots.flatMap(({ profile, id, di }) => {
-      if (!id || profile.length === 0) return [];
-
-      // Group skills into areas and collect normalised O*NET scores (0–1)
-      const buckets: Record<string, number[]> = {};
-      RADAR_AXES.forEach(a => { buckets[a] = []; });
-
-      profile.forEach((s: JobSkillEntry) => {
-        const area = classifySkill(s.id);
-        const key  = RADAR_AXES.includes(area) ? area : 'Other';
-        buckets[key].push(s.score / 100);    // O*NET score is 0–100
-      });
-
-      // Average per area; cap at 1.0
-      const values = RADAR_AXES.map(a => {
-        const arr = buckets[a];
-        return arr.length ? Math.min(arr.reduce((x, y) => x + y, 0) / arr.length, 1) : 0;
-      });
-
-      const mr = matchResults.find(m => m.job_id === id);
-      let color = mr ? mr.suitability_color : RADAR_COLORS[di];
-
-      if (di === 1 && splitMode && jobA) {
-        const mrA = matchResults.find(m => m.job_id === jobA);
-        if (mrA && mrA.suitability_color === color) {
-          if (color === '#ef4444') color = '#b91c1c'; // darker red
-          else if (color === '#f59e0b') color = '#b45309'; // darker amber
-          else if (color === '#22c55e') color = '#15803d'; // darker green
-        }
-      }
-
-      return [{ label: id.replace(/_/g, ' '), color, values }];
-    });
-  }, [profileA, profileB, splitMode, jobA, jobB, matchResults]);
-
-  const allRadarDatasets = useMemo<RadarDataset[]>(() => {
-    return matchResults.map((mr, index) => {
-      const profile = allProfiles[mr.job_id] || [];
-      if (profile.length === 0) return null;
-      
-      const buckets: Record<string, number[]> = {};
-      RADAR_AXES.forEach(a => { buckets[a] = []; });
-      profile.forEach((s: JobSkillEntry) => {
-        const area = classifySkill(s.id);
-        const key  = RADAR_AXES.includes(area) ? area : 'Other';
-        buckets[key].push(s.score / 100);
-      });
-      const values = RADAR_AXES.map(a => {
-        const arr = buckets[a];
-        return arr.length ? Math.min(arr.reduce((x, y) => x + y, 0) / arr.length, 1) : 0;
-      });
-
-      const color = ALL_JOBS_COLORS[index % ALL_JOBS_COLORS.length];
-      return { label: mr.job_id.replace(/_/g, ' '), color, values };
-    }).filter(Boolean) as RadarDataset[];
-  }, [allProfiles, matchResults]);
 
 /* ── Job picker dropdown ── */
   const renderPicker = (
@@ -801,7 +655,6 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
       <div className="ja-tab-bar">
         <button className={`ja-tab${mainTab === 'map' ? ' active' : ''}`} onClick={() => setMainTab('map')}>Suitability Map</button>
         <button className={`ja-tab${mainTab === 'detail' ? ' active' : ''}`} onClick={() => setMainTab('detail')}>Skill Detail</button>
-        <button className={`ja-tab${mainTab === 'radar' ? ' active' : ''}`} onClick={() => setMainTab('radar')}>Skill Profile</button>
         <div className="ja-tab-spacer" />
         <span className="ja-worker-chip">{workerDisplayName}</span>
       </div>
@@ -848,73 +701,7 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
         </div>
       )}
 
-      {/* ── RADAR tab ── */}
-      {mainTab === 'radar' && (
-        <div className="ja-tab-content">
-          <div className="ja-radar-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 220px' }}>
-            <div className="ja-radar-chart-col" style={{ borderRight: '1px solid rgba(255,255,255,0.08)' }}>
-              <div className="ja-radar-controls">
-                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'rgba(255,255,255,0.88)' }}>All Evaluated Jobs</span>
-              </div>
-              <div className="ja-radar-legend">
-                {allRadarDatasets.map(ds => (
-                  <span key={ds.label} className="ja-legend-item">
-                    <span className="ja-legend-dot" style={{ background: ds.color }} />{ds.label}
-                  </span>
-                ))}
-              </div>
-              <div className="ja-radar-svg-wrap">
-                {loadingAllProfiles
-                  ? <div className="ja-center"><div className="wp-spinner" /><span className="ja-status-txt">Loading all profiles…</span></div>
-                  : <RadarChart datasets={allRadarDatasets} />
-                }
-              </div>
-            </div>
 
-            <div className="ja-radar-chart-col">
-              {/* controls */}
-              <div className="ja-radar-controls">
-                {renderPicker('A', jobA, setJobA, menuOpenA, setMenuOpenA)}
-                {!splitMode && <button className="ja-btn-split" onClick={toggleSplit}>⊞ Compare</button>}
-                {splitMode && renderPicker('B', jobB ?? null, (id) => setJobB(id), menuOpenB, setMenuOpenB)}
-                {splitMode && <button className="ja-btn-close-split" onClick={toggleSplit}>✕</button>}
-              </div>
-              {/* chart */}
-              <div className="ja-radar-svg-wrap">
-                {loadingProfileA
-                  ? <div className="ja-center"><div className="wp-spinner" /><span className="ja-status-txt">Loading…</span></div>
-                  : <RadarChart datasets={radarDatasets} />
-                }
-              </div>
-            </div>
-
-            {/* breakdown sidebar */}
-            <div className="ja-radar-sidebar" style={{ borderLeft: '1px solid rgba(255,255,255,0.08)' }}>
-              <div className="ja-radar-sidebar-title">Skill Area Breakdown</div>
-              {radarDatasets.map(ds => (
-                <div key={ds.label} style={{ marginBottom: '16px' }}>
-                  <div className="ja-breakdown-ds-name" style={{ color: ds.color }}>{ds.label}</div>
-                  {RADAR_AXES.map((axis, i) => {
-                    const pct = Math.round(ds.values[i] * 100);
-                    return (
-                      <div key={axis} className="ja-bar-row">
-                        <span className="ja-bar-row-lbl">{axis}</span>
-                        <div className="ja-bar-track">
-                          <div className="ja-bar-fill" style={{ width: `${pct}%`, background: ds.color }} />
-                        </div>
-                        <span className="ja-bar-pct">{pct}%</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-              {profileA.length === 0 && !loadingProfileA && (
-                <p className="ja-status-txt" style={{ fontSize: '0.75rem' }}>Select a job to view the skill profile.</p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ── DETAIL tab ── */}
       {mainTab === 'detail' && (

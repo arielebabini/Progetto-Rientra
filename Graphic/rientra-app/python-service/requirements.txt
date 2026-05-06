@@ -11,3 +11,15 @@ pydantic>=2.0.0
 # owlready2 wraps rdflib internally and manages the Pellet JVM subprocess.
 # Requires Java 11+ in PATH.
 owlready2>=0.46
+
+# ── RDB2RDF import pipeline ───────────────────────────────────────────────────
+# morph-kgc: W3C R2RML materialiser used by the import pipeline.
+# rdflib: RDF graph manipulation for mapping generation + triple injection.
+morph-kgc>=2.6.0
+rdflib>=6.3.2
+
+# ── File upload support (required by FastAPI for UploadFile / File(...)) ───────
+python-multipart>=0.0.9
+
+# ── SQLAlchemy (required by morph-kgc for relational DB connections) ───────────
+sqlalchemy>=2.0.0

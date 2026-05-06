@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
@@ -104,3 +104,25 @@ app.on('will-quit', () => {
 // ─── IPC — expose Python port to renderer ───────────────────────────────────
 ipcMain.handle('get-python-port', () => PYTHON_PORT);
 
+// ─── IPC — native file-open dialog ──────────────────────────────────────────
+// Used by the "Add Worker" button to let the user pick a .sql dataset file.
+ipcMain.handle('show-open-dialog', async (_event, options) => {
+  const focusedWin = BrowserWindow.getFocusedWindow();
+  const result = await dialog.showOpenDialog(
+    focusedWin || BrowserWindow.getAllWindows()[0],
+    options
+  );
+  return result; // { canceled, filePaths }
+});
+
+// ─── IPC — read file as binary buffer ───────────────────────────────────────
+// Lets the renderer read the chosen .sql file and upload it to the Python service.
+ipcMain.handle('read-file-buffer', async (_event, filePath) => {
+  try {
+    const buf = fs.readFileSync(filePath);
+    // Transfer as a plain ArrayBuffer (serialisable through contextBridge)
+    return { ok: true, data: Array.from(buf) };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+});
