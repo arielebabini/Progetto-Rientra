@@ -165,3 +165,22 @@ class UpdateHealthConditionsResponse(BaseModel):
     removed:   int
     modified:  int
 
+
+# ── Worker job-assignment update ──────────────────────────────────────────────
+
+class UpdateWorkerJobsRequest(BaseModel):
+    """Replace the complete set of isEvaluatedForJob links for a worker."""
+    job_ids: list[str] = Field(
+        ...,
+        description="Ordered list of job IDs to assign (replaces any existing links).",
+        examples=[["Job_AssemblyWorker", "Job_Carpenter"]],
+    )
+
+class UpdateWorkerJobsResponse(BaseModel):
+    worker_id:  str
+    previous:   list[str] = Field(..., description="Job IDs that were assigned before this call.")
+    assigned:   list[str] = Field(..., description="Job IDs that are now assigned.")
+    unresolved: list[str] = Field(
+        default_factory=list,
+        description="Requested IDs not found in the ontology (skipped).",
+    )

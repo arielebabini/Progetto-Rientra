@@ -42,6 +42,7 @@ from reasoner import (
     get_all_icf_codes,
     get_all_core_sets,
     update_health_conditions,
+    update_worker_jobs,
     inject_imported_workers,
 )
 from models import (
@@ -62,6 +63,8 @@ from models import (
     HcChangeItem,
     UpdateHealthConditionsRequest,
     UpdateHealthConditionsResponse,
+    UpdateWorkerJobsRequest,
+    UpdateWorkerJobsResponse,
 )
 
 
@@ -543,6 +546,43 @@ def update_worker_health_conditions(
         changes_raw = [c.model_dump() for c in body.changes]
         data = update_health_conditions(worker_id, changes_raw)
         return UpdateHealthConditionsResponse(**data)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+# ─ POST /workers/{worker_id}/jobs/update ──────────────────────────────────────
+
+@app.post(
+    "/workers/{worker_id}/jobs/update",
+    response_model=UpdateWorkerJobsResponse,
+    summary="Replace the set of jobs a worker is evaluated for",
+    tags=["Workers"],
+)
+def update_worker_jobs_endpoint(
+    worker_id: str,
+    body: UpdateWorkerJobsRequest,
+) -> UpdateWorkerJobsResponse:
+    """
+    Atomically replaces all **isEvaluatedForJob** links for the given worker
+    with the supplied `job_ids` list.
+
+    After the mutation the ontology is saved to disk, Pellet is re-run, and
+    the snapshot cache is refreshed — so subsequent `/match/{worker_id}` calls
+    immediately reflect the new assignment.
+
+    **Request body**:
+    ```json
+    { "job_ids": ["Job_AssemblyWorker", "Job_Carpenter"] }
+    ```
+    """
+    _require_ready()
+    try:
+        data = update_worker_jobs(worker_id, body.job_ids)
+        return UpdateWorkerJobsResponse(**data)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except RuntimeError as exc:

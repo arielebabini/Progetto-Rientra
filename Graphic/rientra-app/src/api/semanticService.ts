@@ -246,3 +246,41 @@ export async function importWorkers(
   }
   return res.json() as Promise<ImportWorkersResult>;
 }
+
+// ── Job catalogue (for job-assignment editor) ──────────────────────────────────
+
+export interface JobEntry {
+  id: string;
+  label: string;
+}
+
+/** All Job individuals that have at least one 'requires' triple in the ontology. */
+export function fetchAllJobs(): Promise<JobEntry[]> {
+  return apiFetch<JobEntry[]>('/jobs');
+}
+
+// ── Worker job-assignment mutation ────────────────────────────────────────────
+
+export interface UpdateWorkerJobsResponse {
+  worker_id:  string;
+  previous:   string[];
+  assigned:   string[];
+  unresolved: string[];
+}
+
+/**
+ * Replace the complete set of isEvaluatedForJob links for a worker.
+ * Triggers a full Pellet re-run on the backend so match results are refreshed.
+ */
+export function updateWorkerJobs(
+  workerId: string,
+  jobIds: string[],
+): Promise<UpdateWorkerJobsResponse> {
+  return apiFetch<UpdateWorkerJobsResponse>(
+    `/workers/${encodeURIComponent(workerId)}/jobs/update`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ job_ids: jobIds }),
+    },
+  );
+}

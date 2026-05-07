@@ -1,7 +1,7 @@
 {
-  "source_hash": "f2bbf17781fe6720",
+  "source_hash": "8433ae600435672a",
   "source_path": "/Users/arielebabini/Documents/Anno scolastico 25-26 (3\u00b0 Uni)/Stage/Progetto-Rientra/Graphic/rientra-app/python-service/Rientra.rdf",
-  "elapsed_pellet_s": 1.9320669174194336,
+  "elapsed_pellet_s": 2.034224033355713,
   "stats": {
     "classes": 432,
     "individuals": 1458,
@@ -12,7 +12,7 @@
       "id": "FrancaNeri",
       "first_name": "Jack",
       "surname": "C",
-      "is_selected": true,
+      "is_selected": false,
       "evaluated_for_jobs": [
         "Carpenter",
         "Construction_laborer",
@@ -27,7 +27,7 @@
       "id": "GinoRossi",
       "first_name": "Gino",
       "surname": "Rossi",
-      "is_selected": false,
+      "is_selected": true,
       "evaluated_for_jobs": [
         "Carpenter"
       ]
@@ -1711,14 +1711,14 @@
     },
     {
       "icf_code": "d859",
-      "icf_name": "Management Of Material Resources",
+      "icf_name": "Management Of Personnel Resources",
       "description": "",
       "category": "Activities and Participation",
       "core_sets": [
         "Hand Conditions",
         "Low Back Pain"
       ],
-      "iri": "http://www.stiima.cnr.it/ICF-exc-coreset#d859-ManagementOfMaterialResources"
+      "iri": "http://www.stiima.cnr.it/ICF-exc-coreset#d859-ManagementOfPersonnelResources"
     },
     {
       "icf_code": "d865",
@@ -4275,7 +4275,7 @@
             "Spinal Cord Injury",
             "Stroke"
           ],
-          "bf_qualifier": null,
+          "bf_qualifier": 0,
           "ap1_qualifier": null
         },
         {
@@ -4288,7 +4288,7 @@
             "Spinal Cord Injury",
             "Stroke"
           ],
-          "bf_qualifier": null,
+          "bf_qualifier": 0,
           "ap1_qualifier": null
         }
       ]
@@ -13892,6 +13892,17 @@
             "description": "Communicating effectively in writing as appropriate for the needs of the audience."
           },
           {
+            "id": "WrittenExpression",
+            "score": 53,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to communicate information and ideas in writing so others will understand."
+          },
+          {
             "id": "ActiveListening",
             "score": 47,
             "importance_label": "isSomewhatImportantFor",
@@ -14649,17 +14660,6 @@
             "cs_normalized": 0.0,
             "criticality_label": "not critical",
             "description": "The ability to make fast, simple, repeated movements of the fingers, hands, and wrists."
-          },
-          {
-            "id": "WrittenExpression",
-            "score": 53,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 0,
-            "cs": 0,
-            "cs_normalized": 0.0,
-            "criticality_label": "not critical",
-            "description": "The ability to communicate information and ideas in writing so others will understand."
           }
         ]
       },
@@ -14712,6 +14712,17 @@
             "description": "The ability to read and understand information and ideas presented in writing."
           },
           {
+            "id": "WrittenExpression",
+            "score": 28,
+            "importance_label": "isSomewhatImportantFor",
+            "anchor": 1,
+            "qualifier": 6,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to communicate information and ideas in writing so others will understand."
+          },
+          {
             "id": "ActiveListening",
             "score": 53,
             "importance_label": "isImportantFor",
@@ -15469,17 +15480,6 @@
             "cs_normalized": 0.0,
             "criticality_label": "not critical",
             "description": "The ability to make fast, simple, repeated movements of the fingers, hands, and wrists."
-          },
-          {
-            "id": "WrittenExpression",
-            "score": 28,
-            "importance_label": "isSomewhatImportantFor",
-            "anchor": 1,
-            "qualifier": 0,
-            "cs": 0,
-            "cs_normalized": 0.0,
-            "criticality_label": "not critical",
-            "description": "The ability to communicate information and ideas in writing so others will understand."
           }
         ]
       },
@@ -15532,6 +15532,17 @@
             "description": "The ability to read and understand information and ideas presented in writing."
           },
           {
+            "id": "WrittenExpression",
+            "score": 63,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to communicate information and ideas in writing so others will understand."
+          },
+          {
             "id": "ActiveListening",
             "score": 53,
             "importance_label": "isImportantFor",
@@ -16278,17 +16289,6 @@
             "cs_normalized": 0.0,
             "criticality_label": "not critical",
             "description": "The ability to make fast, simple, repeated movements of the fingers, hands, and wrists."
-          },
-          {
-            "id": "WrittenExpression",
-            "score": 63,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 0,
-            "cs": 0,
-            "cs_normalized": 0.0,
-            "criticality_label": "not critical",
-            "description": "The ability to communicate information and ideas in writing so others will understand."
           }
         ]
       },
@@ -16328,6 +16328,17 @@
             "cs_normalized": 0.5,
             "criticality_label": "RELEVANTLY CRITICAL",
             "description": "Communicating effectively in writing as appropriate for the needs of the audience."
+          },
+          {
+            "id": "WrittenExpression",
+            "score": 47,
+            "importance_label": "isSomewhatImportantFor",
+            "anchor": 1,
+            "qualifier": 6,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to communicate information and ideas in writing so others will understand."
           },
           {
             "id": "ActiveListening",
@@ -17087,17 +17098,6 @@
             "cs_normalized": 0.0,
             "criticality_label": "not critical",
             "description": "The ability to make fast, simple, repeated movements of the fingers, hands, and wrists."
-          },
-          {
-            "id": "WrittenExpression",
-            "score": 47,
-            "importance_label": "isSomewhatImportantFor",
-            "anchor": 1,
-            "qualifier": 0,
-            "cs": 0,
-            "cs_normalized": 0.0,
-            "criticality_label": "not critical",
-            "description": "The ability to communicate information and ideas in writing so others will understand."
           }
         ]
       },
@@ -17150,6 +17150,17 @@
             "description": "The ability to read and understand information and ideas presented in writing."
           },
           {
+            "id": "WrittenExpression",
+            "score": 63,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to communicate information and ideas in writing so others will understand."
+          },
+          {
             "id": "ActiveListening",
             "score": 66,
             "importance_label": "isImportantFor",
@@ -17907,17 +17918,6 @@
             "cs_normalized": 0.0,
             "criticality_label": "not critical",
             "description": "The ability to make fast, simple, repeated movements of the fingers, hands, and wrists."
-          },
-          {
-            "id": "WrittenExpression",
-            "score": 63,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 0,
-            "cs": 0,
-            "cs_normalized": 0.0,
-            "criticality_label": "not critical",
-            "description": "The ability to communicate information and ideas in writing so others will understand."
           }
         ]
       },
@@ -17970,6 +17970,17 @@
             "description": "The ability to read and understand information and ideas presented in writing."
           },
           {
+            "id": "WrittenExpression",
+            "score": 56,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to communicate information and ideas in writing so others will understand."
+          },
+          {
             "id": "ActiveListening",
             "score": 72,
             "importance_label": "isImportantFor",
@@ -18727,17 +18738,6 @@
             "cs_normalized": 0.0,
             "criticality_label": "not critical",
             "description": "The ability to make fast, simple, repeated movements of the fingers, hands, and wrists."
-          },
-          {
-            "id": "WrittenExpression",
-            "score": 56,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 0,
-            "cs": 0,
-            "cs_normalized": 0.0,
-            "criticality_label": "not critical",
-            "description": "The ability to communicate information and ideas in writing so others will understand."
           }
         ]
       },
@@ -18788,6 +18788,17 @@
             "cs_normalized": 0.5,
             "criticality_label": "RELEVANTLY CRITICAL",
             "description": "The ability to read and understand information and ideas presented in writing."
+          },
+          {
+            "id": "WrittenExpression",
+            "score": 56,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to communicate information and ideas in writing so others will understand."
           },
           {
             "id": "ActiveListening",
@@ -19547,17 +19558,6 @@
             "cs_normalized": 0.0,
             "criticality_label": "not critical",
             "description": "The ability to make fast, simple, repeated movements of the fingers, hands, and wrists."
-          },
-          {
-            "id": "WrittenExpression",
-            "score": 56,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 0,
-            "cs": 0,
-            "cs_normalized": 0.0,
-            "criticality_label": "not critical",
-            "description": "The ability to communicate information and ideas in writing so others will understand."
           }
         ]
       }
@@ -19601,6 +19601,17 @@
             "description": "Communicating effectively in writing as appropriate for the needs of the audience."
           },
           {
+            "id": "WrittenExpression",
+            "score": 53,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to communicate information and ideas in writing so others will understand."
+          },
+          {
             "id": "ActiveListening",
             "score": 47,
             "importance_label": "isSomewhatImportantFor",
@@ -20358,17 +20369,6 @@
             "cs_normalized": 0.0,
             "criticality_label": "not critical",
             "description": "The ability to make fast, simple, repeated movements of the fingers, hands, and wrists."
-          },
-          {
-            "id": "WrittenExpression",
-            "score": 53,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 0,
-            "cs": 0,
-            "cs_normalized": 0.0,
-            "criticality_label": "not critical",
-            "description": "The ability to communicate information and ideas in writing so others will understand."
           }
         ]
       }
@@ -20412,6 +20412,17 @@
             "description": "Communicating effectively in writing as appropriate for the needs of the audience."
           },
           {
+            "id": "WrittenExpression",
+            "score": 53,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to communicate information and ideas in writing so others will understand."
+          },
+          {
             "id": "ActiveListening",
             "score": 47,
             "importance_label": "isSomewhatImportantFor",
@@ -21169,17 +21180,6 @@
             "cs_normalized": 0.0,
             "criticality_label": "not critical",
             "description": "The ability to make fast, simple, repeated movements of the fingers, hands, and wrists."
-          },
-          {
-            "id": "WrittenExpression",
-            "score": 53,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 0,
-            "cs": 0,
-            "cs_normalized": 0.0,
-            "criticality_label": "not critical",
-            "description": "The ability to communicate information and ideas in writing so others will understand."
           }
         ]
       },
@@ -21232,6 +21232,17 @@
             "description": "The ability to read and understand information and ideas presented in writing."
           },
           {
+            "id": "WrittenExpression",
+            "score": 28,
+            "importance_label": "isSomewhatImportantFor",
+            "anchor": 1,
+            "qualifier": 6,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to communicate information and ideas in writing so others will understand."
+          },
+          {
             "id": "ActiveListening",
             "score": 53,
             "importance_label": "isImportantFor",
@@ -21989,17 +22000,6 @@
             "cs_normalized": 0.0,
             "criticality_label": "not critical",
             "description": "The ability to make fast, simple, repeated movements of the fingers, hands, and wrists."
-          },
-          {
-            "id": "WrittenExpression",
-            "score": 28,
-            "importance_label": "isSomewhatImportantFor",
-            "anchor": 1,
-            "qualifier": 0,
-            "cs": 0,
-            "cs_normalized": 0.0,
-            "criticality_label": "not critical",
-            "description": "The ability to communicate information and ideas in writing so others will understand."
           }
         ]
       },
@@ -22052,6 +22052,17 @@
             "description": "The ability to read and understand information and ideas presented in writing."
           },
           {
+            "id": "WrittenExpression",
+            "score": 63,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to communicate information and ideas in writing so others will understand."
+          },
+          {
             "id": "ActiveListening",
             "score": 53,
             "importance_label": "isImportantFor",
@@ -22798,17 +22809,6 @@
             "cs_normalized": 0.0,
             "criticality_label": "not critical",
             "description": "The ability to make fast, simple, repeated movements of the fingers, hands, and wrists."
-          },
-          {
-            "id": "WrittenExpression",
-            "score": 63,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 0,
-            "cs": 0,
-            "cs_normalized": 0.0,
-            "criticality_label": "not critical",
-            "description": "The ability to communicate information and ideas in writing so others will understand."
           }
         ]
       },
@@ -22848,6 +22848,17 @@
             "cs_normalized": 0.5,
             "criticality_label": "RELEVANTLY CRITICAL",
             "description": "Communicating effectively in writing as appropriate for the needs of the audience."
+          },
+          {
+            "id": "WrittenExpression",
+            "score": 47,
+            "importance_label": "isSomewhatImportantFor",
+            "anchor": 1,
+            "qualifier": 6,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to communicate information and ideas in writing so others will understand."
           },
           {
             "id": "ActiveListening",
@@ -23607,17 +23618,6 @@
             "cs_normalized": 0.0,
             "criticality_label": "not critical",
             "description": "The ability to make fast, simple, repeated movements of the fingers, hands, and wrists."
-          },
-          {
-            "id": "WrittenExpression",
-            "score": 47,
-            "importance_label": "isSomewhatImportantFor",
-            "anchor": 1,
-            "qualifier": 0,
-            "cs": 0,
-            "cs_normalized": 0.0,
-            "criticality_label": "not critical",
-            "description": "The ability to communicate information and ideas in writing so others will understand."
           }
         ]
       },
@@ -23670,6 +23670,17 @@
             "description": "The ability to read and understand information and ideas presented in writing."
           },
           {
+            "id": "WrittenExpression",
+            "score": 63,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to communicate information and ideas in writing so others will understand."
+          },
+          {
             "id": "ActiveListening",
             "score": 66,
             "importance_label": "isImportantFor",
@@ -24427,17 +24438,6 @@
             "cs_normalized": 0.0,
             "criticality_label": "not critical",
             "description": "The ability to make fast, simple, repeated movements of the fingers, hands, and wrists."
-          },
-          {
-            "id": "WrittenExpression",
-            "score": 63,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 0,
-            "cs": 0,
-            "cs_normalized": 0.0,
-            "criticality_label": "not critical",
-            "description": "The ability to communicate information and ideas in writing so others will understand."
           }
         ]
       },
@@ -24490,6 +24490,17 @@
             "description": "The ability to read and understand information and ideas presented in writing."
           },
           {
+            "id": "WrittenExpression",
+            "score": 56,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to communicate information and ideas in writing so others will understand."
+          },
+          {
             "id": "ActiveListening",
             "score": 72,
             "importance_label": "isImportantFor",
@@ -25247,17 +25258,6 @@
             "cs_normalized": 0.0,
             "criticality_label": "not critical",
             "description": "The ability to make fast, simple, repeated movements of the fingers, hands, and wrists."
-          },
-          {
-            "id": "WrittenExpression",
-            "score": 56,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 0,
-            "cs": 0,
-            "cs_normalized": 0.0,
-            "criticality_label": "not critical",
-            "description": "The ability to communicate information and ideas in writing so others will understand."
           }
         ]
       },
@@ -25308,6 +25308,17 @@
             "cs_normalized": 0.5,
             "criticality_label": "RELEVANTLY CRITICAL",
             "description": "The ability to read and understand information and ideas presented in writing."
+          },
+          {
+            "id": "WrittenExpression",
+            "score": 56,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to communicate information and ideas in writing so others will understand."
           },
           {
             "id": "ActiveListening",
@@ -26067,17 +26078,6 @@
             "cs_normalized": 0.0,
             "criticality_label": "not critical",
             "description": "The ability to make fast, simple, repeated movements of the fingers, hands, and wrists."
-          },
-          {
-            "id": "WrittenExpression",
-            "score": 56,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 0,
-            "cs": 0,
-            "cs_normalized": 0.0,
-            "criticality_label": "not critical",
-            "description": "The ability to communicate information and ideas in writing so others will understand."
           }
         ]
       }

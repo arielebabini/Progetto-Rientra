@@ -1391,6 +1391,21 @@ def update_health_conditions(worker_id: str, changes: list[dict]) -> dict:
     added = removed = modified = 0
     errors: list[str] = []
 
+    def _safe_set_prop(prop, ind, value: int | None) -> None:
+        """
+        Safely assign a single value to a data property.
+
+        owlready2 merges rather than replaces at the RDF-triple level when you
+        do `prop[ind] = [new_value]` on an individual that already has a value
+        for that property.  For **functional** properties (BFqual, AP1qual)
+        this creates two triples → Pellet raises InconsistentOntologyException.
+
+        The fix: always clear the property to [] first, then set the new value.
+        """
+        prop[ind] = []           # flush all existing triples for this (ind, prop) pair
+        if value is not None:
+            prop[ind] = [value]  # now assign the single new value
+
     with _hc_lock:
 
         # Populate ICF cache if needed
@@ -1485,8 +1500,8 @@ def update_health_conditions(worker_id: str, changes: list[dict]) -> dict:
                     errors.append("modify: '" + icf_code + "' not found in worker's HC.")
                     continue
                 des_ind = entry["des"]
-                q_prop[des_ind]     = [int(qualifier)]
-                other_prop[des_ind] = []
+                _safe_set_prop(q_prop,     des_ind, int(qualifier))
+                _safe_set_prop(other_prop, des_ind, None)
                 modified += 1
 
             # ADD
@@ -1497,8 +1512,8 @@ def update_health_conditions(worker_id: str, changes: list[dict]) -> dict:
                 if icf_code in desc_map:
                     # Already present -> treat as modify
                     des_ind = desc_map[icf_code]["des"]
-                    q_prop[des_ind]     = [int(qualifier)]
-                    other_prop[des_ind] = []
+                    _safe_set_prop(q_prop,     des_ind, int(qualifier))
+                    _safe_set_prop(other_prop, des_ind, None)
                     modified += 1
                     continue
                 icf_ind = _resolve_icf_individual(icf_code)
@@ -1508,8 +1523,8 @@ def update_health_conditions(worker_id: str, changes: list[dict]) -> dict:
                 hc_ind  = _get_or_create_hc()
                 des_ind = des_class() if des_class is not None else Thing()
                 involves_icf[des_ind] = [icf_ind]
-                q_prop[des_ind]       = [int(qualifier)]
-                other_prop[des_ind]   = []
+                _safe_set_prop(q_prop,     des_ind, int(qualifier))
+                _safe_set_prop(other_prop, des_ind, None)
                 cur = list(is_described_by[hc_ind] or [])
                 cur.append(des_ind)
                 is_described_by[hc_ind] = cur
@@ -1529,3 +1544,75 @@ def update_health_conditions(worker_id: str, changes: list[dict]) -> dict:
         result["errors"] = errors
     _refresh_reasoning_artifacts()
     return result
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Mutation — Update isEvaluatedForJob links for a worker
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Lock for job-assignment mutations
+_job_lock = threading.Lock()
+
+
+def update_worker_jobs(worker_id: str, job_ids: list[str]) -> dict:
+    """
+    Atomically replace the set of isEvaluatedForJob triples for the given
+    worker with the supplied list of job IDs.
+
+    Steps
+    ─────
+    1. Look up the Person individual in the live owlready2 ontology.
+    2. Resolve each requested job ID to an owlready2 individual.
+    3. Replace eval_prop[person] with the resolved set.
+    4. Save the ontology to disk, re-run Pellet, and refresh the snapshot cache.
+
+    Returns
+    ───────
+    {
+        "worker_id"  : str,
+        "previous"   : [job_id, ...],   # the job IDs that were assigned before
+        "assigned"   : [job_id, ...],   # the job IDs now assigned
+        "unresolved" : [job_id, ...],   # requested IDs not found in ontology
+    }
+    """
+    if not _live_reasoner_ready:
+        raise RuntimeError(
+            "The live ontology is still warming up in background. "
+            "Job-assignment updates will be available as soon as the reasoner finishes."
+        )
+
+    person_ind = default_world.search_one(iri="*#" + worker_id)
+    if person_ind is None:
+        raise KeyError("Worker '" + worker_id + "' not found in ontology.")
+
+    eval_prop = default_world.search_one(iri=IRI_IS_EVAL_JOB)
+    if eval_prop is None:
+        raise RuntimeError("isEvaluatedForJob property not found in ontology.")
+
+    with _job_lock:
+        # Capture current assignments
+        previous = [local_name(j) for j in (eval_prop[person_ind] or [])]
+
+        # Resolve requested job individuals
+        resolved: list = []
+        unresolved: list[str] = []
+        for jid in job_ids:
+            ind = default_world.search_one(iri="*#" + jid)
+            if ind is not None:
+                resolved.append(ind)
+            else:
+                unresolved.append(jid)
+
+        # Apply the new assignment
+        eval_prop[person_ind] = resolved
+
+    assigned = [local_name(j) for j in resolved]
+
+    _refresh_reasoning_artifacts()
+
+    return {
+        "worker_id" : worker_id,
+        "previous"  : previous,
+        "assigned"  : assigned,
+        "unresolved": unresolved,
+    }

@@ -684,3 +684,312 @@
 .ja-status-hint { font-size: 0.74rem; color: rgba(255,255,255,0.20); max-width: 340px; line-height: 1.6; }
 .ja-status-hint code { font-family: monospace; font-size: 0.82em; background: rgba(77,217,192,0.10); color: #4DD9C0; padding: 1px 4px; border-radius: 3px; }
 .ja-err-icon    { font-size: 2rem; color: rgba(239,68,68,0.65); }
+
+/* ═══════════════════════════════════════════════════════════════
+   EDIT JOBS — tab bar button
+═══════════════════════════════════════════════════════════════ */
+.ja-btn-edit-jobs {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.45);
+  padding: 4px 11px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.10);
+  transition: background 0.14s, color 0.14s, border-color 0.14s;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-right: 6px;
+  margin-bottom: 4px;
+}
+.ja-btn-edit-jobs:hover {
+  background: rgba(77,217,192,0.09);
+  color: #4DD9C0;
+  border-color: rgba(77,217,192,0.30);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EDIT JOBS — modal
+═══════════════════════════════════════════════════════════════ */
+.ja-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(6, 15, 32, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: jaBackdropIn 0.18s ease;
+}
+@keyframes jaBackdropIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.ja-modal {
+  width: min(680px, 92vw);
+  max-height: min(720px, 88vh);
+  background: linear-gradient(160deg, #162540 0%, #0f1e35 100%);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 16px;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(77,217,192,0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: jaModalIn 0.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes jaModalIn {
+  from { opacity: 0; transform: scale(0.94) translateY(12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Header */
+.ja-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px 22px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+  gap: 12px;
+}
+.ja-modal-title-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.ja-modal-title {
+  margin: 0 0 3px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.92);
+  line-height: 1.3;
+}
+.ja-modal-subtitle {
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.38);
+  line-height: 1.4;
+}
+.ja-modal-close {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: background 0.13s, color 0.13s;
+  flex-shrink: 0;
+}
+.ja-modal-close:hover:not(:disabled) { background: rgba(239,68,68,0.15); color: #f87171; }
+.ja-modal-close:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Search row */
+.ja-modal-search-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 22px 8px;
+  flex-shrink: 0;
+}
+.ja-modal-search-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0,0,0,0.20);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 8px;
+  padding: 0 10px;
+  height: 36px;
+}
+.ja-modal-search-input {
+  all: unset;
+  flex: 1;
+  font-size: 0.84rem;
+  color: rgba(255,255,255,0.88);
+  height: 100%;
+}
+.ja-modal-search-input::placeholder { color: rgba(255,255,255,0.28); }
+.ja-modal-search-clear {
+  all: unset;
+  cursor: pointer;
+  font-size: 0.70rem;
+  color: rgba(255,255,255,0.30);
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.12s, background 0.12s;
+}
+.ja-modal-search-clear:hover { color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.06); }
+.ja-modal-counter {
+  font-size: 0.80rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Quick actions */
+.ja-modal-quick-actions {
+  display: flex;
+  gap: 8px;
+  padding: 0 22px 10px;
+  flex-shrink: 0;
+}
+.ja-modal-action-btn {
+  all: unset;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.38);
+  padding: 3px 10px;
+  border-radius: 5px;
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.ja-modal-action-btn:hover {
+  background: rgba(77,217,192,0.07);
+  color: #4DD9C0;
+  border-color: rgba(77,217,192,0.22);
+}
+
+/* Job list */
+.ja-modal-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.12) transparent;
+}
+.ja-modal-list::-webkit-scrollbar { width: 5px; }
+.ja-modal-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
+
+.ja-modal-job-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 22px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.11s;
+  user-select: none;
+  position: relative;
+}
+.ja-modal-job-row:last-child { border-bottom: none; }
+.ja-modal-job-row:hover { background: rgba(255,255,255,0.04); }
+.ja-modal-job-row.checked { background: rgba(77,217,192,0.05); }
+.ja-modal-job-row.checked:hover { background: rgba(77,217,192,0.09); }
+
+.ja-modal-checkbox {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 2px solid rgba(255,255,255,0.22);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.15s, background 0.15s;
+}
+.ja-modal-checkbox.checked {
+  border-color: #4DD9C0;
+  background: #4DD9C0;
+}
+
+.ja-modal-job-label {
+  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.78);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ja-modal-job-row.checked .ja-modal-job-label {
+  color: rgba(255,255,255,0.92);
+  font-weight: 600;
+}
+.ja-modal-job-id {
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.22);
+  font-family: monospace;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Error strip */
+.ja-modal-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background: rgba(239,68,68,0.10);
+  border-top: 1px solid rgba(239,68,68,0.20);
+  color: #f87171;
+  font-size: 0.80rem;
+  flex-shrink: 0;
+}
+
+/* Footer */
+.ja-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 22px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+  background: rgba(0,0,0,0.10);
+}
+.ja-modal-btn-cancel {
+  all: unset;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.40);
+  padding: 7px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.10);
+  transition: background 0.13s, color 0.13s;
+}
+.ja-modal-btn-cancel:hover:not(:disabled) {
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.70);
+}
+.ja-modal-btn-cancel:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.ja-modal-btn-save {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0f2233;
+  background: #4DD9C0;
+  padding: 7px 18px;
+  border-radius: 8px;
+  border: 1px solid rgba(77,217,192,0.40);
+  transition: background 0.14s, opacity 0.14s, transform 0.12s;
+  letter-spacing: 0.01em;
+}
+.ja-modal-btn-save:hover:not(:disabled) {
+  background: #5de8d0;
+  transform: translateY(-1px);
+}
+.ja-modal-btn-save:active:not(:disabled) { transform: translateY(0); }
+.ja-modal-btn-save:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
