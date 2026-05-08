@@ -19,7 +19,7 @@ import warnings
 import logging
 import time
 from collections import defaultdict
-from typing import Optional
+from typing import Optional, Any, cast
 
 # ── silence owlready2 / Java logs ────────────────────────────────────────────
 warnings.filterwarnings("ignore")
@@ -142,7 +142,10 @@ _selection_lock = threading.Lock()
 
 # Cache: local ICF code name -> sorted list of core set labels
 _icf_core_set_map: dict[str, list[str]] = {}
-_snapshot_cache: dict | None = None
+_snapshot_cache: dict[str, Any] | None = None
+# Convenience alias — owlready2 property objects are fully dynamic; annotating
+# search_one() return values as OWLProp suppresses false-positive subscript errors.
+OWLProp = Any
 _live_reasoner_ready = False
 _pending_selected_worker_id: Optional[str] = None
 _loaded_ontology = None
@@ -188,7 +191,7 @@ def get_all_core_sets() -> list[str]:
     Built from _icf_core_set_map, so must be called after _build_icf_core_set_map.
     """
     if _use_snapshot_cache():
-        return list(_snapshot_cache["core_sets"])
+        return list(cast(dict, _snapshot_cache)["core_sets"])
 
     labels: set[str] = set()
     for cs_list in _icf_core_set_map.values():
@@ -581,7 +584,7 @@ def _run_pellet(onto) -> Optional[float]:
             orig_setattr(self, name, value)
 
     try:
-        ThingMeta.__setattr__ = patched_setattr
+        ThingMeta.__setattr__ = patched_setattr  # type: ignore[assignment]  # intentional monkey-patch, reverted in finally
         stderr_buf = io.StringIO()
         with contextlib.redirect_stderr(stderr_buf):
             with onto:
@@ -671,12 +674,12 @@ def get_workers() -> list[dict]:
     Falls back to querying by isSelected if the first query is empty.
     """
     if _use_snapshot_cache():
-        return list(_snapshot_cache["workers"])
+        return list(cast(dict, _snapshot_cache)["workers"])
 
-    fn_prop  = default_world.search_one(iri=IRI_FIRST_NAME)
-    sur_prop = default_world.search_one(iri=IRI_SURNAME)
-    sel_prop = default_world.search_one(iri=IRI_IS_SELECTED)
-    eval_prop = default_world.search_one(iri=IRI_IS_EVAL_JOB)
+    fn_prop:   OWLProp = default_world.search_one(iri=IRI_FIRST_NAME)
+    sur_prop:  OWLProp = default_world.search_one(iri=IRI_SURNAME)
+    sel_prop:  OWLProp = default_world.search_one(iri=IRI_IS_SELECTED)
+    eval_prop: OWLProp = default_world.search_one(iri=IRI_IS_EVAL_JOB)
 
     # Collect all persons via isEvaluatedForJob
     rows = _sparql(f"""
@@ -721,7 +724,7 @@ def get_workers() -> list[dict]:
 def get_jobs() -> list[dict]:
     """Return all Job individuals (those that have at least one 'requires' triple)."""
     if _use_snapshot_cache():
-        return list(_snapshot_cache["jobs"])
+        return list(cast(dict, _snapshot_cache)["jobs"])
 
     rows = _sparql(f"""
         SELECT DISTINCT ?job WHERE {{
@@ -754,7 +757,7 @@ def get_health_conditions(worker_id: str) -> dict:
              descriptor → involvesICFCode, BFqual, AP1qual
     """
     if _use_snapshot_cache():
-        cached = _snapshot_cache["health_conditions"].get(worker_id)
+        cached = cast(dict, _snapshot_cache)["health_conditions"].get(worker_id)
         if cached is None:
             raise KeyError(f"Worker '{worker_id}' not found in cache.")
         return cached
@@ -826,10 +829,11 @@ def get_importance_summary(job_id: Optional[str] = None) -> list[dict]:
     Returns a list of { job_id, importance_level, skills: [{id, score}] }.
     """
     if _use_snapshot_cache():
+        sc = cast(dict, _snapshot_cache)
         if job_id:
-            return list(_snapshot_cache["importance_by_job"].get(job_id, []))
+            return list(sc["importance_by_job"].get(job_id, []))
         result: list[dict] = []
-        for entries in _snapshot_cache["importance_by_job"].values():
+        for entries in sc["importance_by_job"].values():
             result.extend(entries)
         return result
 
@@ -880,7 +884,7 @@ def get_job_skill_profile(job_id: str) -> list[dict]:
     (e.g. Carpenter → high Physical scores).
     """
     if _use_snapshot_cache():
-        entries = _snapshot_cache["job_profiles"].get(job_id)
+        entries = cast(dict, _snapshot_cache)["job_profiles"].get(job_id)
         if entries is None:
             raise KeyError(f"Job '{job_id}' not found in cache.")
         return list(entries)
@@ -920,15 +924,16 @@ def get_match_results(worker_id: Optional[str] = None) -> list[dict]:
     Mirrors query_gcs_aisa() from ontology_reasoner.py.
     """
     if _use_snapshot_cache():
+        sc = cast(dict, _snapshot_cache)
         if worker_id:
-            return list(_snapshot_cache["match_results_by_worker"].get(worker_id, []))
+            return list(sc["match_results_by_worker"].get(worker_id, []))
         result: list[dict] = []
         selected_ids = {
             worker["id"]
-            for worker in _snapshot_cache["workers"]
+            for worker in sc["workers"]
             if worker.get("is_selected")
         }
-        for wid, entries in _snapshot_cache["match_results_by_worker"].items():
+        for wid, entries in sc["match_results_by_worker"].items():
             if selected_ids and wid not in selected_ids:
                 continue
             result.extend(entries)
@@ -1060,7 +1065,7 @@ def get_skill_detail(worker_id: str, job_id: str) -> dict:
     Returns computed CS, anchor, qualifier, and criticality label per SkAb.
     """
     if _use_snapshot_cache():
-        worker_cache = _snapshot_cache["skill_details_by_worker_job"].get(worker_id, {})
+        worker_cache = cast(dict, _snapshot_cache)["skill_details_by_worker_job"].get(worker_id, {})
         cached = worker_cache.get(job_id)
         if cached is None:
             raise KeyError(f"No cached detail found for worker '{worker_id}' and job '{job_id}'.")
@@ -1143,7 +1148,7 @@ def set_selected_worker(worker_id: str) -> dict:
     """
     if _use_snapshot_cache():
         global _pending_selected_worker_id
-        workers = _snapshot_cache["workers"]
+        workers = cast(dict, _snapshot_cache)["workers"]
         target = next((w for w in workers if w["id"] == worker_id), None)
         if target is None:
             raise KeyError(f"Worker '{worker_id}' not found in cache.")
@@ -1156,11 +1161,11 @@ def set_selected_worker(worker_id: str) -> dict:
         _pending_selected_worker_id = worker_id
         return {"previous": old_id, "selected": worker_id}
 
-    sel_prop = default_world.search_one(iri=IRI_IS_SELECTED)
+    sel_prop: OWLProp = default_world.search_one(iri=IRI_IS_SELECTED)
     if sel_prop is None:
         raise KeyError("isSelected property not found in ontology.")
 
-    target = default_world.search_one(iri=f"*#{worker_id}")
+    target: OWLProp = default_world.search_one(iri=f"*#{worker_id}")
     if target is None:
         raise KeyError(f"Worker '{worker_id}' not found in ontology.")
 
@@ -1187,7 +1192,7 @@ def get_all_icf_codes() -> list[dict]:
     table in the Modify-Health-Condition wizard.
     """
     if _use_snapshot_cache():
-        return list(_snapshot_cache["icf_codes"])
+        return list(cast(dict, _snapshot_cache)["icf_codes"])
 
     import re as _re
 
@@ -1370,11 +1375,11 @@ def update_health_conditions(worker_id: str, changes: list[dict]) -> dict:
     if person_ind is None:
         raise KeyError("Worker '" + worker_id + "' not found in ontology.")
 
-    is_in_hc_prop   = default_world.search_one(iri=IRI_IS_IN_HC)
-    is_described_by = default_world.search_one(iri=IRI_IS_DESCRIBED_BY)
-    involves_icf    = default_world.search_one(iri=IRI_INVOLVES_ICF)
-    bfqual_prop     = default_world.search_one(iri=IRI_BFQUAL)
-    ap1qual_prop    = default_world.search_one(iri=IRI_AP1QUAL)
+    is_in_hc_prop:   OWLProp = default_world.search_one(iri=IRI_IS_IN_HC)
+    is_described_by: OWLProp = default_world.search_one(iri=IRI_IS_DESCRIBED_BY)
+    involves_icf:    OWLProp = default_world.search_one(iri=IRI_INVOLVES_ICF)
+    bfqual_prop:     OWLProp = default_world.search_one(iri=IRI_BFQUAL)
+    ap1qual_prop:    OWLProp = default_world.search_one(iri=IRI_AP1QUAL)
 
     missing = [
         n for n, p in [
@@ -1585,7 +1590,7 @@ def update_worker_jobs(worker_id: str, job_ids: list[str]) -> dict:
     if person_ind is None:
         raise KeyError("Worker '" + worker_id + "' not found in ontology.")
 
-    eval_prop = default_world.search_one(iri=IRI_IS_EVAL_JOB)
+    eval_prop: OWLProp = default_world.search_one(iri=IRI_IS_EVAL_JOB)
     if eval_prop is None:
         raise RuntimeError("isEvaluatedForJob property not found in ontology.")
 

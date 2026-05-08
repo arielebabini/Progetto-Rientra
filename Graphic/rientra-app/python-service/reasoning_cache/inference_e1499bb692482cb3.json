@@ -1,10 +1,10 @@
 {
-  "source_hash": "d7532a35a1249aa7",
+  "source_hash": "e1499bb692482cb3",
   "source_path": "/Users/arielebabini/Documents/Anno scolastico 25-26 (3\u00b0 Uni)/Stage/Progetto-Rientra/Graphic/rientra-app/python-service/Rientra.rdf",
-  "elapsed_pellet_s": 1.8565289974212646,
+  "elapsed_pellet_s": 1.921050786972046,
   "stats": {
     "classes": 432,
-    "individuals": 1524,
+    "individuals": 1525,
     "properties": 52
   },
   "workers": [
@@ -2047,6 +2047,17 @@
       "worker_id": "ElenaConti",
       "conditions": [
         {
+          "icf_code": "b110",
+          "icf_name": "Consciousness functions",
+          "description": "General mental functions of the state of awareness and alertness, including the clarity and continuity of the wakeful state.\nInclusions: functions of the state, continuity and quality of consciousness; loss of consciousness; coma, vegetative states, fugues, trance states, possession states, drug-induced altered consciousness, delirium, stupor\nExclusions: orientation functions (b114); energy and drive functions (b130); sleep functions (b134)",
+          "core_sets": [
+            "Stroke",
+            "Traumatic Brain Injury"
+          ],
+          "bf_qualifier": 2,
+          "ap1_qualifier": null
+        },
+        {
           "icf_code": "b710",
           "icf_name": "Mobility of joint functions",
           "description": "Functions of the range and ease of movement of a joint.\nInclusions: functions of mobility of single or several joints, vertebral, shoulder, elbow, wrist, hip, knee, ankle, small joints of hands and feet; mobility of joints generalized; impairments such as in hypermobility of joints, frozen joints, frozen shoulder, arthritis\nExclusions: stability of joint functions (b715); control of voluntary movement functions (b760)",
@@ -2271,7 +2282,7 @@
             "Muskoloskeletal Conditions for Post Acute Care",
             "Traumatic Brain Injury"
           ],
-          "bf_qualifier": null,
+          "bf_qualifier": 0,
           "ap1_qualifier": null
         },
         {
@@ -2283,7 +2294,7 @@
             "Muskoloskeletal Conditions for Post Acute Care",
             "Stroke"
           ],
-          "bf_qualifier": null,
+          "bf_qualifier": 0,
           "ap1_qualifier": null
         },
         {
@@ -2294,7 +2305,7 @@
             "Muskoloskeletal Conditions for Post Acute Care",
             "Stroke"
           ],
-          "bf_qualifier": null,
+          "bf_qualifier": 0,
           "ap1_qualifier": null
         },
         {
@@ -2307,7 +2318,7 @@
             "Spinal Cord Injury",
             "Stroke"
           ],
-          "bf_qualifier": null,
+          "bf_qualifier": 0,
           "ap1_qualifier": null
         },
         {
@@ -2320,7 +2331,7 @@
             "Spinal Cord Injury",
             "Stroke"
           ],
-          "bf_qualifier": null,
+          "bf_qualifier": 0,
           "ap1_qualifier": null
         }
       ]
@@ -15259,6 +15270,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 60,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 22,
             "importance_label": "isLessImportantFor",
@@ -15411,17 +15433,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 60,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 2,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -16079,6 +16090,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 53,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 47,
             "importance_label": "isSomewhatImportantFor",
@@ -16220,17 +16242,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 53,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 2,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -16888,6 +16899,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 72,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 44,
             "importance_label": "isSomewhatImportantFor",
@@ -17029,17 +17051,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 72,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 2,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -17699,6 +17710,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 72,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 44,
             "importance_label": "isSomewhatImportantFor",
@@ -17840,17 +17862,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 72,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 2,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -18508,6 +18519,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 72,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 22,
             "importance_label": "isLessImportantFor",
@@ -18660,17 +18682,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 72,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 2,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -19328,6 +19339,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 41,
+            "importance_label": "isSomewhatImportantFor",
+            "anchor": 1,
+            "qualifier": 6,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 28,
             "importance_label": "isSomewhatImportantFor",
@@ -19480,17 +19502,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 41,
-            "importance_label": "isSomewhatImportantFor",
-            "anchor": 1,
-            "qualifier": 4,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -20137,6 +20148,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 53,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 47,
             "importance_label": "isSomewhatImportantFor",
@@ -20278,17 +20300,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 53,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 2,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -20946,6 +20957,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 22,
+            "importance_label": "isLessImportantFor",
+            "anchor": 0,
+            "qualifier": 0,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 41,
             "importance_label": "isSomewhatImportantFor",
@@ -21098,17 +21120,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 22,
-            "importance_label": "isLessImportantFor",
-            "anchor": 0,
-            "qualifier": 0,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -21766,6 +21777,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 28,
+            "importance_label": "isSomewhatImportantFor",
+            "anchor": 1,
+            "qualifier": 6,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 44,
             "importance_label": "isSomewhatImportantFor",
@@ -21918,17 +21940,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 28,
-            "importance_label": "isSomewhatImportantFor",
-            "anchor": 1,
-            "qualifier": 4,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -22586,6 +22597,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 28,
+            "importance_label": "isSomewhatImportantFor",
+            "anchor": 1,
+            "qualifier": 6,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 31,
             "importance_label": "isSomewhatImportantFor",
@@ -22738,17 +22760,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 28,
-            "importance_label": "isSomewhatImportantFor",
-            "anchor": 1,
-            "qualifier": 4,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -23408,6 +23419,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 72,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 44,
             "importance_label": "isSomewhatImportantFor",
@@ -23549,17 +23571,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 72,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 2,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -24217,6 +24228,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 25,
+            "importance_label": "isLessImportantFor",
+            "anchor": 0,
+            "qualifier": 0,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 53,
             "importance_label": "isImportantFor",
@@ -24369,17 +24391,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 25,
-            "importance_label": "isLessImportantFor",
-            "anchor": 0,
-            "qualifier": 0,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -25037,6 +25048,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 25,
+            "importance_label": "isLessImportantFor",
+            "anchor": 0,
+            "qualifier": 0,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 63,
             "importance_label": "isImportantFor",
@@ -25189,17 +25211,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 25,
-            "importance_label": "isLessImportantFor",
-            "anchor": 0,
-            "qualifier": 0,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -25846,6 +25857,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 25,
+            "importance_label": "isLessImportantFor",
+            "anchor": 0,
+            "qualifier": 0,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 44,
             "importance_label": "isSomewhatImportantFor",
@@ -25998,17 +26020,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 25,
-            "importance_label": "isLessImportantFor",
-            "anchor": 0,
-            "qualifier": 0,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -26655,6 +26666,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 19,
+            "importance_label": "isLessImportantFor",
+            "anchor": 0,
+            "qualifier": 0,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 44,
             "importance_label": "isSomewhatImportantFor",
@@ -26807,17 +26829,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 19,
-            "importance_label": "isLessImportantFor",
-            "anchor": 0,
-            "qualifier": 0,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -27475,6 +27486,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 60,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 22,
             "importance_label": "isLessImportantFor",
@@ -27627,17 +27649,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 60,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 2,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -28295,6 +28306,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 53,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 50,
             "importance_label": "isImportantFor",
@@ -28447,17 +28469,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 53,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 2,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -29115,6 +29126,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 28,
+            "importance_label": "isSomewhatImportantFor",
+            "anchor": 1,
+            "qualifier": 6,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 44,
             "importance_label": "isSomewhatImportantFor",
@@ -29267,17 +29289,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 28,
-            "importance_label": "isSomewhatImportantFor",
-            "anchor": 1,
-            "qualifier": 4,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -29935,6 +29946,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 28,
+            "importance_label": "isSomewhatImportantFor",
+            "anchor": 1,
+            "qualifier": 6,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 31,
             "importance_label": "isSomewhatImportantFor",
@@ -30087,17 +30109,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 28,
-            "importance_label": "isSomewhatImportantFor",
-            "anchor": 1,
-            "qualifier": 4,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -30755,6 +30766,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 72,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 22,
             "importance_label": "isLessImportantFor",
@@ -30907,17 +30929,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 72,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 2,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -31575,6 +31586,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 22,
+            "importance_label": "isLessImportantFor",
+            "anchor": 0,
+            "qualifier": 0,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 41,
             "importance_label": "isSomewhatImportantFor",
@@ -31727,17 +31749,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 22,
-            "importance_label": "isLessImportantFor",
-            "anchor": 0,
-            "qualifier": 0,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -32395,6 +32406,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 41,
+            "importance_label": "isSomewhatImportantFor",
+            "anchor": 1,
+            "qualifier": 6,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 28,
             "importance_label": "isSomewhatImportantFor",
@@ -32547,17 +32569,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 41,
-            "importance_label": "isSomewhatImportantFor",
-            "anchor": 1,
-            "qualifier": 4,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -33204,6 +33215,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 53,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 47,
             "importance_label": "isSomewhatImportantFor",
@@ -33345,17 +33367,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 53,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 2,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -34015,6 +34026,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 28,
+            "importance_label": "isSomewhatImportantFor",
+            "anchor": 1,
+            "qualifier": 6,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 44,
             "importance_label": "isSomewhatImportantFor",
@@ -34167,17 +34189,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 28,
-            "importance_label": "isSomewhatImportantFor",
-            "anchor": 1,
-            "qualifier": 4,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -34835,6 +34846,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 25,
+            "importance_label": "isLessImportantFor",
+            "anchor": 0,
+            "qualifier": 0,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 44,
             "importance_label": "isSomewhatImportantFor",
@@ -34987,17 +35009,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 25,
-            "importance_label": "isLessImportantFor",
-            "anchor": 0,
-            "qualifier": 0,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -35657,6 +35668,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 41,
+            "importance_label": "isSomewhatImportantFor",
+            "anchor": 1,
+            "qualifier": 6,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 28,
             "importance_label": "isSomewhatImportantFor",
@@ -35809,17 +35831,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 41,
-            "importance_label": "isSomewhatImportantFor",
-            "anchor": 1,
-            "qualifier": 4,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -36466,6 +36477,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 28,
+            "importance_label": "isSomewhatImportantFor",
+            "anchor": 1,
+            "qualifier": 6,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 31,
             "importance_label": "isSomewhatImportantFor",
@@ -36618,17 +36640,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 28,
-            "importance_label": "isSomewhatImportantFor",
-            "anchor": 1,
-            "qualifier": 4,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -37286,6 +37297,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 22,
+            "importance_label": "isLessImportantFor",
+            "anchor": 0,
+            "qualifier": 0,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 41,
             "importance_label": "isSomewhatImportantFor",
@@ -37438,17 +37460,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 22,
-            "importance_label": "isLessImportantFor",
-            "anchor": 0,
-            "qualifier": 0,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -38108,6 +38119,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 72,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 44,
             "importance_label": "isSomewhatImportantFor",
@@ -38249,17 +38271,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 72,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 2,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -38917,6 +38928,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 72,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 22,
             "importance_label": "isLessImportantFor",
@@ -39069,17 +39091,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 72,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 2,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -39737,6 +39748,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 41,
+            "importance_label": "isSomewhatImportantFor",
+            "anchor": 1,
+            "qualifier": 6,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 28,
             "importance_label": "isSomewhatImportantFor",
@@ -39889,17 +39911,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 41,
-            "importance_label": "isSomewhatImportantFor",
-            "anchor": 1,
-            "qualifier": 4,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -40546,6 +40557,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 53,
+            "importance_label": "isImportantFor",
+            "anchor": 2,
+            "qualifier": 3,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 47,
             "importance_label": "isSomewhatImportantFor",
@@ -40687,17 +40709,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 53,
-            "importance_label": "isImportantFor",
-            "anchor": 2,
-            "qualifier": 2,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -41355,6 +41366,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 22,
+            "importance_label": "isLessImportantFor",
+            "anchor": 0,
+            "qualifier": 0,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 41,
             "importance_label": "isSomewhatImportantFor",
@@ -41507,17 +41529,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 22,
-            "importance_label": "isLessImportantFor",
-            "anchor": 0,
-            "qualifier": 0,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -42175,6 +42186,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 28,
+            "importance_label": "isSomewhatImportantFor",
+            "anchor": 1,
+            "qualifier": 6,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 44,
             "importance_label": "isSomewhatImportantFor",
@@ -42327,17 +42349,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 28,
-            "importance_label": "isSomewhatImportantFor",
-            "anchor": 1,
-            "qualifier": 4,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",
@@ -42995,6 +43006,17 @@
             "description": "The ability to arrange things or actions in a certain order or pattern according to a specific rule or set of rules (e.g., patterns of numbers, letters, words, pictures, mathematical operations)."
           },
           {
+            "id": "ManualDexterity",
+            "score": 28,
+            "importance_label": "isSomewhatImportantFor",
+            "anchor": 1,
+            "qualifier": 6,
+            "cs": 6,
+            "cs_normalized": 0.5,
+            "criticality_label": "RELEVANTLY CRITICAL",
+            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
+          },
+          {
             "id": "NumberFacility",
             "score": 31,
             "importance_label": "isSomewhatImportantFor",
@@ -43147,17 +43169,6 @@
             "cs_normalized": 0.333333,
             "criticality_label": "MODERATELY CRITICAL",
             "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one."
-          },
-          {
-            "id": "ManualDexterity",
-            "score": 28,
-            "importance_label": "isSomewhatImportantFor",
-            "anchor": 1,
-            "qualifier": 4,
-            "cs": 4,
-            "cs_normalized": 0.333333,
-            "criticality_label": "MODERATELY CRITICAL",
-            "description": "The ability to quickly move your hand, your hand together with your arm, or your two hands to grasp, manipulate, or assemble objects."
           },
           {
             "id": "MathematicalReasoning",

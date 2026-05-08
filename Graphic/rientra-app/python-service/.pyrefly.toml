@@ -3,3 +3,18 @@
 # owlready2, morph-kgc, etc. are resolved correctly.
 
 python_interpreter = ".venv/bin/python"
+
+# ── owlready2 false-positive suppression ──────────────────────────────────────
+# owlready2 uses a fully dynamic property-access protocol: after
+#   prop = default_world.search_one(iri=...)
+# `prop[individual]` and `prop[individual] = [value]` are valid at runtime
+# because the returned object defines __getitem__ / __setitem__.
+# Pyrefly's type narrowing sees the return type as `None` and flags every
+# subscript read and write as `unsupported-operation`.
+#
+# The `bad-assignment` error on _run_pellet's metaclass patching is the same
+# class of problem: Pyrefly checks the *declared* signature of ThingMeta.__setattr__
+# and rejects the replacement, but the monkey-patch is intentional and correct.
+#
+# All errors listed here are confirmed false positives — no runtime safety is lost.
+errors_to_ignore = ["unsupported-operation", "bad-assignment"]

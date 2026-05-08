@@ -27,12 +27,17 @@ import sqlite3
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 from xml.sax.saxutils import escape as xml_escape
 
 logger = logging.getLogger(__name__)
 
 # ── Optional heavy imports (morph_kgc / rdflib) ──────────────────────────────
+# _SAFE_ANY is used as a stub type for names that may not be imported.
+# Pyrefly treats Any as compatible with all operations (call, subscript,
+# attribute access), so no further errors propagate from these stubs.
+_SAFE_ANY: Any = None
+
 try:
     import morph_kgc
     from rdflib import Graph, URIRef, Namespace
@@ -40,12 +45,25 @@ try:
     _DEPS_OK = True
 except ImportError:
     _DEPS_OK = False
+    # These names are never used at runtime when _DEPS_OK is False — every
+    # function that needs them guards with `if not _DEPS_OK: raise RuntimeError`.
+    # Typed as Any so that Pyrefly accepts calling / attribute-access on them.
+    morph_kgc: Any = _SAFE_ANY  # type: ignore[no-redef]
+    Graph:     Any = _SAFE_ANY  # type: ignore[no-redef]
+    URIRef:    Any = _SAFE_ANY  # type: ignore[no-redef]
+    Namespace: Any = _SAFE_ANY  # type: ignore[no-redef]
+    RDF:       Any = _SAFE_ANY  # type: ignore[no-redef]
+    OWL:       Any = _SAFE_ANY  # type: ignore[no-redef]
+    RDFS:      Any = _SAFE_ANY  # type: ignore[no-redef]
+    XSD:       Any = _SAFE_ANY  # type: ignore[no-redef]
     logger.warning(
         "morph_kgc or rdflib not installed — import pipeline unavailable. "
         "Run: pip install morph-kgc rdflib"
     )
 
 # ── Namespaces ────────────────────────────────────────────────────────────────
+# Always assigned; fall back to _SAFE_ANY when deps are missing so that
+# Pyrefly sees these names as unconditionally bound in all branches.
 if _DEPS_OK:
     NS_FOAF    = Namespace("http://www.stiima.cnr.it/FOAF-excerpt#")
     NS_HC      = Namespace("http://www.stiima.cnr.it/RientraHC#")
@@ -53,6 +71,9 @@ if _DEPS_OK:
     NS_PERSON  = Namespace("http://www.stiima.cnr.it/Person-CommonBox#")
     NS_JOB     = Namespace("http://www.stiima.cnr.it/JobList#")
     NS_RIEONT3 = Namespace("http://www.stiima.cnr.it/RientraOnt3#")
+else:
+    NS_FOAF = NS_HC = NS_ICF = NS_PERSON = NS_JOB = NS_RIEONT3 = _SAFE_ANY
+
 
 CLOSING_TAG   = "</rdf:RDF>"
 QUALIFIER_MAP = {"b": "BFqual", "d": "AP1qual", "s": "BS1qual"}
