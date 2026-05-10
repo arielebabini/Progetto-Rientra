@@ -70,6 +70,18 @@ const FilterIcon = () => (
     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
   </svg>
 );
+const ArrowRightIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+    <polyline points="12 5 19 12 12 19"></polyline>
+  </svg>
+);
+const XIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"></line>
+    <line x1="6" y1="6" x2="18" y2="18"></line>
+  </svg>
+);
 
 type ParsedDescription = {
   main: string;
@@ -222,6 +234,19 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [loadingWorkers, setLoadingWorkers] = useState(false);
   const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
+  
+  const [archivedWorkerIds, setArchivedWorkerIds] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem('archivedWorkers');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('archivedWorkers', JSON.stringify(Array.from(archivedWorkerIds)));
+  }, [archivedWorkerIds]);
   const [conditions, setConditions] = useState<HealthCondition[]>([]);
   const [loadingConditions, setLoadingConditions] = useState(false);
 
@@ -234,6 +259,8 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
   const [allCoreSets, setAllCoreSets] = useState<string[]>([]);
   const [activeNav] = useState<'workers' | 'jobs-analysis' | 'jobs-positions'>(initialNav);
   const [expandedConditionCode, setExpandedConditionCode] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const [switchingWorkerId, setSwitchingWorkerId] = useState<string | null>(null);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
@@ -411,8 +438,24 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
       .finally(() => setLoadingConditions(false));
   }, [selectedWorker]);
 
+  const toggleArchiveStatus = (workerId: string) => {
+    setArchivedWorkerIds(prev => {
+      const next = new Set(prev);
+      if (next.has(workerId)) {
+        next.delete(workerId);
+      } else {
+        next.add(workerId);
+      }
+      return next;
+    });
+  };
+
   // ── Filtered worker list ───────────────────────────────────────────
-  const filteredWorkers = workers.filter(w => {
+  const activeWorkers = workers.filter(w => !archivedWorkerIds.has(w.id));
+  const archivedWorkersList = workers.filter(w => archivedWorkerIds.has(w.id));
+  const displayedWorkers = activeTab === 'active' ? activeWorkers : archivedWorkersList;
+
+  const filteredWorkers = displayedWorkers.filter(w => {
     const q = searchQuery.toLowerCase();
     return (
       w.id.toLowerCase().includes(q) ||
@@ -611,9 +654,36 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
           <div className="wp-search-wrapper">
             <span className="wp-search-icon"><SearchIcon /></span>
             <input id="worker-search" type="text" className="wp-search-input"
-              placeholder="Search" value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)} />
+              placeholder="Search by ID number" value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)} />
+            {searchQuery.length > 0 ? (
+              <span className="wp-search-action-icon" onMouseDown={(e) => { e.preventDefault(); setSearchQuery(''); }}>
+                <XIcon />
+              </span>
+            ) : isSearchFocused ? (
+              <span className="wp-search-action-icon">
+                <ArrowRightIcon />
+              </span>
+            ) : null}
           </div>
+
+          <div className="wp-archive-toggle">
+            <button
+              className={`wp-toggle-btn ${activeTab === 'active' ? 'active' : ''}`}
+              onClick={() => setActiveTab('active')}
+            >
+              Active ({activeWorkers.length})
+            </button>
+            <button
+              className={`wp-toggle-btn ${activeTab === 'archived' ? 'active' : ''}`}
+              onClick={() => setActiveTab('archived')}
+            >
+              <ArchiveIcon /> Archived ({archivedWorkersList.length})
+            </button>
+          </div>
+
           <div className="wp-sidebar-col-label">ID Number</div>
 
           <ul className="wp-worker-list" id="worker-list">
@@ -692,7 +762,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                           <span className="wp-worker-id-label">ID Number:</span>
                           <span className="wp-worker-id-value">{selectedWorker.id}</span>
                         </div>
-                        <div className="wp-worker-meta">
+                        <div className="wp-worker-meta" style={{ flex: 1 }}>
                           {(selectedWorker.first_name || selectedWorker.surname) && (
                             <span>
                               Name: <strong>
@@ -702,6 +772,14 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                           )}
                           <span>Jobs evaluated: <strong>{selectedWorker.evaluated_for_jobs.length}</strong></span>
                         </div>
+                        <button
+                          className="wp-btn-secondary"
+                          onClick={() => toggleArchiveStatus(selectedWorker.id)}
+                          style={{ alignSelf: 'center', display: 'flex', alignItems: 'center', gap: '6px' }}
+                        >
+                          <ArchiveIcon />
+                          {archivedWorkerIds.has(selectedWorker.id) ? 'Unarchive Worker' : 'Archive Worker'}
+                        </button>
                       </div>
                     )}
 

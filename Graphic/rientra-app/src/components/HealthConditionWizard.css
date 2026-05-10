@@ -46,9 +46,9 @@
 }
 
 .hc-wizard-subtitle {
-  margin: 12px 0 0 0;
-  color: var(--text-muted);
-  font-size: 1.04rem;
+  margin: 4px 0 0 0;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.9rem;
 }
 
 .hc-wizard-close-btn {
@@ -120,8 +120,8 @@
   width: 100%;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 8px;
-  padding: 7px 10px 7px 32px;
+  border-radius: 99px;
+  padding: 7px 32px 7px 32px;
   font-family: 'Inter', sans-serif;
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.9);
@@ -135,8 +135,25 @@
 }
 
 .hc-search-input:focus {
-  border-color: rgba(77, 217, 192, 0.5);
+  border-color: rgba(255, 255, 255, 0.5);
   background: rgba(255, 255, 255, 0.11);
+}
+
+.hc-search-action-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.hc-search-action-icon:hover {
+  color: #fff;
 }
 
 .hc-filter-btn {
@@ -201,6 +218,7 @@
   width: 100%;
   border-collapse: collapse;
   text-align: left;
+  table-layout: fixed;
 }
 
 .hc-wizard-table thead tr {
@@ -264,10 +282,10 @@
 }
 
 .hc-checkbox {
-  width: 20px;
-  height: 20px;
+  width: 17px;
+  height: 17px;
   border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -277,10 +295,15 @@
   /* Let the row click handle it */
 }
 
+.hc-checkbox svg {
+  width: 11px;
+  height: 11px;
+}
+
 .hc-checkbox.checked {
-  background: var(--brand-teal);
-  border-color: var(--brand-teal);
-  color: var(--bg-surface-1);
+  background: transparent;
+  border-color: #ffffff;
+  color: #ffffff;
 }
 
 .hc-table-empty {
