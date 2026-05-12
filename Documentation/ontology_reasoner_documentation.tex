@@ -1,0 +1,560 @@
+﻿\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{amsmath}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+\usepackage{ragged2e}
+\tcbuselibrary{skins,breakable}
+
+\geometry{margin=2.5cm}
+\hypersetup{colorlinks=true, linkcolor=blue!60!black, urlcolor=blue!60!black}
+
+\definecolor{codebg}{RGB}{245,245,245}
+\definecolor{noteblue}{RGB}{220,235,250}
+\definecolor{warnred}{RGB}{255,235,230}
+\definecolor{importantbg}{RGB}{230,250,235}
+\definecolor{commentgreen}{RGB}{0,128,0}
+\definecolor{keywordblue}{RGB}{0,0,180}
+\definecolor{stringbrown}{RGB}{160,60,0}
+
+\lstset{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{keywordblue}\bfseries,
+  commentstyle=\color{commentgreen}\itshape,
+  stringstyle=\color{stringbrown},
+  breaklines=true, breakatwhitespace=true,
+  frame=single, rulecolor=\color{gray!40},
+  xleftmargin=6pt, xrightmargin=6pt,
+  showstringspaces=false, language=Python
+}
+
+\newcolumntype{P}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\texttt{reasoner.py} Documentation}
+\lhead{\leftmark}
+\cfoot{\thepage}
+
+\title{\textbf{Rientra@ Semantic Microservice}\\[0.4em]
+       \large Logic Layer Documentation\\[0.4em]
+       \normalsize \texttt{Graphic/rientra-app/python-service/reasoner.py}}
+\author{STIIMA-CNR}
+\date{Version 3.1 --- May 2026}
+
+\begin{document}
+\begin{titlepage}\centering\maketitle\end{titlepage}
+\tableofcontents
+\newpage
+
+\clearpage
+\section{Overview}
+
+\texttt{reasoner.py} is the \textbf{pure logic layer} of the Rientra@ semantic microservice. It wraps \texttt{owlready2} and the Pellet DL reasoner, exposing a set of public query and mutation functions that the FastAPI layer (\texttt{main.py}) calls from HTTP endpoints. It produces \textbf{no terminal output, no Rich tables, and no matplotlib figures}.
+
+\subsection{Key Design Properties}
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Separation of concerns}: all OWL/SPARQL logic is isolated here; \texttt{main.py} only handles HTTP routing.
+  \item \textbf{Thread safety}: a \texttt{threading.Lock} serialises \texttt{isSelected} mutations; a second lock serialises health-condition mutations.
+  \item \textbf{Two-tier serving}: immediately after startup a local JSON snapshot is served (fast); in the background Pellet runs and once complete the live ontology is used instead.
+  \item \textbf{Snapshot caching}: after every Pellet run the full inferred read-model is serialised to \texttt{reasoning\_cache/inference\_\{fingerprint\}.json} so the next startup is instant.
+  \item \textbf{Graceful degradation}: Pellet runs in a background thread; the HTTP server accepts requests immediately and returns cached data while the reasoner warms up.
+\end{itemize}
+
+\subsection{Dependencies}
+
+\begin{longtable}{@{}P{3.5cm}P{11cm}@{}}
+\toprule
+\textbf{Package} & \textbf{Purpose} \\
+\midrule
+\endhead
+\texttt{owlready2} & OWL ontology loading and SPARQL querying via \texttt{default\_world} \\
+Java 11+ & Required in \texttt{PATH}; used by owlready2 to invoke the Pellet subprocess \\
+\texttt{threading} & \texttt{Lock} objects for \texttt{isSelected} and HC mutation serialisation \\
+\texttt{hashlib} & SHA-256 fingerprint of the RDF file for cache invalidation \\
+\texttt{json} & Serialisation of the inference snapshot \\
+\bottomrule
+\end{longtable}
+
+\clearpage
+\section{Module-Level Constants}
+
+\subsection{IRI Constants (18)}
+
+All property IRIs used in SPARQL queries are string constants. Two additional IRIs are present compared to \texttt{ontology\_reasoner.py}:
+
+\begin{longtable}{@{}P{5cm}P{9.5cm}@{}}
+\toprule
+\textbf{Constant} & \textbf{IRI / Role} \\
+\midrule
+\endhead
+\texttt{IRI\_IS\_VERY\_IMP \ldots IRI\_IS\_LESS} & Importance properties inferred by R9--R12 \\
+\texttt{IRI\_HAS\_CRIT} & \texttt{hasSpecificCriticality} inferred by R1--R8 \\
+\texttt{IRI\_REQUIRES}, \texttt{IRI\_CONCERNS}, \texttt{IRI\_HAS\_SCORE} & Job structure \\
+\texttt{IRI\_IS\_EVAL\_JOB}, \texttt{IRI\_IS\_IN\_HC}, \texttt{IRI\_IS\_SELECTED} & Person--job--HC relations \\
+\texttt{IRI\_IS\_TRANSL}, \texttt{IRI\_BFQUAL}, \texttt{IRI\_AP1QUAL} & ICF translation and qualifiers \\
+\texttt{IRI\_FIRST\_NAME}, \texttt{IRI\_SURNAME} & Person demographics \\
+\texttt{IRI\_IS\_DESCRIBED\_BY} & HC $\to$ Descriptor relation \\
+\texttt{IRI\_INVOLVES\_ICF} & Descriptor $\to$ ICF code \\
+\texttt{IRI\_ICF\_DESCRIPTION} & ICF English description annotation \\
+\texttt{IRI\_ONET\_DEFINITION} & O*NET Skill/Ability definition text \\
+\bottomrule
+\end{longtable}
+
+\subsection{Other Constants}
+
+\begin{longtable}{@{}P{5cm}P{9.5cm}@{}}
+\toprule
+\textbf{Constant} & \textbf{Value / Role} \\
+\midrule
+\endhead
+\texttt{JS\_RED\_INTERCEPT} & 21.0 --- NOT SUITABLE boundary intercept \\
+\texttt{JS\_YELLOW\_INTERCEPT} & 15.5 --- WITH PRECAUTIONS boundary intercept \\
+\texttt{JS\_SLOPE} & $-0.5$ --- slope of both boundary lines \\
+\texttt{IMPORTANCE\_IRIS} & Dict mapping importance label strings to their IRIs \\
+\texttt{SUITABILITY\_COLORS} & Dict mapping suitability labels to hex colour strings \\
+\texttt{IRI\_ICF\_CORE\_SET} & IRI of the \texttt{ICF\_Core\_set} class (used for core-set map) \\
+\bottomrule
+\end{longtable}
+
+\clearpage
+\section{Global State --- \texttt{ReasonerState}}
+
+\subsection{Class Definition}
+
+\texttt{ReasonerState} is a \textbf{thread-safe singleton} holding the service readiness status. The module-level instance \texttt{state} is imported by \texttt{main.py} and exposed via the \texttt{/status} endpoint.
+
+\begin{longtable}{@{}P{3cm}P{2.5cm}P{9cm}@{}}
+\toprule
+\textbf{Attribute} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{status} & \texttt{str} & One of: \texttt{"loading"}, \texttt{"ready"}, \texttt{"error"} \\
+\texttt{message} & \texttt{str} & Human-readable status message \\
+\texttt{ontology\_path} & \texttt{str} & Resolved absolute path of the loaded RDF file \\
+\texttt{elapsed\_pellet} & \texttt{float|None} & Pellet wall-clock time in seconds \\
+\texttt{stats} & \texttt{dict} & Ontology stats: classes, individuals, properties \\
+\bottomrule
+\end{longtable}
+
+\subsection{Methods}
+
+\begin{longtable}{@{}P{5cm}P{9.5cm}@{}}
+\toprule
+\textbf{Method} & \textbf{Action} \\
+\midrule
+\endhead
+\texttt{set\_ready(path, elapsed, stats)} & Sets status to \texttt{"ready"} after live Pellet run \\
+\texttt{set\_ready\_from\_cache(path, stats)} & Sets status to \texttt{"ready"} after snapshot load \\
+\texttt{set\_loading(message)} & Sets status to \texttt{"loading"} \\
+\texttt{set\_error(error)} & Sets status to \texttt{"error"} \\
+\texttt{is\_ready()} & Returns \texttt{True} if status is \texttt{"ready"} \\
+\bottomrule
+\end{longtable}
+
+All methods acquire \texttt{self.\_lock} before writing, ensuring thread-safe reads from the FastAPI event loop.
+
+\subsection{Module-Level Variables}
+
+\begin{longtable}{@{}P{5cm}P{9.5cm}@{}}
+\toprule
+\textbf{Variable} & \textbf{Role} \\
+\midrule
+\endhead
+\texttt{state} & \texttt{ReasonerState} singleton exported to \texttt{main.py} \\
+\texttt{\_selection\_lock} & \texttt{threading.Lock} for \texttt{isSelected} mutations \\
+\texttt{\_hc\_lock} & \texttt{threading.Lock} for HC mutations \\
+\texttt{\_icf\_core\_set\_map} & Dict: ICF code $\to$ sorted list of core-set names \\
+\texttt{\_icf\_ind\_cache} & Dict: pure ICF code $\to$ owlready2 individual \\
+\texttt{\_snapshot\_cache} & Loaded JSON snapshot dict or \texttt{None} \\
+\texttt{\_live\_reasoner\_ready} & \texttt{bool}: True once Pellet has completed \\
+\texttt{\_pending\_selected\_worker\_id} & Worker ID to re-select after Pellet completes \\
+\texttt{\_loaded\_ontology} & The in-memory owlready2 \texttt{Ontology} object \\
+\bottomrule
+\end{longtable}
+
+\clearpage
+\section{Utility Functions}
+
+\begin{longtable}{@{}P{4cm}P{4cm}P{7cm}@{}}
+\toprule
+\textbf{Function} & \textbf{Signature} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{local\_name} & \texttt{(entity) -> str} & Extracts IRI local fragment via \texttt{entity.name} or split on \texttt{\#}/\texttt{/} \\
+\texttt{criticality\_label} & \texttt{(cs: int) -> str} & Maps CS value to label (Fig.~2 of paper) \\
+\texttt{job\_suitability} & \texttt{(gcs, aisa) -> tuple} & Returns \texttt{(label, hex\_color)} per Fig.~4 \\
+\texttt{\_score\_to\_anchor} & \texttt{(score: int) -> int} & Converts O*NET score to anchor $\in \{0,1,2,3\}$ \\
+\texttt{\_sparql} & \texttt{(query: str) -> list} & Thin wrapper around \texttt{default\_world.sparql()} \\
+\texttt{\_find\_rdf\_file} & \texttt{() -> str} & Auto-detects first \texttt{.rdf/.owl/.ttl/.n3} in service dir or parent \\
+\texttt{\_resolve\_rdf\_path} & \texttt{(rdf\_path) -> str} & Resolves path from arg, \texttt{ONTOLOGY\_PATH} env var, or auto-detect \\
+\texttt{is\_live\_reasoner\_ready} & \texttt{() -> bool} & Returns \texttt{\_live\_reasoner\_ready} flag \\
+\texttt{\_use\_snapshot\_cache} & \texttt{() -> bool} & True when snapshot is loaded and live reasoner is not yet ready \\
+\bottomrule
+\end{longtable}
+
+\clearpage
+\section{Snapshot Cache System}
+
+\subsection{Purpose}
+
+The snapshot cache allows the service to serve \textbf{fully pre-computed read data} on the very first request after startup, before Pellet has finished running (which takes 30--120 seconds). It is a JSON file stored under \texttt{python-service/reasoning\_cache/}.
+
+\subsection{Cache Invalidation}
+
+\subsubsection*{\texttt{\_ontology\_fingerprint(path) -> str}}
+
+Builds a 16-character SHA-256 fingerprint from the absolute path, file size (\texttt{st\_size}), and last modification timestamp (\texttt{st\_mtime\_ns}). The cache filename is \texttt{inference\_\{fingerprint\}.json}, so any change to the RDF file automatically produces a new filename and the old cache is ignored.
+
+\subsection{\texttt{load\_snapshot\_cache(rdf\_path, update\_state) -> bool}}
+
+Loads the JSON snapshot if it exists and is structurally valid. The function checks that the payload contains all 12 required keys:
+
+\begin{longtable}{@{}P{5cm}P{9.5cm}@{}}
+\toprule
+\textbf{Key} & \textbf{Content} \\
+\midrule
+\endhead
+\texttt{source\_hash} & Fingerprint of the RDF file at save time \\
+\texttt{source\_path} & Absolute path of the RDF file \\
+\texttt{stats} & Class/individual/property counts \\
+\texttt{workers} & All worker dicts (output of \texttt{get\_workers()}) \\
+\texttt{jobs} & All job dicts (output of \texttt{get\_jobs()}) \\
+\texttt{core\_sets} & All core-set names \\
+\texttt{icf\_codes} & All ICF code dicts \\
+\texttt{health\_conditions} & Per-worker HC dict \\
+\texttt{importance\_by\_job} & Per-job importance summary \\
+\texttt{job\_profiles} & Per-job skill profile \\
+\texttt{match\_results\_by\_worker} & Per-worker match results \\
+\texttt{skill\_details\_by\_worker\_job} & Per-(worker, job) skill detail \\
+\bottomrule
+\end{longtable}
+
+Returns \texttt{True} and populates \texttt{\_snapshot\_cache} on success. Calls \texttt{state.set\_ready\_from\_cache()} if \texttt{update\_state=True}.
+
+\subsection{\texttt{\_save\_snapshot\_cache(source\_path, elapsed, stats)}}
+
+Iterates over all workers and jobs, temporarily activating each worker with \texttt{set\_selected\_worker} to compute their match results and skill details. Collects all data into the payload dict and writes it atomically (write to \texttt{.tmp}, then \texttt{os.replace}) to avoid corrupt files on crash.
+
+\subsection{\texttt{\_save\_live\_ontology(path)}}
+
+Persists the current in-memory \texttt{\_loaded\_ontology} back to disk via \texttt{onto.save(format="rdfxml")}. Called before re-running Pellet after an HC mutation.
+
+\subsection{\texttt{\_refresh\_reasoning\_artifacts()}}
+
+Called at the end of \texttt{update\_health\_conditions}. Re-runs the full inference pipeline:
+\begin{enumerate}[noitemsep]
+  \item Save ontology to disk.
+  \item Re-run Pellet (\texttt{\_run\_pellet}).
+  \item Rebuild ICF core-set map and ICF individual cache.
+  \item Update \texttt{\_live\_reasoner\_ready} and \texttt{state}.
+  \item Overwrite the JSON snapshot.
+  \item Reload snapshot into \texttt{\_snapshot\_cache}.
+\end{enumerate}
+
+\clearpage
+\section{Phases 1 and 2 --- Load and Reason}
+
+\subsection{\texttt{\_load\_ontology(path) -> Ontology}}
+
+Loads the RDF file into \texttt{owlready2.default\_world} via \texttt{get\_ontology(iri).load()}. Redirects \texttt{stderr} to suppress ICF cycle warnings. Raises \texttt{RuntimeError} on failure.
+
+\subsection{\texttt{\_run\_pellet(onto) -> float|None}}
+
+Runs \texttt{sync\_reasoner\_pellet} with \texttt{infer\_property\_values=True} and \texttt{infer\_data\_property\_values=True}. Applies the same ICF inheritance cycle monkey-patch as \texttt{ontology\_reasoner.py} (patches \texttt{ThingMeta.\_\_setattr\_\_} to swallow \texttt{TypeError: inheritance cycle}, always restoring the original in \texttt{finally}). Parses Pellet's stderr log for elapsed time. Raises \texttt{RuntimeError} on \texttt{UnsupportedClassVersionError} (Java too old) or any other error.
+
+\subsection{\texttt{load\_and\_reason(rdf\_path) -> None}}
+
+The \textbf{public entrypoint} called from \texttt{main.py} in a background thread during the FastAPI lifespan startup. Execution flow:
+
+\begin{enumerate}[noitemsep]
+  \item Resolve RDF path (arg $\to$ env var $\to$ auto-detect).
+  \item Load ontology; on error call \texttt{state.set\_error()} and return.
+  \item Run Pellet; on error call \texttt{state.set\_error()} and return.
+  \item Set \texttt{\_live\_reasoner\_ready = True}.
+  \item If a worker was pending selection, call \texttt{set\_selected\_worker}.
+  \item Call \texttt{state.set\_ready()}.
+  \item Build ICF core-set map (\texttt{\_build\_icf\_core\_set\_map}).
+  \item Save and reload snapshot cache (best-effort, errors swallowed).
+\end{enumerate}
+
+\clearpage
+\section{ICF Core-Set Map}
+
+\subsection{\texttt{\_build\_icf\_core\_set\_map()}}
+
+Runs a transitive SPARQL query to find which \texttt{ICF\_Core\_set} subclass each ICF code belongs to:
+
+\begin{lstlisting}[language=SPARQL]
+SELECT DISTINCT ?icf ?coreset WHERE {
+    ?icf     rdfs:subClassOf+ ?coreset .
+    ?coreset rdfs:subClassOf  <ICF_Core_set> .
+}
+\end{lstlisting}
+
+Populates \texttt{\_icf\_core\_set\_map}: a dict mapping each ICF local name (e.g., \texttt{b110}) to a sorted list of core-set names (e.g., \texttt{["Spinal Cord Injury", "Vocational Rehabilitation"]}).
+
+\subsection{\texttt{get\_all\_core\_sets() -> list[str]}}
+
+Returns a sorted list of all distinct core-set names. Served from \texttt{\_snapshot\_cache["core\_sets"]} when the cache is active.
+
+\clearpage
+\section{Query Functions}
+
+\subsection{\texttt{get\_workers() -> list[dict]}}
+
+Returns all \texttt{Person} individuals that have at least one \texttt{isEvaluatedForJob} triple. Each dict:
+
+\begin{longtable}{@{}P{4cm}P{2.5cm}P{8cm}@{}}
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{id} & \texttt{str} & Local name of the individual \\
+\texttt{first\_name} & \texttt{str} & FOAF first name \\
+\texttt{surname} & \texttt{str} & FOAF surname \\
+\texttt{is\_selected} & \texttt{bool} & Current value of \texttt{isSelected} \\
+\texttt{evaluated\_for\_jobs} & \texttt{list[str]} & Local names of evaluated jobs \\
+\bottomrule
+\end{longtable}
+
+\subsection{\texttt{get\_jobs() -> list[dict]}}
+
+Returns all Job individuals that have at least one \texttt{requires} triple. Each dict: \texttt{\{id, label\}} where \texttt{label} is the local name with underscores replaced by spaces.
+
+\subsection{\texttt{get\_health\_conditions(worker\_id) -> dict}}
+
+Returns the ICF health condition table for one worker. SPARQL joins: person $\to$ HC $\to$ Descriptor $\to$ ICF code (with \texttt{BFqual} and \texttt{AP1qual}). Handles compound ICF identifiers like \texttt{b1408-AuditoryAttention} by splitting on \texttt{-} and inserting spaces before capitals. Each condition entry:
+
+\begin{longtable}{@{}P{3.5cm}P{2.5cm}P{8.5cm}@{}}
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{icf\_code} & \texttt{str} & Pure code, e.g. \texttt{b1408} \\
+\texttt{icf\_name} & \texttt{str} & Human-readable name \\
+\texttt{description} & \texttt{str} & English description from ontology annotation \\
+\texttt{core\_sets} & \texttt{list[str]} & Core-set memberships from \texttt{\_icf\_core\_set\_map} \\
+\texttt{bf\_qualifier} & \texttt{int|None} & Body Function qualifier (0--4) \\
+\texttt{ap1\_qualifier} & \texttt{int|None} & Activity \& Participation qualifier (0--4) \\
+\bottomrule
+\end{longtable}
+
+\subsection{\texttt{get\_importance\_summary(job\_id) -> list[dict]}}
+
+Q4 --- reads \texttt{is*ImportantFor} triples (R9--R12) for all or one job. Returns a list of \texttt{\{job\_id, importance\_level, skills: [\{id, score\}]\}} dicts, sorted by job and importance level.
+
+\subsection{\texttt{get\_job\_skill\_profile(job\_id) -> list[dict]}}
+
+Returns every Skill/Ability required by the given job with its raw O*NET score. Pure job-side data (no worker). Used by the React frontend radar chart. Returns \texttt{[\{id, score\}]} sorted by score descending.
+
+\subsection{\texttt{get\_match\_results(worker\_id) -> list[dict]}}
+
+Q1+Q2 --- computes GCS\% and AISA\% for every (Person, Job) pair where \texttt{isSelected=true}. Mirrors \texttt{query\_gcs\_aisa()} from \texttt{ontology\_reasoner.py} but returns JSON-serialisable dicts. Each result:
+
+\begin{longtable}{@{}P{4cm}P{2.5cm}P{8cm}@{}}
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{worker\_id} & \texttt{str} & Person local name \\
+\texttt{job\_id} & \texttt{str} & Job local name \\
+\texttt{gcs\_pct} & \texttt{float} & General Criticality Score \% \\
+\texttt{aisa\_pct} & \texttt{float} & Amount Impaired SkAb \% \\
+\texttt{n\_total} & \texttt{int} & Total SkAb count \\
+\texttt{n\_critical} & \texttt{int} & SkAb with CS $>$ 0 \\
+\texttt{suitability} & \texttt{str} & Suitability label \\
+\texttt{suitability\_color} & \texttt{str} & Hex colour string \\
+\bottomrule
+\end{longtable}
+
+Falls back to \texttt{\_match\_results\_fallback} (uses \texttt{hasSpecificCriticality}) if the primary SPARQL join returns no rows.
+
+\subsection{\texttt{get\_skill\_detail(worker\_id, job\_id) -> dict}}
+
+Q3 --- full Skill/Ability breakdown for one (worker, job) pair. Queries \texttt{hasSpecificCriticality} joined with \texttt{hasScore} and the O*NET definition. Returns \texttt{\{worker\_id, job\_id, skills: [...]}\} with skills sorted by CS descending.
+
+Each skill entry:
+
+\begin{longtable}{@{}P{4cm}P{2.5cm}P{8cm}@{}}
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{id} & \texttt{str} & SkAb local name \\
+\texttt{score} & \texttt{int} & O*NET importance score \\
+\texttt{importance\_label} & \texttt{str} & e.g. \texttt{isVeryImportantFor} \\
+\texttt{anchor} & \texttt{int} & 0--3 \\
+\texttt{qualifier} & \texttt{int} & ICF qualifier derived from $\text{CS} \div \text{anchor}$ \\
+\texttt{cs} & \texttt{int} & Criticality Score \\
+\texttt{cs\_normalized} & \texttt{float} & CS / 12 \\
+\texttt{criticality\_label} & \texttt{str} & e.g. EXTREMELY CRITICAL \\
+\texttt{description} & \texttt{str} & O*NET definition text \\
+\bottomrule
+\end{longtable}
+
+\subsection{\texttt{get\_all\_icf\_codes() -> list[dict]}}
+
+Returns every ICF code that appears in any \texttt{involvesICFCode} triple. Used to populate the selection table in the Modify-Health-Condition wizard. Merges multiple ontology individuals that collapse to the same pure code. Each entry includes \texttt{icf\_code}, \texttt{icf\_name}, \texttt{description}, \texttt{category} (Body Functions / Activities and Participation / Body Structures / Environmental Factors), \texttt{core\_sets}, and \texttt{iri}.
+
+\clearpage
+\section{Mutation Functions}
+
+\subsection{\texttt{set\_selected\_worker(worker\_id) -> dict}}
+
+Atomically deselects the currently selected worker and selects the given one. Uses \texttt{\_selection\_lock} to prevent concurrent corruption.
+
+\subsubsection*{Live mode (Pellet ready)}
+Scans all individuals for those with \texttt{isSelected=True}, sets them to \texttt{False}, then sets the target to \texttt{True}. Returns \texttt{\{"previous": old\_id, "selected": worker\_id\}}.
+
+\subsubsection*{Cache mode (Pellet still warming)}
+Updates the in-memory \texttt{\_snapshot\_cache["workers"]} list directly and stores \texttt{worker\_id} in \texttt{\_pending\_selected\_worker\_id}. When Pellet completes, \texttt{load\_and\_reason} replays the selection on the live ontology.
+
+\subsection{\texttt{update\_health\_conditions(worker\_id, changes) -> dict}}
+
+Applies a batch of HC changes. Requires \texttt{\_live\_reasoner\_ready = True} (raises \texttt{RuntimeError} otherwise). Protected by \texttt{\_hc\_lock}.
+
+\subsubsection*{Change dict schema}
+\begin{lstlisting}
+{
+    "icf_code" : str,           # e.g. "b1408"
+    "action"   : "add" | "remove" | "modify",
+    "qualifier": int | None     # 0-4; required for add/modify
+}
+\end{lstlisting}
+
+\subsubsection*{ADD action}
+\begin{enumerate}[noitemsep]
+  \item Resolve ICF individual via \texttt{\_resolve\_icf\_individual}.
+  \item If code already in \texttt{desc\_map}: treat as modify (update qualifier only).
+  \item Otherwise: call \texttt{\_get\_or\_create\_hc()} to get/create the HC individual.
+  \item Instantiate a new \texttt{HC\_Descriptor} individual.
+  \item Set \texttt{involvesICFCode}, \texttt{BFqual} (b-codes) or \texttt{AP1qual} (d-codes), clear the other qualifier.
+  \item Append descriptor to HC via \texttt{isDescribedBy}.
+\end{enumerate}
+
+\subsubsection*{REMOVE action}
+\begin{enumerate}[noitemsep]
+  \item Locate the Descriptor in \texttt{desc\_map}.
+  \item Remove it from \texttt{HC.isDescribedBy}.
+  \item Call \texttt{owlready2.destroy\_entity(des\_ind)} to remove all triples.
+  \item If HC has no remaining descriptors: destroy the HC individual and unlink from person.
+\end{enumerate}
+
+\subsubsection*{MODIFY action}
+\begin{enumerate}[noitemsep]
+  \item Locate the Descriptor.
+  \item Set the appropriate qualifier property (\texttt{BFqual} or \texttt{AP1qual}).
+  \item Clear the other qualifier to prevent stale data.
+\end{enumerate}
+
+\subsubsection*{Post-mutation}
+After all changes, calls \texttt{\_refresh\_reasoning\_artifacts()}: saves the RDF to disk, re-runs Pellet, rebuilds caches, and overwrites the JSON snapshot.
+
+\subsubsection*{Return value}
+\begin{lstlisting}
+{ "worker_id": str, "added": int, "removed": int,
+  "modified": int, "errors": [str, ...] }
+\end{lstlisting}
+
+\subsection{ICF Individual Resolution --- \texttt{\_resolve\_icf\_individual(icf\_code)}}
+
+Finds the owlready2 individual for a pure ICF code using a four-step fallback:
+\begin{enumerate}[noitemsep]
+  \item Check \texttt{\_icf\_ind\_cache} (O(1) dict lookup).
+  \item \texttt{default\_world.search\_one(iri="*\#" + icf\_code + "-*")} (wildcard prefix).
+  \item \texttt{default\_world.search\_one(iri="*\#" + icf\_code)} (exact match).
+  \item Linear scan over all individuals (last resort).
+\end{enumerate}
+
+\clearpage
+\section{Internal Helper Functions}
+
+\begin{longtable}{@{}P{5.5cm}P{9cm}@{}}
+\toprule
+\textbf{Function} & \textbf{Role} \\
+\midrule
+\endhead
+\texttt{\_build\_icf\_ind\_cache()} & Scans \texttt{involvesICFCode} triples; populates \texttt{\_icf\_ind\_cache} \\
+\texttt{\_is\_ap1\_code(icf\_code)} & Returns \texttt{True} for d-prefix codes (AP1qual) \\
+\texttt{\_match\_results\_fallback(worker\_id)} & Computes GCS\%/AISA\% from \texttt{hasSpecificCriticality} when primary query fails \\
+\texttt{\_compute\_metrics(agg)} & Converts aggregated \texttt{\{skab: \{score, qual\}\}} to GCS\%/AISA\% result list \\
+\texttt{\_get\_or\_create\_hc()} & Inner closure in \texttt{update\_health\_conditions}: gets the worker's HC or creates a new one \\
+\texttt{\_snapshot\_cache\_path(path)} & Returns the absolute path of the cache JSON file \\
+\bottomrule
+\end{longtable}
+
+\clearpage
+\section{Function Reference Summary}
+
+\begin{longtable}{@{}P{6.5cm}P{3cm}P{5.5cm}@{}}
+\toprule
+\textbf{Function} & \textbf{Returns} & \textbf{Public?} \\
+\midrule
+\endhead
+\texttt{load\_and\_reason(rdf\_path)} & \texttt{None} & Yes (called by \texttt{main.py}) \\
+\texttt{load\_snapshot\_cache(path, update)} & \texttt{bool} & Yes \\
+\texttt{is\_live\_reasoner\_ready()} & \texttt{bool} & Yes \\
+\texttt{get\_workers()} & \texttt{list[dict]} & Yes \\
+\texttt{get\_jobs()} & \texttt{list[dict]} & Yes \\
+\texttt{get\_health\_conditions(worker\_id)} & \texttt{dict} & Yes \\
+\texttt{get\_importance\_summary(job\_id)} & \texttt{list[dict]} & Yes \\
+\texttt{get\_job\_skill\_profile(job\_id)} & \texttt{list[dict]} & Yes \\
+\texttt{get\_match\_results(worker\_id)} & \texttt{list[dict]} & Yes \\
+\texttt{get\_skill\_detail(worker, job)} & \texttt{dict} & Yes \\
+\texttt{get\_all\_icf\_codes()} & \texttt{list[dict]} & Yes \\
+\texttt{get\_all\_core\_sets()} & \texttt{list[str]} & Yes \\
+\texttt{set\_selected\_worker(worker\_id)} & \texttt{dict} & Yes \\
+\texttt{update\_health\_conditions(w, changes)} & \texttt{dict} & Yes \\
+\texttt{local\_name(entity)} & \texttt{str} & Yes \\
+\texttt{criticality\_label(cs)} & \texttt{str} & Yes \\
+\texttt{job\_suitability(gcs, aisa)} & \texttt{tuple} & Yes \\
+\texttt{\_load\_ontology(path)} & Ontology & Internal \\
+\texttt{\_run\_pellet(onto)} & \texttt{float|None} & Internal \\
+\texttt{\_build\_icf\_core\_set\_map()} & \texttt{None} & Internal \\
+\texttt{\_build\_icf\_ind\_cache()} & \texttt{None} & Internal \\
+\texttt{\_resolve\_icf\_individual(code)} & object|None & Internal \\
+\texttt{\_refresh\_reasoning\_artifacts()} & \texttt{None} & Internal \\
+\texttt{\_save\_snapshot\_cache(...)} & \texttt{None} & Internal \\
+\texttt{\_save\_live\_ontology(path)} & \texttt{None} & Internal \\
+\texttt{\_match\_results\_fallback(worker\_id)} & \texttt{list[dict]} & Internal \\
+\texttt{\_compute\_metrics(agg)} & \texttt{list[dict]} & Internal \\
+\bottomrule
+\end{longtable}
+
+\clearpage
+\section{Known Issues and Design Notes}
+
+\begin{tcolorbox}[colback=noteblue!40, colframe=blue!60!black,
+                  title=Note: Two-tier serving model]
+When the service starts, \texttt{load\_snapshot\_cache()} is called first. If a valid cache exists, \texttt{state} is immediately set to \texttt{"ready"} and all read endpoints can respond. Simultaneously, \texttt{load\_and\_reason()} runs in a background thread. Once Pellet completes, \texttt{\_live\_reasoner\_ready} flips to \texttt{True} and \texttt{\_use\_snapshot\_cache()} returns \texttt{False}: all subsequent reads go directly to \texttt{default\_world} via SPARQL.
+\end{tcolorbox}
+
+\vspace{0.6em}
+
+\begin{tcolorbox}[colback=warnred!40, colframe=red!60!black,
+                  title=Warning: HC mutations require the live reasoner]
+\texttt{update\_health\_conditions} raises \texttt{RuntimeError} if \texttt{\_live\_reasoner\_ready} is \texttt{False}. Mutations cannot be applied to the snapshot --- they require the live in-memory owlready2 graph. The frontend should poll \texttt{/status} until \texttt{status="ready"} and \texttt{elapsed\_pellet} is non-null before enabling the Modify-Health-Condition wizard.
+\end{tcolorbox}
+
+\vspace{0.6em}
+
+\begin{tcolorbox}[colback=importantbg!60, colframe=green!50!black,
+                  title=Important: Atomic cache write]
+The snapshot JSON is written to a \texttt{.tmp} file first, then renamed via \texttt{os.replace()}. This is an atomic operation on all supported platforms and prevents serving a partially written cache if the process is killed during a write.
+\end{tcolorbox}
+
+\end{document}
