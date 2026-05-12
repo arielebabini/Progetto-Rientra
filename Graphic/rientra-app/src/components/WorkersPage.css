@@ -967,9 +967,6 @@
 .wp-empty-icon {
   width: 80px;
   height: 80px;
-  background: rgba(77, 217, 192, 0.08);
-  border: 1px solid rgba(77, 217, 192, 0.2);
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;

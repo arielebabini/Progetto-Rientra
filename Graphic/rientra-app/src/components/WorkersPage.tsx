@@ -48,10 +48,20 @@ const DotsIcon = () => (
   </svg>
 );
 const ArchiveIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="21 8 21 21 3 21 3 8" /><rect x="1" y="3" width="22" height="5" />
-    <line x1="10" y1="12" x2="14" y2="12" />
-  </svg>
+  <span style={{
+    display: 'inline-block',
+    width: 16,
+    height: 16,
+    backgroundColor: 'currentColor',
+    maskImage: 'url(/Archive.png)',
+    maskSize: 'contain',
+    maskRepeat: 'no-repeat',
+    maskPosition: 'center',
+    WebkitMaskImage: 'url(/Archive.png)',
+    WebkitMaskSize: 'contain',
+    WebkitMaskRepeat: 'no-repeat',
+    WebkitMaskPosition: 'center'
+  }} />
 );
 const PdfIcon = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -710,7 +720,9 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
             })}
 
             {!loadingWorkers && isReady && filteredWorkers.length === 0 && (
-              <li className="wp-worker-item wp-worker-item--empty">No results</li>
+              <li className="wp-worker-item wp-worker-item--empty">
+                {activeTab === 'archived' && searchQuery.length === 0 ? 'No archived workers' : 'No results'}
+              </li>
             )}
           </ul>
 
@@ -1052,22 +1064,55 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
             ) : (
               /* ── No worker selected ── */
               <div className="wp-empty-state">
-                <div className="wp-empty-icon">
-                  <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-                    <circle cx="26" cy="18" r="9" fill="rgba(77,217,192,0.4)" />
-                    <path d="M10 46c0-9 7-16 16-16s16 7 16 16" fill="rgba(77,217,192,0.4)" />
-                    <circle cx="36" cy="16" r="8" fill="rgba(60,200,176,0.3)" />
-                    <path d="M20 44c0-8.5 6.7-15 15-15s15 6.5 15 15" fill="rgba(60,200,176,0.3)" />
-                  </svg>
-                </div>
-                <h3 className="wp-empty-title">
-                  {workers.length === 0 ? 'No workers in ontology' : 'No worker selected'}
-                </h3>
-                <p className="wp-empty-subtitle">
-                  {workers.length === 0
-                    ? 'The ontology does not contain any Person individuals with job evaluations.'
-                    : 'Select a worker from the list on the left to view their health conditions.'}
-                </p>
+                {activeTab === 'archived' && archivedWorkersList.length === 0 ? (
+                  <>
+                    <div className="wp-empty-icon" style={{ opacity: 0.9 }}>
+                      <div style={{
+                        width: 64, height: 64,
+                        backgroundColor: 'rgba(77,217,192,0.8)',
+                        maskImage: 'url(/Vector.png)',
+                        maskSize: 'contain',
+                        maskRepeat: 'no-repeat',
+                        maskPosition: 'center',
+                        WebkitMaskImage: 'url(/Vector.png)',
+                        WebkitMaskSize: 'contain',
+                        WebkitMaskRepeat: 'no-repeat',
+                        WebkitMaskPosition: 'center'
+                      }} />
+                    </div>
+                    <h3 className="wp-empty-title">
+                      No workers are archived yet!
+                    </h3>
+                    <p className="wp-empty-subtitle">
+                      To archive a worker, open their information screen, click the Archive button.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="wp-empty-icon" style={{ opacity: 0.9 }}>
+                      <div style={{
+                        width: 64, height: 64,
+                        backgroundColor: 'rgba(77,217,192,0.8)',
+                        maskImage: 'url(/User_scan_fill.png)',
+                        maskSize: 'contain',
+                        maskRepeat: 'no-repeat',
+                        maskPosition: 'center',
+                        WebkitMaskImage: 'url(/User_scan_fill.png)',
+                        WebkitMaskSize: 'contain',
+                        WebkitMaskRepeat: 'no-repeat',
+                        WebkitMaskPosition: 'center'
+                      }} />
+                    </div>
+                    <h3 className="wp-empty-title">
+                      {workers.length === 0 ? 'No workers in ontology' : 'No worker selected'}
+                    </h3>
+                    <p className="wp-empty-subtitle">
+                      {workers.length === 0
+                        ? 'The ontology does not contain any Person individuals with job evaluations.'
+                        : 'Select a worker from the list on the left to view their health conditions.'}
+                    </p>
+                  </>
+                )}
               </div>
             )}
           </div>
