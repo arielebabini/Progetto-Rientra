@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
@@ -84,6 +84,7 @@ function createWindow() {
 
 // ─── App lifecycle ──────────────────────────────────────────────────────────
 app.whenReady().then(() => {
+  Menu.setApplicationMenu(null); // Remove native menu bar
   startPythonService();   // ← start Python before opening the window
   createWindow();
 

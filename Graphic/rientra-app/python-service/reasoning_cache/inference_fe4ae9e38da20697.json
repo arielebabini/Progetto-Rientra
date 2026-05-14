@@ -1,10 +1,10 @@
 {
-  "source_hash": "0b6f6722b3bf8b0c",
+  "source_hash": "fe4ae9e38da20697",
   "source_path": "C:\\Users\\utente\\OneDrive\\Desktop\\UNI\\Tesi\\Progetto-Rientra\\Graphic\\rientra-app\\python-service\\Rientra.rdf",
-  "elapsed_pellet_s": 3.3907864093780518,
+  "elapsed_pellet_s": 3.576910972595215,
   "stats": {
     "classes": 432,
-    "individuals": 1525,
+    "individuals": 1527,
     "properties": 52
   },
   "workers": [
@@ -2050,6 +2050,28 @@
           "icf_code": "b110",
           "icf_name": "Consciousness functions",
           "description": "General mental functions of the state of awareness and alertness, including the clarity and continuity of the wakeful state.\nInclusions: functions of the state, continuity and quality of consciousness; loss of consciousness; coma, vegetative states, fugues, trance states, possession states, drug-induced altered consciousness, delirium, stupor\nExclusions: orientation functions (b114); energy and drive functions (b130); sleep functions (b134)",
+          "core_sets": [
+            "Stroke",
+            "Traumatic Brain Injury"
+          ],
+          "bf_qualifier": 2,
+          "ap1_qualifier": null
+        },
+        {
+          "icf_code": "b114",
+          "icf_name": "Orientation functions",
+          "description": "General mental functions of knowing and ascertaining one's relation to time, to place, to self, to others, to objects and to space.\nInclusions: functions of orientation to time, place and person; orientation to self and others; disorientation to time, place and person\nExclusions: consciousness functions (b110); attention functions (b140); memory functions (b144)",
+          "core_sets": [
+            "Stroke",
+            "Traumatic Brain Injury"
+          ],
+          "bf_qualifier": 3,
+          "ap1_qualifier": null
+        },
+        {
+          "icf_code": "b1144",
+          "icf_name": "Orientation to space",
+          "description": "Mental functions that produce awareness of one's body in relation to the immediate physical space.",
           "core_sets": [
             "Stroke",
             "Traumatic Brain Injury"
@@ -14816,19 +14838,19 @@
       {
         "worker_id": "ElenaConti",
         "job_id": "Carpenter",
-        "gcs_pct": 38.8889,
+        "gcs_pct": 33.3333,
         "aisa_pct": 100.0,
-        "n_total": 3,
-        "n_critical": 3,
+        "n_total": 4,
+        "n_critical": 4,
         "suitability": "NOT SUITABLE",
         "suitability_color": "#ef4444"
       },
       {
         "worker_id": "ElenaConti",
         "job_id": "GemWorker",
-        "gcs_pct": 27.7778,
-        "aisa_pct": 66.6667,
-        "n_total": 3,
+        "gcs_pct": 20.8333,
+        "aisa_pct": 50.0,
+        "n_total": 4,
         "n_critical": 2,
         "suitability": "NOT SUITABLE",
         "suitability_color": "#ef4444"
@@ -14836,10 +14858,10 @@
       {
         "worker_id": "ElenaConti",
         "job_id": "Landscaping_and_Groundskeeping_Workers",
-        "gcs_pct": 38.8889,
+        "gcs_pct": 33.3333,
         "aisa_pct": 100.0,
-        "n_total": 3,
-        "n_critical": 3,
+        "n_total": 4,
+        "n_critical": 4,
         "suitability": "NOT SUITABLE",
         "suitability_color": "#ef4444"
       }

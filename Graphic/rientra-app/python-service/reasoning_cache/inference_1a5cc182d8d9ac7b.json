@@ -1,10 +1,10 @@
 {
-  "source_hash": "0b6f6722b3bf8b0c",
+  "source_hash": "1a5cc182d8d9ac7b",
   "source_path": "C:\\Users\\utente\\OneDrive\\Desktop\\UNI\\Tesi\\Progetto-Rientra\\Graphic\\rientra-app\\python-service\\Rientra.rdf",
-  "elapsed_pellet_s": 3.3907864093780518,
+  "elapsed_pellet_s": 3.3954079151153564,
   "stats": {
     "classes": 432,
-    "individuals": 1525,
+    "individuals": 1526,
     "properties": 52
   },
   "workers": [
@@ -2055,6 +2055,17 @@
             "Traumatic Brain Injury"
           ],
           "bf_qualifier": 2,
+          "ap1_qualifier": null
+        },
+        {
+          "icf_code": "b114",
+          "icf_name": "Orientation functions",
+          "description": "General mental functions of knowing and ascertaining one's relation to time, to place, to self, to others, to objects and to space.\nInclusions: functions of orientation to time, place and person; orientation to self and others; disorientation to time, place and person\nExclusions: consciousness functions (b110); attention functions (b140); memory functions (b144)",
+          "core_sets": [
+            "Stroke",
+            "Traumatic Brain Injury"
+          ],
+          "bf_qualifier": 3,
           "ap1_qualifier": null
         },
         {

@@ -915,10 +915,6 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                               </button>
                               {dotsMenuOpen && (
                                 <div className="wp-dropdown" id="overflow-dropdown">
-                                  <button className="wp-dropdown-item" id="btn-archive"
-                                    onClick={() => setDotsMenuOpen(false)}>
-                                    <ArchiveIcon /> Move to archive
-                                  </button>
                                   <button className="wp-dropdown-item" id="btn-save-pdf"
                                     onClick={() => setDotsMenuOpen(false)}>
                                     <PdfIcon /> Save PDF
