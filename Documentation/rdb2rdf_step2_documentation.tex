@@ -1,0 +1,632 @@
+﻿\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{amsmath}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+\usepackage{ragged2e}
+\tcbuselibrary{skins,breakable}
+
+\geometry{margin=2.5cm}
+\hypersetup{colorlinks=true, linkcolor=blue!60!black, urlcolor=blue!60!black}
+
+\definecolor{codebg}{RGB}{245,245,245}
+\definecolor{noteblue}{RGB}{220,235,250}
+\definecolor{warnred}{RGB}{255,235,230}
+\definecolor{importantbg}{RGB}{230,250,235}
+\definecolor{commentgreen}{RGB}{0,128,0}
+\definecolor{keywordblue}{RGB}{0,0,180}
+\definecolor{stringbrown}{RGB}{160,60,0}
+
+\lstset{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{keywordblue}\bfseries,
+  commentstyle=\color{commentgreen}\itshape,
+  stringstyle=\color{stringbrown},
+  breaklines=true,
+  breakatwhitespace=true,
+  frame=single,
+  rulecolor=\color{gray!40},
+  xleftmargin=6pt, xrightmargin=6pt,
+  showstringspaces=false,
+  language=Python
+}
+
+\newcolumntype{P}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\texttt{rdb2rdf\_step2.py} Documentation}
+\lhead{\leftmark}
+\cfoot{\thepage}
+
+\title{\textbf{Rientra@ Step 2 --- RDB2RDF Matching}\\[0.5em]
+       \large Technical Documentation of \texttt{rdb2rdf\_step2.py}}
+\author{STIIMA-CNR}
+\date{Version 2.0 --- May 2026}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+\maketitle
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\clearpage
+\section{Overview}
+
+\texttt{rdb2rdf\_step2.py} is the \textbf{Step~2} of the Rientra@ pipeline. It reads job listings from a PostgreSQL database (\texttt{ext\_job} table), loads the O*NET job vocabulary from the \texttt{Rientra.rdf} ontology, and matches each external job to the most suitable ontology profession using \textbf{four complementary matching strategies}. Results are displayed in a Rich terminal dashboard and exported to a multi-sheet Excel workbook.
+
+\subsection{Matching Strategies}
+
+\begin{longtable}{@{}P{1.5cm}P{3.5cm}P{9.5cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Name} & \textbf{Description} \\
+\midrule
+\endhead
+S1 & String Matching &
+  Lexical matching using a weighted combination of Jaccard, Overlap, and Levenshtein similarity.
+  Includes extended pre-processing: normalisation, abbreviation expansion, and stopword removal. \\
+S2 & all-mpnet-base-v2 &
+  Sentence-transformer (768-dim) with native cosine-similarity optimisation.
+  Best generalisation on long texts; no anisotropy artefacts. \\
+S3 & MPNet fine-tuned &
+  \texttt{all-mpnet-base-v2} fine-tuned on \texttt{bert\_training\_data.xlsx} using Siamese architecture
+  with \texttt{CosineSimilarityLoss}. Domain-specialised for Rientra@. \\
+S4 & all-MiniLM-L6-v2 &
+  Compact sentence-transformer (384-dim). Used as a lightweight reference baseline. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Dependencies}
+
+\begin{longtable}{@{}P{4cm}P{10.5cm}@{}}
+\toprule
+\textbf{Package} & \textbf{Purpose} \\
+\midrule
+\endhead
+\texttt{psycopg2-binary} & PostgreSQL connection and query execution \\
+\texttt{rdflib} & Parsing \texttt{Rientra.rdf} to extract the O*NET job vocabulary \\
+\texttt{sentence-transformers} & Embedding and fine-tuning for S2, S3, S4 \\
+\texttt{torch} & Required by \texttt{sentence-transformers} for fine-tuning (S3) \\
+\texttt{openpyxl} & Excel workbook creation \\
+\texttt{rich} & Terminal progress bars, tables, and panels \\
+\texttt{numpy} & Cosine similarity matrix computation \\
+\bottomrule
+\end{longtable}
+
+\begin{lstlisting}
+pip install psycopg2-binary rdflib rich sentence-transformers openpyxl
+\end{lstlisting}
+
+\subsection{Usage}
+
+\begin{lstlisting}
+python rdb2rdf_step2.py                  # full run (trains S3 from scratch)
+python rdb2rdf_step2.py --skip-training  # reuse previously saved fine-tuned model
+\end{lstlisting}
+
+\clearpage
+\section{Configuration Constants}
+
+\subsection{Database}
+
+\begin{lstlisting}
+DB_CONFIG = {
+    "host": "localhost", "port": 5432,
+    "dbname": "rientra_db", "user": "postgres", "password": "postgres"
+}
+\end{lstlisting}
+
+The script reads from the \texttt{ext\_job} table (\texttt{id}, \texttt{title}, \texttt{description} columns).
+
+\subsection{Paths and Namespaces}
+
+\begin{longtable}{@{}P{4.5cm}P{10cm}@{}}
+\toprule
+\textbf{Constant} & \textbf{Value / Purpose} \\
+\midrule
+\endhead
+\texttt{ONTOLOGY\_FILE} & \texttt{Rientra.rdf} --- source of O*NET job vocabulary \\
+\texttt{OUTPUT\_DIR} & \texttt{output/} --- destination for Excel and fine-tuned model \\
+\texttt{TRAINING\_FILE} & \texttt{bert\_training\_data.xlsx} --- 60 jobs, 720 training pairs \\
+\texttt{FINETUNED\_DIR} & \texttt{output/mpnet\_finetuned/} --- saved S3 model directory \\
+\texttt{JOBLIST\_BASE} & \texttt{http://www.stiima.cnr.it/JobList\#} --- O*NET job namespace \\
+\texttt{RIENTRA\_BASE} & \texttt{https://www.stiima.cnr.it/rientra\#} --- Rientra@ namespace \\
+\bottomrule
+\end{longtable}
+
+\subsection{Similarity Thresholds}
+
+\begin{longtable}{@{}P{4.5cm}P{3cm}P{7cm}@{}}
+\toprule
+\textbf{Constant} & \textbf{Value} & \textbf{Applied to} \\
+\midrule
+\endhead
+\texttt{S1\_THRESHOLD} & 0.12 & String matching combined score \\
+\texttt{MPNET\_THRESHOLD} & 0.50 & S2 cosine similarity \\
+\texttt{FINETUNED\_THRESHOLD} & 0.50 & S3 cosine similarity \\
+\texttt{MINILM\_THRESHOLD} & 0.50 & S4 cosine similarity \\
+\bottomrule
+\end{longtable}
+
+\subsection{Fine-Tuning Hyperparameters (S3)}
+
+\begin{longtable}{@{}P{4cm}P{3cm}P{7.5cm}@{}}
+\toprule
+\textbf{Constant} & \textbf{Value} & \textbf{Meaning} \\
+\midrule
+\endhead
+\texttt{FT\_EPOCHS} & 4 & Training epochs \\
+\texttt{FT\_BATCH\_SIZE} & 16 & Mini-batch size \\
+\texttt{FT\_LR} & 2e-5 & AdamW learning rate \\
+\texttt{FT\_WARMUP\_STEPS} & 50 & Linear warm-up steps \\
+\bottomrule
+\end{longtable}
+
+\subsection{Abbreviation Dictionary}
+
+The \texttt{ABBREVIATIONS} dict maps 32 common IT/HR abbreviations to their full forms, applied token-by-token during S1 pre-processing. Examples:
+
+\begin{longtable}{@{}P{3cm}P{5cm}P{6.5cm}@{}}
+\toprule
+\textbf{Token} & \textbf{Expansion} & \textbf{Domain} \\
+\midrule
+\endhead
+\texttt{ml} & machine learning & AI/ML \\
+\texttt{nlp} & natural language processing & AI/ML \\
+\texttt{hr} & human resources & HR \\
+\texttt{erp} & enterprise resource planning & Business \\
+\texttt{crm} & customer relationship management & Business \\
+\texttt{sr} / \texttt{jr} & senior / junior & Job levels \\
+\texttt{r\&d} & research and development & R\&D \\
+\bottomrule
+\end{longtable}
+
+\clearpage
+\section{Database Utilities}
+
+\subsection{\texttt{get\_connection() -> psycopg2.connection}}
+Returns a new PostgreSQL connection using \texttt{DB\_CONFIG}. Used internally by all DB-facing functions.
+
+\subsection{\texttt{fetch\_all(sql, params=None) -> list[dict]}}
+Executes a SQL query and returns all rows as a list of plain Python dictionaries (\texttt{RealDictCursor}). Opens and closes the connection in a single \texttt{with} block.
+
+\subsection{\texttt{test\_connection() -> bool}}
+Runs \texttt{SELECT version()} to verify connectivity. Prints the PostgreSQL version string on success or an error message on failure. Called at startup; the pipeline aborts on \texttt{False}.
+
+\clearpage
+\section{Ontology Vocabulary Extraction}
+
+\subsection{\texttt{load\_ontology(path: str) -> rdflib.Graph}}
+Parses the RDF/XML ontology file using \texttt{rdflib.Graph().parse(path, format="xml")} and returns the graph object.
+
+\subsection{\texttt{extract\_ontology\_jobs(onto\_graph) -> list[dict]}}
+
+Iterates over all \texttt{owl:Class} individuals whose IRI starts with \texttt{JOBLIST\_BASE}, skipping the two abstract classes \texttt{Job} and \texttt{Job\_Descriptor}. For each profession class it reads:
+
+\begin{longtable}{@{}P{3.5cm}P{2.5cm}P{8.5cm}@{}}
+\toprule
+\textbf{Key} & \textbf{Source} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{uri} & subject IRI & Full OWL class IRI \\
+\texttt{local\_name} & IRI fragment & Local identifier (after \texttt{\#}) \\
+\texttt{label} & \texttt{rdfs:label} & Human-readable O*NET profession name \\
+\texttt{titles} & \texttt{Net\_job\_titles} annotation & Alternative job titles (comma-separated) \\
+\texttt{description} & \texttt{Net\_short\_description} annotation & O*NET short description text \\
+\bottomrule
+\end{longtable}
+
+Returns the list sorted by label. Titles strings starting with a colon prefix are cleaned by stripping the prefix.
+
+\subsection{\texttt{\_build\_onto\_text(j: dict) -> str}}
+Builds a single composite text string for embedding: \texttt{label + titles + description}, joined by spaces. Used as the corpus text for NLP strategies S2--S4.
+
+\clearpage
+\section{Strategy S1 --- String Matching}
+
+\subsection{Pre-processing Pipeline (\texttt{\_norm})}
+
+The \texttt{\_norm(s)} function applies six sequential transformations:
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{Lowercase and strip} whitespace.
+  \item \textbf{Separator normalisation}: \texttt{-}, \texttt{/}, \texttt{\_}, \texttt{.} $\to$ space.
+  \item \textbf{Punctuation removal}: all non-alphanumeric chars except space.
+  \item \textbf{Abbreviation expansion}: each token looked up in \texttt{ABBREVIATIONS}.
+  \item \textbf{Stopword removal}: 17 common English words filtered out (e.g., \texttt{and}, \texttt{the}, \texttt{of}).
+  \item \textbf{Single-char token removal}: tokens of length $\leq 1$ dropped.
+\end{enumerate}
+
+\subsection{Similarity Metrics}
+
+\begin{longtable}{@{}P{3cm}P{4cm}P{8.5cm}@{}}
+\toprule
+\textbf{Function} & \textbf{Formula} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{\_jaccard} &
+  $|A \cap B| / |A \cup B|$ &
+  Token-set overlap normalised by union. Penalises both missing and extra tokens. \\
+\texttt{\_overlap} &
+  $|A \cap B| / \min(|A|, |B|)$ &
+  Token-set overlap normalised by the smaller set. Robust to length asymmetry. \\
+\texttt{\_levenshtein} &
+  $1 - d(s_1, s_2) / \max(|s_1|, |s_2|)$ &
+  Character-level edit distance, normalised to $[0,1]$. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Combined Score (\texttt{\_combined})}
+
+\begin{equation}
+  \text{score}(a, b) = 0.5 \cdot \text{Jaccard}(a,b) + 0.3 \cdot \text{Overlap}(a,b) + 0.2 \cdot \text{Levenshtein}(a,b)
+\end{equation}
+
+The weights reflect the relative importance: Jaccard is the primary discriminator; Overlap handles partial matches; Levenshtein catches spelling variants.
+
+\subsection{\texttt{s1\_match\_one(title, onto\_jobs) -> dict | None}}
+
+For a single DB job title, iterates over all O*NET professions and all their alternative titles. Returns the candidate with the highest combined score above \texttt{S1\_THRESHOLD}, or \texttt{None} if no candidate qualifies.
+
+Return structure:
+\begin{lstlisting}
+{ "job": <onto_job_dict>, "score": <float>, "via": <matched_label_string> }
+\end{lstlisting}
+
+\subsection{\texttt{run\_string\_matching(db\_jobs, onto\_jobs) -> list[dict]}}
+
+Runs \texttt{s1\_match\_one} for every DB job with a Rich progress bar. Returns a list of \texttt{\{"id", "title", "match\_s1"\}} dicts, one per DB job.
+
+\clearpage
+\section{Cosine Similarity}
+
+\subsection{\texttt{cosine\_similarity\_matrix(query\_emb, corpus\_embs) -> np.ndarray}}
+
+Computes cosine similarity between a single query embedding and a matrix of corpus embeddings:
+
+\begin{equation}
+  \cos(\theta) = \frac{\mathbf{A} \cdot \mathbf{B}}{\|\mathbf{A}\| \cdot \|\mathbf{B}\|}
+\end{equation}
+
+Both vectors are L2-normalised before the dot product (with a small $\epsilon = 10^{-9}$ to prevent division by zero). This function is shared by S2, S3, and S4 to ensure methodological uniformity.
+
+Score range: $[-1, 1]$; in practice $[0, 1]$ for BERT-family embeddings.
+
+\clearpage
+\section{Strategies S2, S3, S4 --- Sentence-Transformer Matching}
+
+\subsection{\texttt{run\_st\_matching} --- Generic Sentence-Transformer Runner}
+
+\textbf{Signature:}
+\begin{lstlisting}
+run_st_matching(db_jobs, onto_jobs, model_name_or_path,
+                strategy_key, threshold) -> tuple[list[dict], str]
+\end{lstlisting}
+
+Used for S2, S3, and S4. All three models are native sentence-transformers: their \texttt{.encode()} method produces embedding vectors directly optimised for cosine similarity.
+
+\subsubsection*{Algorithm}
+\begin{enumerate}[noitemsep]
+  \item Loads the model via \texttt{SentenceTransformer(model\_name\_or\_path)}.
+  \item Encodes all O*NET profession texts (label + titles + description) as a corpus matrix.
+  \item For each DB job, encodes the title + description as a query vector.
+  \item Computes cosine similarity against all corpus vectors via \texttt{cosine\_similarity\_matrix}.
+  \item Records the top-1 match if its score $\geq$ threshold, otherwise stores \texttt{None}.
+\end{enumerate}
+
+\subsubsection*{Return value}
+A \texttt{(results, model\_name)} tuple, or \texttt{(None, None)} on import/load failure.
+
+Each result dict:
+\begin{longtable}{@{}P{3.5cm}P{2.5cm}P{8.5cm}@{}}
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{id} & \texttt{str} & DB job ID \\
+\texttt{title} & \texttt{str} & DB job title \\
+\texttt{match} & \texttt{dict|None} & Best match dict (\texttt{job}, \texttt{score}) or \texttt{None} if below threshold \\
+\texttt{score\_raw} & \texttt{float} & Raw top-1 cosine score (always present, even if below threshold) \\
+\texttt{strategy} & \texttt{str} & Strategy key (e.g., \texttt{S2\_MPNET}) \\
+\bottomrule
+\end{longtable}
+
+\subsection{S2 --- \texttt{all-mpnet-base-v2}}
+Called directly via \texttt{run\_st\_matching} with \texttt{MODELS["S2\_MPNET"]} and \texttt{MPNET\_THRESHOLD}. Embedding dimension: 768.
+
+\subsection{S4 --- \texttt{run\_minilm\_matching}}
+Thin wrapper around \texttt{run\_st\_matching} using \texttt{MODELS["S4\_MiniLM"]}. Embedding dimension: 384. Acts as a compact reference baseline.
+
+\clearpage
+\section{Strategy S3 --- MPNet Fine-Tuning}
+
+\subsection{\texttt{load\_training\_pairs(xlsx\_path) -> list[tuple[str,str,float]]}}
+
+Reads \texttt{bert\_training\_data.xlsx} (sheet: \textit{Training Pairs}) and returns a list of \texttt{(text\_a, text\_b, label)} tuples where \texttt{label} $\in \{0.0, 1.0\}$.
+
+\subsubsection*{Column Mapping}
+\begin{longtable}{@{}P{2cm}P{3.5cm}P{9cm}@{}}
+\toprule
+\textbf{Column} & \textbf{Field} & \textbf{Description} \\
+\midrule
+\endhead
+D & \texttt{text\_a} & First job title/description \\
+E & \texttt{text\_b} & Second job title/description \\
+F & \texttt{label\_raw} & Numeric label (1.0 = same meaning, 0.0 = different) \\
+G & \texttt{meaning} & Text label fallback (\texttt{"stesso"} $\to$ 1.0) \\
+L & \texttt{validated} & Manual validation flag (\texttt{SI}/\texttt{NO}) \\
+\bottomrule
+\end{longtable}
+
+\subsubsection*{Validated Column Logic}
+
+The function detects three patterns in the \texttt{Validated} column:
+
+\begin{longtable}{@{}P{5cm}P{9.5cm}@{}}
+\toprule
+\textbf{Pattern} & \textbf{Action} \\
+\midrule
+\endhead
+SI $\Leftrightarrow$ label=1, NO $\Leftrightarrow$ label=0 (formula pattern) &
+  Column mirrors the label automatically --- use all pairs. \\
+Manual validation (SI/NO uncorrelated with label) &
+  Use only rows with \texttt{Validated=SI}. \\
+No validation entries &
+  Use all pairs. \\
+\bottomrule
+\end{longtable}
+
+A fallback to the full dataset is triggered if the selected subset contains only positive or only negative pairs (required for \texttt{CosineSimilarityLoss}).
+
+\subsection{\texttt{finetune\_mpnet(training\_pairs, save\_dir) -> str}}
+
+Fine-tunes \texttt{all-mpnet-base-v2} using a Siamese network architecture with \texttt{CosineSimilarityLoss}:
+
+\begin{equation}
+  \mathcal{L} = \text{MSE}\bigl(\cos(\text{emb}_A, \text{emb}_B),\; \text{label}\bigr)
+\end{equation}
+
+\begin{itemize}[noitemsep]
+  \item \textbf{label = 1} pushes cosine similarity towards 1 (parallel vectors).
+  \item \textbf{label = 0} pushes cosine similarity towards 0 (orthogonal vectors).
+\end{itemize}
+
+Saves the fine-tuned model to \texttt{save\_dir} (\texttt{FINETUNED\_DIR}). Returns \texttt{None} on failure.
+
+\subsubsection*{Why MPNet over BERT base?}
+
+\begin{itemize}[noitemsep]
+  \item MPNet is a native sentence-transformer: produces embeddings calibrated for cosine similarity without anisotropy.
+  \item 768-dim representation offers greater capacity than MiniLM (384-dim) for long job descriptions.
+  \item Starting from a well-structured vector space, fine-tuning converges faster.
+\end{itemize}
+
+\subsection{\texttt{run\_finetuned\_matching}}
+Delegates to \texttt{run\_st\_matching} with \texttt{strategy\_key="S3\_FINETUNED"} and renames the model label to \texttt{"all-mpnet-base-v2 (fine-tuned Rientra@)"} in the output.
+
+\clearpage
+\section{Rich Terminal Output Functions}
+
+\subsection{\texttt{print\_ontology\_table(onto\_jobs)}}
+Renders a Rich table of all O*NET professions extracted from the ontology: index, local URI, O*NET label, and a check/cross icon indicating whether a description is present.
+
+\subsection{\texttt{print\_db\_table(db\_jobs)}}
+Renders a Rich table of jobs from the \texttt{ext\_job} PostgreSQL table: ID, title, and a 60-character extract of the description.
+
+\subsection{\texttt{print\_full\_comparison(s1\_res, nlp\_results, model\_names)}}
+Renders the main comparison table with one row per DB job and dynamic columns for each available strategy. For each strategy it shows the matched O*NET label and a visual score bar. A \textbf{verdict} column summarises the consensus:
+
+\begin{longtable}{@{}P{3cm}P{11.5cm}@{}}
+\toprule
+\textbf{Verdict} & \textbf{Condition} \\
+\midrule
+\endhead
+\texttt{{\color{green}✓ tutti}} & All NLP models agree on the same URI \\
+\texttt{{\color{yellow}\textasciitilde{} parz.}} & Only some models found a match, but they agree \\
+\texttt{{\color{orange}≠ div.}} & Models found matches but disagree on the URI \\
+\texttt{S1 only} & Only string matching found a result \\
+\texttt{{\color{red}✗ no}} & No strategy found any match \\
+\bottomrule
+\end{longtable}
+
+\subsection{\texttt{print\_cosine\_detail(nlp\_results, model\_names, onto\_jobs)}}
+Renders a per-strategy detail table showing, for each DB job, which O*NET profession received the best score. Currently only the best-match score is stored in the result structure (full score matrices would require storing embeddings for all O*NET professions).
+
+\subsection{\texttt{print\_summary\_multi(s1\_res, nlp\_results, model\_names)}}
+Renders a Rich Panel summarising, for each strategy, the number of successful matches over total DB jobs and the threshold used.
+
+\clearpage
+\section{Excel Export --- \texttt{save\_excel}}
+
+\textbf{Signature:}
+\begin{lstlisting}
+save_excel(db_jobs, s1_res, nlp_results, model_names, onto_jobs) -> str
+\end{lstlisting}
+
+Produces \texttt{output/rientra\_matching.xlsx} with three worksheets.
+
+\subsection{Sheet 1: Matching Results}
+
+One row per DB job. Columns are built dynamically based on which NLP strategies succeeded:
+
+\begin{longtable}{@{}P{1cm}P{3cm}P{10.5cm}@{}}
+\toprule
+\textbf{Col} & \textbf{Header} & \textbf{Content} \\
+\midrule
+\endhead
+A & ID & DB job identifier \\
+B & Job Title (DB) & Job title from \texttt{ext\_job} \\
+C & Description (DB) & Full description text \\
+D & IRI individuo & Constructed Rientra@ IRI for the external job \\
+E--H & S1 columns & S1 match label, score, via-label, O*NET URI \\
+I$+$ & S2/S3/S4 columns & Per-strategy: match label, score, O*NET URI (3 cols each) \\
+Last & Verdetto & Consensus label (colour-coded font) \\
+\bottomrule
+\end{longtable}
+
+\subsubsection*{Cell Colour Coding}
+\begin{longtable}{@{}P{4cm}P{10.5cm}@{}}
+\toprule
+\textbf{Fill colour} & \textbf{Meaning} \\
+\midrule
+\endhead
+Yellow (\texttt{\#FFF3CD}) & S1 string matching result cells \\
+Blue (\texttt{\#D0E8FB}) & S2 (all-mpnet-base-v2) result cells \\
+Purple (\texttt{\#F3D0FB}) & S3 (MPNet fine-tuned) result cells \\
+Green (\texttt{\#D0FBE0}) & S4 (MiniLM) result cells \\
+Light grey (\texttt{\#F8F8F8}) & Alternating row background \\
+\bottomrule
+\end{longtable}
+
+Score cells use green bold font for scores $\geq 0.70$ and red for below-threshold raw scores.
+
+\subsection{Sheet 2: Ontology Jobs}
+
+One row per O*NET profession in the ontology:
+
+\begin{longtable}{@{}P{2cm}P{13.5cm}@{}}
+\toprule
+\textbf{Col} & \textbf{Content} \\
+\midrule
+\endhead
+A & Row index \\
+B & OWL class local URI (48-char width) \\
+C & O*NET label (36-char width) \\
+D & Alternative titles, truncated to 300 chars (50-char width) \\
+E & O*NET description, truncated to 500 chars (65-char width) \\
+\bottomrule
+\end{longtable}
+
+\subsection{Sheet 3: Score Detail}
+
+A sparse matrix: rows = DB jobs, columns = one per (model $\times$ O*NET profession). Only the best-match cell for each DB job is filled with the raw cosine score; all other cells are empty. Frozen panes at \texttt{C2} to keep ID and title visible while scrolling.
+
+\clearpage
+\section{Entry Point --- \texttt{main()}}
+
+\subsection{Command-Line Arguments}
+
+\begin{longtable}{@{}P{4cm}P{2.5cm}P{9cm}@{}}
+\toprule
+\textbf{Argument} & \textbf{Required} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{--skip-training} & No & Skip S3 fine-tuning and reuse the model already saved in \texttt{FINETUNED\_DIR} \\
+\bottomrule
+\end{longtable}
+
+\subsection{Seven-Step Execution}
+
+\begin{longtable}{@{}P{2cm}P{12.5cm}@{}}
+\toprule
+\textbf{Step} & \textbf{Description} \\
+\midrule
+\endhead
+0 · Setup &
+  Test DB connection; load ontology and extract O*NET vocabulary; display ontology table. \\
+1 · DB Read &
+  Query \texttt{ext\_job} for all jobs; display DB table. \\
+2 · S1 &
+  Run string matching on all DB jobs; display progress bar. \\
+3 · S2 &
+  Load \texttt{all-mpnet-base-v2}; encode corpus and queries; compute cosine similarity. \\
+4 · S3 &
+  Decide training path: (a) \texttt{--skip-training} with saved model, (b) training file missing (warn), (c) full fine-tuning from scratch. Run \texttt{run\_finetuned\_matching}. \\
+5 · S4 &
+  Load \texttt{all-MiniLM-L6-v2}; same pipeline as S2 via \texttt{run\_minilm\_matching}. \\
+6 · Comparison &
+  Print full comparison table and multi-strategy summary panel. \\
+7 · Excel &
+  Build and save \texttt{output/rientra\_matching.xlsx}; print file info table. \\
+\bottomrule
+\end{longtable}
+
+\subsection{S3 Training Decision Logic}
+
+\begin{lstlisting}
+if --skip-training AND model directory exists:
+    -> reuse saved model (no training)
+elif training file does not exist:
+    -> print warning, skip S3
+else:
+    -> load_training_pairs()
+    -> finetune_mpnet()  (overwrites any existing model)
+    -> run_finetuned_matching()
+\end{lstlisting}
+
+\clearpage
+\section{Function Reference Summary}
+
+\begin{longtable}{@{}P{6.5cm}P{3cm}P{5.5cm}@{}}
+\toprule
+\textbf{Function} & \textbf{Returns} & \textbf{Role} \\
+\midrule
+\endhead
+\texttt{get\_connection()} & connection & Open PostgreSQL connection \\
+\texttt{fetch\_all(sql, params)} & \texttt{list[dict]} & Execute SQL, return rows as dicts \\
+\texttt{test\_connection()} & \texttt{bool} & Verify DB connectivity \\
+\texttt{load\_ontology(path)} & \texttt{rdflib.Graph} & Parse RDF/XML ontology \\
+\texttt{extract\_ontology\_jobs(g)} & \texttt{list[dict]} & Extract O*NET job vocabulary \\
+\texttt{\_build\_onto\_text(j)} & \texttt{str} & Composite text for embedding \\
+\texttt{\_norm(s)} & \texttt{str} & Pre-process text for S1 \\
+\texttt{\_jaccard(a, b)} & \texttt{float} & Jaccard token similarity \\
+\texttt{\_overlap(a, b)} & \texttt{float} & Overlap token similarity \\
+\texttt{\_levenshtein(s1, s2)} & \texttt{float} & Normalised edit distance \\
+\texttt{\_combined(a, b)} & \texttt{float} & Weighted S1 score \\
+\texttt{s1\_match\_one(title, jobs)} & \texttt{dict|None} & Best S1 match for one title \\
+\texttt{run\_string\_matching(db, onto)} & \texttt{list[dict]} & S1 on all DB jobs \\
+\texttt{cosine\_similarity\_matrix(q, c)} & \texttt{np.ndarray} & Batch cosine similarity \\
+\texttt{run\_st\_matching(...)} & \texttt{tuple} & Generic sentence-transformer matching \\
+\texttt{load\_training\_pairs(path)} & \texttt{list[tuple]} & Read S3 training data \\
+\texttt{finetune\_mpnet(pairs, dir)} & \texttt{str|None} & Fine-tune and save S3 model \\
+\texttt{run\_finetuned\_matching(...)} & \texttt{tuple} & S3 matching wrapper \\
+\texttt{run\_minilm\_matching(...)} & \texttt{tuple} & S4 matching wrapper \\
+\texttt{print\_ontology\_table(jobs)} & \texttt{None} & Rich: O*NET vocabulary table \\
+\texttt{print\_db\_table(jobs)} & \texttt{None} & Rich: DB jobs table \\
+\texttt{print\_full\_comparison(...)} & \texttt{None} & Rich: cross-strategy comparison \\
+\texttt{print\_cosine\_detail(...)} & \texttt{None} & Rich: per-strategy score detail \\
+\texttt{print\_summary\_multi(...)} & \texttt{None} & Rich: match count summary \\
+\texttt{save\_excel(...)} & \texttt{str} & Build and save Excel workbook \\
+\texttt{main()} & \texttt{None} & CLI entry point \\
+\bottomrule
+\end{longtable}
+
+\clearpage
+\section{Known Issues and Notes}
+
+\begin{tcolorbox}[colback=noteblue!40, colframe=blue!60!black,
+                  title=Note: Score Detail sheet is sparse]
+Sheet~3 (\textit{Score Detail}) currently stores only the top-1 cosine score for each DB job, placed in the column corresponding to the best-matched O*NET profession. Full score matrices (one value per DB job $\times$ O*NET profession) would require returning and storing the complete \texttt{cosine\_similarity\_matrix} output from \texttt{run\_st\_matching} --- identified as a future extension.
+\end{tcolorbox}
+
+\vspace{0.6em}
+
+\begin{tcolorbox}[colback=warnred!40, colframe=red!60!black,
+                  title=Warning: S3 fine-tuning requires balanced training data]
+\texttt{CosineSimilarityLoss} requires both positive (label=1) and negative (label=0) pairs in the training batch. If the selected subset (\texttt{Validated=SI}) contains only one class, \texttt{load\_training\_pairs} automatically falls back to the full dataset to restore balance. Check the console output for the \texttt{[WARN]} message in this case.
+\end{tcolorbox}
+
+\vspace{0.6em}
+
+\begin{tcolorbox}[colback=importantbg!60, colframe=green!50!black,
+                  title=Important: All NLP models are native sentence-transformers]
+S2, S3, and S4 all use the \texttt{sentence-transformers} library, not raw BERT encoders. Their \texttt{.encode()} method returns mean-pooled, L2-normalised sentence embeddings directly optimised for cosine similarity --- no manual CLS-token extraction or post-processing required. Raw BERT was explicitly removed from the pipeline following reviewer feedback.
+\end{tcolorbox}
+
+\end{document}

@@ -1,0 +1,406 @@
+﻿\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{amsmath}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+\usepackage{ragged2e}
+\tcbuselibrary{skins,breakable}
+
+\geometry{margin=2.5cm}
+\hypersetup{colorlinks=true, linkcolor=blue!60!black, urlcolor=blue!60!black}
+
+\definecolor{codebg}{RGB}{245,245,245}
+\definecolor{noteblue}{RGB}{220,235,250}
+\definecolor{warnred}{RGB}{255,235,230}
+\definecolor{importantbg}{RGB}{230,250,235}
+\definecolor{commentgreen}{RGB}{0,128,0}
+\definecolor{keywordblue}{RGB}{0,0,180}
+\definecolor{stringbrown}{RGB}{160,60,0}
+
+\lstset{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{keywordblue}\bfseries,
+  commentstyle=\color{commentgreen}\itshape,
+  stringstyle=\color{stringbrown},
+  breaklines=true, breakatwhitespace=true,
+  frame=single, rulecolor=\color{gray!40},
+  xleftmargin=6pt, xrightmargin=6pt,
+  showstringspaces=false, language=Python
+}
+
+\newcolumntype{P}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\texttt{rdb2rdf\_step2.py} (Without Training)}
+\lhead{\leftmark}
+\cfoot{\thepage}
+
+\title{\textbf{Rientra@ Step 2 --- RDB2RDF Matching}\\[0.4em]
+       \large \textit{Without Training variant}\\[0.5em]
+       \normalsize Technical Documentation of\\
+       \texttt{Pattern Match/Without training/rdb2rdf\_step2.py}}
+\author{STIIMA-CNR}
+\date{Version 1.0 --- May 2026}
+
+\begin{document}
+\begin{titlepage}\centering\maketitle\end{titlepage}
+\tableofcontents
+\newpage
+
+\clearpage
+\section{Overview}
+
+This file is the \textbf{Without Training} variant of Step~2 of the Rientra@ pipeline. It reads job listings from a PostgreSQL database, loads the O*NET vocabulary from \texttt{Rientra.rdf}, and matches each external job using \textbf{three strategies}: lexical string matching (S1), raw BERT-family encoders (S2, S3), and a sentence-transformer baseline (S4).
+
+\begin{tcolorbox}[colback=noteblue!40, colframe=blue!60!black,
+                  title=Key difference from the ``Against Training'' variant]
+This variant does \textbf{not} perform any fine-tuning. S2 uses raw \texttt{bert-base-uncased} and S3 uses raw \texttt{BioBERT}, both via \texttt{[CLS]} token extraction from the \texttt{transformers} library. There is no \texttt{bert\_training\_data.xlsx}, no \texttt{CosineSimilarityLoss} training, and no saved model directory. S4 (MiniLM) is the only native sentence-transformer.
+\end{tcolorbox}
+
+\subsection{Matching Strategies}
+
+\begin{longtable}{@{}P{1.5cm}P{3.5cm}P{9.5cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Name} & \textbf{Description} \\
+\midrule
+\endhead
+S1 & String Matching &
+  Weighted combination of Jaccard, Overlap, and Levenshtein similarity.
+  Basic pre-processing: lowercase only (no abbreviation expansion, no stopword removal). \\
+S2 & BERT base &
+  \texttt{bert-base-uncased} via HuggingFace \texttt{transformers}. Sentence embedding
+  extracted from \texttt{[CLS]} token of the last hidden state. \\
+S3 & BioBERT &
+  \texttt{dmis-lab/biobert-base-cased-v1.2} via HuggingFace. BERT fine-tuned on
+  biomedical literature (PubMed + PMC). Included for methodological comparison;
+  not the ideal domain for job matching. \\
+S4 & all-MiniLM-L6-v2 &
+  Compact sentence-transformer (384-dim). Native cosine-similarity optimisation.
+  Acts as reference baseline. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+pip install psycopg2-binary rdflib rich transformers torch scikit-learn
+pip install sentence-transformers   # for S4 (MiniLM) only
+\end{lstlisting}
+
+\begin{longtable}{@{}P{4cm}P{10.5cm}@{}}
+\toprule
+\textbf{Package} & \textbf{Purpose} \\
+\midrule
+\endhead
+\texttt{psycopg2-binary} & PostgreSQL connectivity \\
+\texttt{rdflib} & Parsing \texttt{Rientra.rdf} \\
+\texttt{transformers} & Loading BERT base and BioBERT tokenizers and models (S2, S3) \\
+\texttt{torch} & PyTorch inference backend for S2, S3 \\
+\texttt{sentence-transformers} & Loading MiniLM (S4 only) \\
+\texttt{openpyxl} & Excel workbook output \\
+\texttt{rich} & Terminal progress bars and tables \\
+\texttt{numpy} & Cosine similarity matrix computation \\
+\bottomrule
+\end{longtable}
+
+\subsection{Usage}
+\begin{lstlisting}
+python rdb2rdf_step2.py   # no flags; no training step
+\end{lstlisting}
+
+\clearpage
+\section{Configuration Constants}
+
+\subsection{Database and Paths}
+
+Same as the Against Training variant:
+\begin{lstlisting}
+DB_CONFIG    = { "host": "localhost", "port": 5432,
+                 "dbname": "rientra_db", "user": "postgres", "password": "postgres" }
+ONTOLOGY_FILE = "Rientra.rdf"
+OUTPUT_DIR    = "output"
+JOBLIST_BASE  = "http://www.stiima.cnr.it/JobList#"
+RIENTRA_BASE  = "https://www.stiima.cnr.it/rientra#"
+\end{lstlisting}
+
+Note: no \texttt{TRAINING\_FILE} or \texttt{FINETUNED\_DIR} constants exist in this variant.
+
+\subsection{Models}
+
+\begin{longtable}{@{}P{3.5cm}P{5.5cm}P{6cm}@{}}
+\toprule
+\textbf{Key} & \textbf{Model identifier} & \textbf{Type} \\
+\midrule
+\endhead
+\texttt{S2\_BERT} & \texttt{bert-base-uncased} & Raw BERT (HuggingFace) \\
+\texttt{S3\_BioBERT} & \texttt{dmis-lab/biobert-base-cased-v1.2} & Raw BERT biomedical (HuggingFace) \\
+\texttt{S4\_MiniLM} & \texttt{all-MiniLM-L6-v2} & Native sentence-transformer \\
+\bottomrule
+\end{longtable}
+
+\subsection{Similarity Thresholds}
+
+\begin{longtable}{@{}P{4.5cm}P{3cm}P{7cm}@{}}
+\toprule
+\textbf{Constant} & \textbf{Value} & \textbf{Notes} \\
+\midrule
+\endhead
+\texttt{S1\_THRESHOLD} & 0.12 & String matching \\
+\texttt{BERT\_THRESHOLD} & 0.70 &
+  Applied to both S2 and S3. Higher than MiniLM because raw \texttt{[CLS]}
+  embeddings are less discriminative for sentence similarity and produce
+  a narrower score distribution. \\
+\texttt{MINILM\_THRESHOLD} & 0.50 &
+  Applied to S4 only. MiniLM is fine-tuned for sentence similarity;
+  its scores are better calibrated in the $[0,1]$ range. \\
+\bottomrule
+\end{longtable}
+
+\clearpage
+\section{Strategy S1 --- String Matching}
+
+The S1 implementation in this variant uses a \textbf{simplified pre-processing} compared to the Against Training variant.
+
+\subsection{\texttt{\_norm(s)} --- Simplified Pre-processing}
+
+\begin{lstlisting}
+def _norm(s: str) -> str:
+    return s.lower().strip()
+\end{lstlisting}
+
+Only lowercase conversion and whitespace stripping. \textbf{No} separator normalisation, \textbf{no} abbreviation expansion, \textbf{no} stopword removal. This is the baseline lexical normalisation.
+
+\subsection{Similarity Metrics}
+
+Identical to the Against Training variant:
+
+\begin{longtable}{@{}P{3cm}P{4cm}P{8.5cm}@{}}
+\toprule
+\textbf{Function} & \textbf{Formula} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{\_jaccard} & $|A \cap B| / |A \cup B|$ & Token-set Jaccard similarity \\
+\texttt{\_overlap} & $|A \cap B| / \min(|A|,|B|)$ & Overlap coefficient \\
+\texttt{\_levenshtein} & $1 - d(s_1,s_2) / \max(|s_1|,|s_2|)$ & Normalised edit distance \\
+\bottomrule
+\end{longtable}
+
+Combined score:
+\begin{equation}
+  \text{score}(a,b) = 0.5 \cdot \text{Jaccard} + 0.3 \cdot \text{Overlap} + 0.2 \cdot \text{Levenshtein}
+\end{equation}
+
+\clearpage
+\section{Strategies S2 and S3 --- Raw BERT Matching}
+
+\subsection{\texttt{get\_bert\_embedding(text, tokenizer, model, max\_length=512) -> np.ndarray}}
+
+Computes a sentence embedding using a raw BERT model via \texttt{[CLS]} token extraction.
+
+\subsubsection*{Embedding Strategy: \texttt{[CLS]} Token}
+
+BERT prepends a special \texttt{[CLS]} (Classification) token to every input sequence. Its hidden state in the last transformer layer is designed to aggregate information from the entire sequence, making it the standard choice for classification and similarity tasks with un-fine-tuned BERT models.
+
+\begin{lstlisting}
+inputs = tokenizer(text, return_tensors="pt",
+                   truncation=True, max_length=512, padding=True)
+with torch.no_grad():
+    outputs = model(**inputs)
+# outputs.last_hidden_state shape: [batch, seq_len, hidden_size]
+cls_embedding = outputs.last_hidden_state[:, 0, :].squeeze().numpy()
+\end{lstlisting}
+
+\subsubsection*{Alternative: Mean Pooling}
+
+The docstring notes that mean pooling over all non-padding tokens often produces slightly more stable embeddings. This approach requires handling the attention mask explicitly and is not implemented in this variant.
+
+\subsubsection*{Known Limitation: Anisotropy}
+Raw BERT embeddings (without sentence-level fine-tuning) suffer from \textbf{anisotropy}: the embedding space is not uniformly distributed, and cosine similarity scores tend to cluster in a narrow range near 1.0 regardless of semantic content. This is why \texttt{BERT\_THRESHOLD} is set higher (0.70) --- it compensates for the compressed score range.
+
+\subsection{\texttt{run\_bert\_matching(db\_jobs, onto\_jobs, model\_name, strategy\_key, threshold) -> tuple}}
+
+Generic runner for S2 and S3. Identical structure for both models.
+
+\subsubsection*{Algorithm}
+\begin{enumerate}[noitemsep]
+  \item Load tokenizer and model from HuggingFace via \texttt{AutoTokenizer} / \texttt{AutoModel}.
+  \item Call \texttt{model.eval()} to disable dropout.
+  \item Pre-compute embeddings for all O*NET professions using \texttt{get\_bert\_embedding} (one call per profession, with progress bar).
+  \item Stack embeddings into a matrix: shape \texttt{[n\_onto, hidden\_size]}.
+  \item For each DB job, compute its \texttt{[CLS]} embedding and call \texttt{cosine\_similarity\_matrix}.
+  \item Return the top-1 match if score $\geq$ threshold, else \texttt{None}.
+\end{enumerate}
+
+\subsubsection*{Return value}
+\texttt{(results, model\_name)} or \texttt{(None, None)} on import/load failure.
+
+Each result dict:
+\begin{longtable}{@{}P{3.5cm}P{2.5cm}P{8.5cm}@{}}
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{id} & \texttt{str} & DB job ID \\
+\texttt{title} & \texttt{str} & DB job title \\
+\texttt{match} & \texttt{dict|None} & Best match dict or \texttt{None} if below threshold \\
+\texttt{score\_raw} & \texttt{float} & Raw top-1 cosine score \\
+\texttt{strategy} & \texttt{str} & Strategy key (\texttt{S2\_BERT} or \texttt{S3\_BioBERT}) \\
+\bottomrule
+\end{longtable}
+
+\subsection{S2 --- BERT base (\texttt{bert-base-uncased})}
+Called via \texttt{run\_bert\_matching} with \texttt{MODELS["S2\_BERT"]} and \texttt{BERT\_THRESHOLD = 0.70}. Hidden size: 768.
+
+\subsection{S3 --- BioBERT (\texttt{dmis-lab/biobert-base-cased-v1.2})}
+Called via \texttt{run\_bert\_matching} with \texttt{MODELS["S3\_BioBERT"]} and \texttt{BERT\_THRESHOLD = 0.70}. Hidden size: 768. Cased tokenizer (preserves capitalisation). Pre-trained on PubMed and PMC biomedical literature; included for methodological comparison only.
+
+\clearpage
+\section{Strategy S4 --- MiniLM (Sentence-Transformer)}
+
+\subsection{\texttt{run\_minilm\_matching(db\_jobs, onto\_jobs, threshold) -> tuple}}
+
+Uses \texttt{sentence-transformers/all-MiniLM-L6-v2} --- a native sentence-transformer. Unlike S2/S3, this model's \texttt{.encode()} method returns mean-pooled, normalised embeddings directly optimised for cosine similarity. No manual \texttt{[CLS]} extraction is needed.
+
+\begin{lstlisting}
+onto_embs = model.encode(onto_texts, convert_to_numpy=True)
+q_emb     = model.encode(db_texts[i], convert_to_numpy=True)
+sims      = cosine_similarity_matrix(q_emb, onto_embs)
+\end{lstlisting}
+
+Cosine similarity is still computed explicitly via \texttt{cosine\_similarity\_matrix} for methodological consistency with S2 and S3.
+
+\subsubsection*{Threshold: 0.50}
+MiniLM scores are better calibrated in $[0,1]$ due to sentence-level fine-tuning, so a lower threshold (0.50 vs 0.70 for BERT) is appropriate.
+
+\clearpage
+\section{Rich Terminal Output and Excel Export}
+
+The Rich terminal output functions (\texttt{print\_ontology\_table}, \texttt{print\_db\_table}, \texttt{print\_full\_comparison}, \texttt{print\_cosine\_detail}, \texttt{print\_summary\_multi}) and the \texttt{save\_excel} function are \textbf{identical in structure} to the Against Training variant, with one key difference:
+
+\begin{longtable}{@{}P{4cm}P{5.5cm}P{5.5cm}@{}}
+\toprule
+\textbf{Element} & \textbf{Without Training} & \textbf{Against Training} \\
+\midrule
+\endhead
+Strategy keys & \texttt{S2\_BERT}, \texttt{S3\_BioBERT}, \texttt{S4\_MiniLM} & \texttt{S2\_MPNET}, \texttt{S3\_FINETUNED}, \texttt{S4\_MiniLM} \\
+Threshold note & ``BERT base e BioBERT usano \texttt{[CLS]}'' & ``tutti sentence-transformers nativi'' \\
+Excel fill S2 & Blue (\texttt{\#D0E8FB}) --- BERT & Blue (\texttt{\#D0E8FB}) --- MPNet \\
+Excel fill S3 & Purple (\texttt{\#F3D0FB}) --- BioBERT & Purple (\texttt{\#F3D0FB}) --- fine-tuned \\
+\bottomrule
+\end{longtable}
+
+\clearpage
+\section{Entry Point --- \texttt{main()}}
+
+No command-line arguments. The execution is sequential and unconditional:
+
+\begin{longtable}{@{}P{2cm}P{12.5cm}@{}}
+\toprule
+\textbf{Step} & \textbf{Description} \\
+\midrule
+\endhead
+0 & Test DB connection; load ontology; display ontology table. \\
+1 & Query \texttt{ext\_job}; display DB table. \\
+2 & Run S1 string matching. \\
+3 & Run S2: load \texttt{bert-base-uncased}, compute \texttt{[CLS]} embeddings, cosine similarity. \\
+4 & Run S3: load \texttt{biobert-base-cased-v1.2}, same pipeline as S2. \\
+5 & Run S4: load MiniLM, compute sentence embeddings, cosine similarity. \\
+6 & Print comparison table and summary panel. \\
+7 & Build and save \texttt{output/rientra\_matching.xlsx}. \\
+\bottomrule
+\end{longtable}
+
+There is no \texttt{--skip-training} flag and no fine-tuning step.
+
+\clearpage
+\section{Function Reference Summary}
+
+\begin{longtable}{@{}P{6.5cm}P{3cm}P{5.5cm}@{}}
+\toprule
+\textbf{Function} & \textbf{Returns} & \textbf{Role} \\
+\midrule
+\endhead
+\texttt{get\_connection()} & connection & Open PostgreSQL connection \\
+\texttt{fetch\_all(sql, params)} & \texttt{list[dict]} & Execute SQL, return rows as dicts \\
+\texttt{test\_connection()} & \texttt{bool} & Verify DB connectivity \\
+\texttt{load\_ontology(path)} & \texttt{rdflib.Graph} & Parse RDF/XML ontology \\
+\texttt{extract\_ontology\_jobs(g)} & \texttt{list[dict]} & Extract O*NET job vocabulary \\
+\texttt{\_build\_onto\_text(j)} & \texttt{str} & Composite text for embedding \\
+\texttt{\_norm(s)} & \texttt{str} & Lowercase + strip (S1 pre-processing) \\
+\texttt{\_jaccard(a, b)} & \texttt{float} & Jaccard token similarity \\
+\texttt{\_overlap(a, b)} & \texttt{float} & Overlap coefficient \\
+\texttt{\_levenshtein(s1, s2)} & \texttt{float} & Normalised edit distance \\
+\texttt{\_combined(a, b)} & \texttt{float} & Weighted S1 combined score \\
+\texttt{s1\_match\_one(title, jobs)} & \texttt{dict|None} & Best S1 match for one title \\
+\texttt{run\_string\_matching(db, onto)} & \texttt{list[dict]} & S1 on all DB jobs \\
+\texttt{cosine\_similarity\_matrix(q, c)} & \texttt{np.ndarray} & Batch cosine similarity \\
+\texttt{get\_bert\_embedding(text, tok, mdl)} & \texttt{np.ndarray} & \texttt{[CLS]} embedding for raw BERT \\
+\texttt{run\_bert\_matching(...)} & \texttt{tuple} & Generic raw BERT matching (S2, S3) \\
+\texttt{run\_minilm\_matching(...)} & \texttt{tuple} & S4 MiniLM matching \\
+\texttt{print\_ontology\_table(jobs)} & \texttt{None} & Rich: O*NET vocabulary table \\
+\texttt{print\_db\_table(jobs)} & \texttt{None} & Rich: DB jobs table \\
+\texttt{print\_full\_comparison(...)} & \texttt{None} & Rich: cross-strategy comparison \\
+\texttt{print\_cosine\_detail(...)} & \texttt{None} & Rich: per-strategy score detail \\
+\texttt{print\_summary\_multi(...)} & \texttt{None} & Rich: match count summary \\
+\texttt{save\_excel(...)} & \texttt{str} & Build and save Excel workbook \\
+\texttt{main()} & \texttt{None} & CLI entry point (no arguments) \\
+\bottomrule
+\end{longtable}
+
+\clearpage
+\section{Comparison with ``Against Training'' Variant}
+
+\begin{longtable}{@{}P{4cm}P{5.5cm}P{5.5cm}@{}}
+\toprule
+\textbf{Aspect} & \textbf{Without Training} & \textbf{Against Training} \\
+\midrule
+\endhead
+S1 pre-processing &
+  Lowercase only &
+  Full pipeline: separators, punctuation, abbreviation expansion, stopwords \\
+S2 model &
+  \texttt{bert-base-uncased} (raw) &
+  \texttt{all-mpnet-base-v2} (sentence-transformer) \\
+S3 model &
+  \texttt{biobert-base-cased-v1.2} (raw) &
+  \texttt{all-mpnet-base-v2} fine-tuned on \texttt{bert\_training\_data.xlsx} \\
+S3 embedding &
+  \texttt{[CLS]} token extraction &
+  \texttt{.encode()} (mean pooling, calibrated) \\
+Threshold S2/S3 &
+  0.70 (anisotropy compensation) &
+  0.50 (calibrated sentence space) \\
+Training data &
+  Not required &
+  \texttt{bert\_training\_data.xlsx} (60 jobs, 720 pairs) \\
+Fine-tuning &
+  None &
+  \texttt{CosineSimilarityLoss}, 4 epochs, batch 16, lr 2e-5 \\
+Command-line flags &
+  None &
+  \texttt{--skip-training} \\
+Lines of code &
+  1076 &
+  1388 \\
+\bottomrule
+\end{longtable}
+
+\begin{tcolorbox}[colback=warnred!40, colframe=red!60!black,
+                  title=Warning: BERT raw embeddings are not calibrated for sentence similarity]
+\texttt{bert-base-uncased} and \texttt{biobert-base-cased-v1.2} were not trained on sentence-similarity tasks. Their \texttt{[CLS]} embeddings suffer from anisotropy: scores concentrate near 1.0, reducing discrimination. The higher threshold (0.70) partially compensates but cannot fully eliminate the effect. For domain-specific job matching, the Against Training variant with a fine-tuned sentence-transformer is recommended.
+\end{tcolorbox}
+
+\end{document}
