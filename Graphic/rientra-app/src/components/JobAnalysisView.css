@@ -491,9 +491,9 @@
   flex-shrink: 0;
 }
 .ja-btn-split:hover {
-  background: rgba(77,217,192,0.09);
-  color: #4DD9C0;
-  border-color: rgba(77,217,192,0.28);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
 }
 .ja-btn-close-split {
   all: unset;
@@ -707,9 +707,9 @@
   margin-bottom: 4px;
 }
 .ja-btn-edit-jobs:hover {
-  background: rgba(77,217,192,0.09);
-  color: #4DD9C0;
-  border-color: rgba(77,217,192,0.30);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -858,9 +858,9 @@
   transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
 .ja-modal-action-btn:hover {
-  background: rgba(77,217,192,0.07);
-  color: #4DD9C0;
-  border-color: rgba(77,217,192,0.22);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.20);
 }
 
 /* Job list */

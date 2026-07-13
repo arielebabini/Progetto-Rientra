@@ -205,6 +205,13 @@ export function updateHealthConditions(
 
 // ── Worker import from SQL dataset ────────────────────────────────────────────
 
+export interface ImportedPersonDetail {
+  person_id: string;
+  fullname: string;
+  icfs: string[];
+  jobs: string[];
+}
+
 export interface ImportWorkersResult {
   persons_added: number;
   persons_skipped: number;
@@ -214,6 +221,7 @@ export interface ImportWorkersResult {
   jobs_skipped: number;
   new_person_ids: string[];
   skipped_ids: string[];
+  details?: ImportedPersonDetail[];
   backup_path: string;
   error: string | null;
 }

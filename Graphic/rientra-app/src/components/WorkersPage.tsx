@@ -239,6 +239,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
   const [serviceError, setServiceError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevStatusRef = useRef<'loading' | 'ready' | 'error' | null>(null);
 
   // ── data state ─────────────────────────────────────────────────────
   const [workers, setWorkers] = useState<Worker[]>([]);
@@ -395,25 +396,41 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
   });
 
 
-  // ── Polling /status until ready ────────────────────────────────────
+  // ── Polling /status continuously to monitor reasoning updates ──────
   const poll = useCallback(async () => {
     try {
       const s = await fetchStatus();
       setServiceStatus(s);
       setServiceError(null);
+
+      const prevStatus = prevStatusRef.current;
+      prevStatusRef.current = s.status;
+
       if (s.status === 'ready') {
         setIsReady(true);
-        return; // stop polling
+        // If we transitioned back to ready from loading or error, reload workers list!
+        if (prevStatus && prevStatus !== 'ready') {
+          setLoadingWorkers(true);
+          fetchWorkers()
+            .then(setWorkers)
+            .catch(e => console.error('fetchWorkers:', e))
+            .finally(() => setLoadingWorkers(false));
+        }
+        // Poll again in 3000ms
+        pollRef.current = setTimeout(poll, 3000);
+        return;
       }
       if (s.status === 'error') {
         setServiceError(s.message);
+        // Poll again in 3000ms even in error state to recover
+        pollRef.current = setTimeout(poll, 3000);
         return;
       }
-      // still loading — poll again in 2.5s
-      pollRef.current = setTimeout(poll, 2500);
+      // still loading — poll again in 2000ms
+      pollRef.current = setTimeout(poll, 2000);
     } catch (err) {
-      // service not yet reachable (still booting) — retry faster
-      pollRef.current = setTimeout(poll, 1500);
+      // service not yet reachable — retry in 2000ms
+      pollRef.current = setTimeout(poll, 2000);
     }
   }, []);
 
@@ -548,11 +565,12 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
       setImportResult(result);
       setImportPhase('done');
 
-      // 4. Reload worker list
+      // 4. Reload worker list and wait for reasoning recompute
       if (result.persons_added > 0) {
-        fetchWorkers()
-          .then(setWorkers)
-          .catch(e => console.error('fetchWorkers after import:', e));
+        if (pollRef.current) {
+          clearTimeout(pollRef.current);
+        }
+        poll();
       }
     } catch (err: any) {
       setImportError(err?.message ?? 'Import failed.');
@@ -581,7 +599,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
               <ListIcon />
             </button>
           )}
-          <div className="wp-nav-brand" onClick={onNavigateHome} role="button" tabIndex={0}
+          <div className="wp-nav-brand" onClick={onNavigateHome} role="button"
             onKeyDown={e => e.key === 'Enter' && onNavigateHome()}>
             <img src="/logo-rientra.png" alt="Rientra Logo" className="wp-nav-logo" />
             <span className="wp-nav-title">RIENTR@</span>
@@ -621,7 +639,6 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                     className={`wp-breadcrumb-text ${isCurrent ? 'current' : ''} ${isLastBeforeCurrent ? 'last-before-current' : ''}`}
                     onClick={item.onClick}
                     role={item.onClick ? "button" : undefined}
-                    tabIndex={item.onClick ? 0 : undefined}
                   >
                     {item.label}
                   </span>
@@ -640,13 +657,48 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
         </div>
 
         {/* Service status pill */}
-        <div className={`wp-service-badge wp-service-badge--${serviceStatus?.status ?? 'loading'}`}>
-          <span className="wp-service-dot" />
-          {serviceStatus?.status === 'ready'
-            ? 'Online'
-            : serviceStatus?.status === 'error'
-              ? 'Error'
-              : 'Starting…'}
+        <div className="wp-service-badge-container">
+          {serviceStatus?.status === 'ready' ? (
+            <div className="wp-service-badge wp-service-badge--ready">
+              <span className="wp-service-dot" />
+              Online
+            </div>
+          ) : serviceStatus?.status === 'error' ? (
+            <div className="wp-service-badge wp-service-badge--error">
+              <span className="wp-service-dot" />
+              Error
+            </div>
+          ) : (
+            <div className="wp-service-loading-wrap">
+              <div className="wp-service-loading-spinner"></div>
+              <img src="/logo-rientra.png" className="wp-service-loading-logo" alt="Loading" />
+            </div>
+          )}
+
+          {/* Status Tooltip popup */}
+          <div className="wp-service-tooltip">
+            <div className="wp-service-tooltip-header">
+              <span className="wp-service-tooltip-title">System Status</span>
+              <span className={`wp-service-tooltip-status wp-service-tooltip-status--${serviceStatus?.status ?? 'loading'}`}>
+                {serviceStatus?.status ?? 'loading'}
+              </span>
+            </div>
+            <div className="wp-service-tooltip-msg">
+              {serviceStatus?.message || (serviceStatus?.status === 'error' ? 'Service connection failed.' : 'Connecting to service…')}
+            </div>
+            {serviceStatus?.stats && (
+              <div className="wp-service-tooltip-stats">
+                <div><span>Classes:</span> <strong>{serviceStatus.stats.classes}</strong></div>
+                <div><span>Individuals:</span> <strong>{serviceStatus.stats.individuals}</strong></div>
+                <div><span>Properties:</span> <strong>{serviceStatus.stats.properties}</strong></div>
+              </div>
+            )}
+            {serviceStatus?.elapsed_pellet !== null && serviceStatus?.elapsed_pellet !== undefined && (
+              <div className="wp-service-tooltip-elapsed">
+                Pellet took: <strong>{serviceStatus.elapsed_pellet.toFixed(1)}s</strong>
+              </div>
+            )}
+          </div>
         </div>
       </nav>
 
@@ -708,7 +760,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                 <li key={w.id}
                   className={`wp-worker-item ${selectedWorker?.id === w.id ? 'selected' : ''} ${isSwitching ? 'wp-worker-item--switching' : ''}`}
                   onClick={() => handleSelectWorker(w)}
-                  role="button" tabIndex={0}
+                  role="button"
                   aria-busy={isSwitching}
                   onKeyDown={e => e.key === 'Enter' && handleSelectWorker(w)}>
                   {isSwitching
@@ -842,7 +894,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                               <span style={{ fontSize: '0.8rem', fontWeight: 500 }}>Core Set</span>
                               {selectedCoreSets.length > 0 && (
                                 <span style={{
-                                  background: '#4DD9C0', color: '#0f2233', borderRadius: '99px',
+                                  background: '#ffffff', color: '#0f2233', borderRadius: '99px',
                                   fontSize: '0.7rem', fontWeight: 700, padding: '1px 7px', marginLeft: 2
                                 }}>{selectedCoreSets.length}</span>
                               )}
@@ -854,7 +906,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                                   {selectedCoreSets.length > 0 && (
                                     <button
                                       onClick={() => setSelectedCoreSets([])}
-                                      style={{ background: 'none', border: 'none', color: '#4DD9C0', cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}
+                                      style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}
                                     >Clear all</button>
                                   )}
                                 </div>
@@ -878,15 +930,15 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                                       >
                                         <span style={{
                                           width: 16, height: 16, borderRadius: 4, flexShrink: 0,
-                                          border: `2px solid ${checked ? '#4DD9C0' : 'rgba(255,255,255,0.3)'}`,
-                                          background: checked ? '#4DD9C0' : 'transparent',
+                                          border: `2px solid ${checked ? '#ffffff' : 'rgba(255,255,255,0.3)'}`,
+                                          background: 'transparent',
                                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                                           transition: 'all 0.15s',
                                           pointerEvents: 'none',
                                         }}>
                                           {checked && (
                                             <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-                                              <polyline points="2 6 5 9 10 3" stroke="#0f2233" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                              <polyline points="2 6 5 9 10 3" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                             </svg>
                                           )}
                                         </span>
@@ -1151,65 +1203,94 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
             {/* Success */}
             {importPhase === 'done' && importResult && (
               <>
-                <div className="wp-modal-icon" style={{ fontSize: 36 }}>
-                  {importResult.persons_added > 0 ? '✅' : 'ℹ️'}
+                <div className="wp-modal-success-circle">
+                  {importResult.persons_added > 0 ? (
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4DD9C0" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  ) : (
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="16" x2="12" y2="12"></line>
+                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                  )}
                 </div>
+
                 <h3 className="wp-modal-title">
                   {importResult.persons_added > 0
                     ? `${importResult.persons_added} worker${importResult.persons_added > 1 ? 's' : ''} imported`
                     : 'No new workers to import'}
                 </h3>
-                <div className="wp-modal-stats">
-                  {importResult.new_person_ids.length > 0 && (
-                    <div className="wp-modal-stat-row">
-                      <span>Added</span>
-                      <span className="wp-modal-stat-val" style={{ color: '#4DD9C0' }}>
-                        {importResult.new_person_ids.join(', ')}
-                      </span>
-                    </div>
-                  )}
-                  {importResult.skipped_ids.length > 0 && (
-                    <div className="wp-modal-stat-row">
-                      <span>Already present (skipped)</span>
-                      <span className="wp-modal-stat-val">
-                        {importResult.skipped_ids.join(', ')}
-                      </span>
-                    </div>
-                  )}
-                  <div className="wp-modal-stat-row">
-                    <span>ICF descriptors valid</span>
-                    <span className="wp-modal-stat-val">{importResult.icf_valid}</span>
-                  </div>
-                  {importResult.icf_skipped > 0 && (
-                    <div className="wp-modal-stat-row">
-                      <span>ICF codes not in ontology</span>
-                      <span className="wp-modal-stat-val" style={{ color: '#f59e0b' }}>
-                        {importResult.icf_skipped}
-                      </span>
-                    </div>
-                  )}
-                  <div className="wp-modal-stat-row">
-                    <span>Job links valid</span>
-                    <span className="wp-modal-stat-val">{importResult.jobs_valid}</span>
-                  </div>
-                  {importResult.jobs_skipped > 0 && (
-                    <div className="wp-modal-stat-row">
-                      <span>Unknown jobs skipped</span>
-                      <span className="wp-modal-stat-val" style={{ color: '#f59e0b' }}>
-                        {importResult.jobs_skipped}
-                      </span>
-                    </div>
-                  )}
-                </div>
+
                 {importResult.persons_added > 0 && (
-                  <p className="wp-modal-note">
-                    The ontology has been updated. Restart the service or reload the app to run
-                    the reasoner on the new data.
-                  </p>
+                  <div className="wp-import-summary-row">
+                    <div className="wp-import-summary-item">
+                      <span className="wp-import-summary-val">{importResult.icf_valid}</span>
+                      <span className="wp-import-summary-lbl">ICF descriptors</span>
+                    </div>
+                    <div className="wp-import-summary-item">
+                      <span className="wp-import-summary-val">{importResult.jobs_valid}</span>
+                      <span className="wp-import-summary-lbl">Job links</span>
+                    </div>
+                  </div>
                 )}
+
+                {importResult.skipped_ids.length > 0 && (
+                  <div className="wp-import-skipped-alert">
+                    <strong>Skipped:</strong> {importResult.skipped_ids.length} worker{importResult.skipped_ids.length > 1 ? 's' : ''} already present ({importResult.skipped_ids.join(', ')}).
+                  </div>
+                )}
+
+                {(importResult.icf_skipped > 0 || importResult.jobs_skipped > 0) && (
+                  <div className="wp-import-warning-alert">
+                    ⚠️ {importResult.icf_skipped > 0 ? `${importResult.icf_skipped} ICF code${importResult.icf_skipped > 1 ? 's' : ''} ` : ''}
+                    {importResult.icf_skipped > 0 && importResult.jobs_skipped > 0 ? 'and ' : ''}
+                    {importResult.jobs_skipped > 0 ? `${importResult.jobs_skipped} Job${importResult.jobs_skipped > 1 ? 's' : ''} ` : ''}
+                    skipped (not found in ontology).
+                  </div>
+                )}
+
+                {importResult.details && importResult.details.length > 0 && (
+                  <div className="wp-imported-details-section">
+                    <h4 className="wp-imported-details-title">Imported Workers Details</h4>
+                    <div className="wp-imported-details-list">
+                      {importResult.details.map(person => {
+                        const icfsText = person.icfs.length > 0 
+                          ? (person.icfs.length <= 6 
+                              ? person.icfs.join(', ') 
+                              : person.icfs.slice(0, 5).join(', ') + ` and ${person.icfs.length - 5} more`)
+                          : 'None';
+                        const jobsText = person.jobs.length > 0
+                          ? person.jobs.map(j => j.replace(/_/g, ' ')).join(', ')
+                          : 'None';
+                        
+                        return (
+                          <div key={person.person_id} className="wp-imported-person-card">
+                            <div className="wp-imported-person-header">
+                              <span className="wp-imported-person-name">{person.fullname}</span>
+                              <span className="wp-imported-person-id">{person.person_id}</span>
+                            </div>
+                            <div className="wp-imported-person-body">
+                              <div className="wp-imported-person-sublist">
+                                <span className="wp-imported-sublist-lbl">ICF Descriptors:</span>{' '}
+                                <span className="wp-imported-person-items">{icfsText}</span>
+                              </div>
+                              <div className="wp-imported-person-sublist">
+                                <span className="wp-imported-sublist-lbl">Job evaluations:</span>{' '}
+                                <span className="wp-imported-person-items">{jobsText}</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 <button
-                  className="wp-btn-primary"
-                  style={{ marginTop: 20, width: '100%' }}
+                  className="wp-modal-close-btn"
+                  style={{ marginTop: 22 }}
                   onClick={() => { setImportModalOpen(false); setImportPhase('idle'); }}
                 >
                   Close

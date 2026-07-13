@@ -30,3 +30,10 @@ input, textarea {
 img {
   -webkit-user-drag: none;
 }
+
+/* Rimuove l'outline di focus per evitare il rettangolo arancione */
+*:focus, *:focus-visible {
+  outline: none !important;
+  box-shadow: none !important; /* in case any box-shadow is used as outline */
+}
+

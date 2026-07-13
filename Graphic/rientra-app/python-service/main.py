@@ -672,18 +672,21 @@ async def import_workers_endpoint(request: Request) -> JSONResponse:
     if result.error:
         raise HTTPException(status_code=500, detail=result.error)
 
-    # Update the live in-memory ontology and snapshot cache so the new workers'
-    # isEvaluatedForJob links are immediately visible on the scatter plot.
+    # Update the live in-memory ontology and snapshot cache by triggering a reload and re-running reasoning in the background
     if result.new_person_ids:
         try:
-            inject_imported_workers(
-                new_person_ids=result.new_person_ids,
-                ontology_path=ontology_path,
+            state.set_loading("Applying imported changes and recomputing inference...")
+            thread = threading.Thread(
+                target=load_and_reason,
+                args=(ontology_path,),
+                daemon=True,
+                name="pellet-reasoner-reload",
             )
-        except Exception as _inj_err:
+            thread.start()
+        except Exception as _re_err:
             import logging as _log
             _log.getLogger(__name__).warning(
-                "[import] inject_imported_workers failed (non-fatal): %s", _inj_err
+                "[import] Background reload failed to trigger: %s", _re_err
             )
 
     return JSONResponse({
@@ -695,6 +698,7 @@ async def import_workers_endpoint(request: Request) -> JSONResponse:
         "jobs_skipped"   : result.jobs_skipped,
         "new_person_ids" : result.new_person_ids,
         "skipped_ids"    : result.skipped_ids,
+        "details"        : result.details,
         "backup_path"    : result.backup_path,
         "error"          : None,
     })

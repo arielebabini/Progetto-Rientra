@@ -548,14 +548,14 @@ def _refresh_reasoning_artifacts() -> None:
 #  Phase 1 — Load ontology
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def _load_ontology(path: str):
+def _load_ontology(path: str, reload: bool = False):
     """Load the ontology file into the owlready2 default_world."""
     abs_path = os.path.abspath(path)
     iri = f"file://{abs_path}"
     buf = io.StringIO()
     with contextlib.redirect_stderr(buf):
         try:
-            onto = get_ontology(iri).load()
+            onto = get_ontology(iri).load(reload=reload)
         except Exception as exc:
             raise RuntimeError(f"Cannot load ontology: {exc}") from exc
     return onto
@@ -617,7 +617,7 @@ def load_and_reason(rdf_path: str = "") -> None:
     Updates the global `state` object when done (or on error).
     Designed to run in a background thread so the HTTP server starts immediately.
     """
-    global _live_reasoner_ready, _pending_selected_worker_id, _loaded_ontology
+    global _live_reasoner_ready, _pending_selected_worker_id, _loaded_ontology, _icf_ind_cache
 
     path = _resolve_rdf_path(rdf_path)
     if not path:
@@ -628,8 +628,31 @@ def load_and_reason(rdf_path: str = "") -> None:
         )
         return
 
+    # Preserve currently selected worker before reloading to restore it later
+    current_selected = None
+    if _live_reasoner_ready:
+        try:
+            sel_prop = default_world.search_one(iri=IRI_IS_SELECTED)
+            if sel_prop is not None:
+                for ind in default_world.individuals():
+                    vals = sel_prop[ind]
+                    if vals and bool(vals[0]):
+                        current_selected = local_name(ind)
+                        break
+        except Exception:
+            pass
+    if not current_selected and _pending_selected_worker_id:
+        current_selected = _pending_selected_worker_id
+    if not current_selected and _snapshot_cache:
+        workers = _snapshot_cache.get("workers", [])
+        current_selected = next((w["id"] for w in workers if w.get("is_selected")), None)
+
+    # Clean up previous state to allow reload
+    _live_reasoner_ready = False
+    _icf_ind_cache.clear()
+
     try:
-        onto = _load_ontology(path)
+        onto = _load_ontology(path, reload=True)
         _loaded_ontology = onto
     except RuntimeError as exc:
         state.set_error(str(exc))
@@ -647,12 +670,16 @@ def load_and_reason(rdf_path: str = "") -> None:
         "properties"  : len(list(default_world.properties())),
     }
     _live_reasoner_ready = True
-    if _pending_selected_worker_id:
+    
+    # Restore the selected worker (either what was selected before, or what is pending)
+    target_selected = current_selected or _pending_selected_worker_id
+    if target_selected:
         try:
-            set_selected_worker(_pending_selected_worker_id)
-            _pending_selected_worker_id = None
+            set_selected_worker(target_selected)
         except Exception:
             pass
+    _pending_selected_worker_id = None
+
     state.set_ready(path, elapsed, stats)
     # Build ICF → Core Set lookup map once, after reasoning is complete
     _build_icf_core_set_map()

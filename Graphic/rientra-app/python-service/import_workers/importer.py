@@ -93,6 +93,7 @@ class ImportResult:
     backup_path:      str = ""
     new_person_ids:   list[str] = field(default_factory=list)
     skipped_ids:      list[str] = field(default_factory=list)
+    details:          list[dict] = field(default_factory=list)
     error:            Optional[str] = None
 
 
@@ -609,6 +610,47 @@ def import_sql_dataset(
         )
         updated = rdf_text.replace(CLOSING_TAG, injection + CLOSING_TAG, 1)
         Path(ontology_path).write_text(updated, encoding="utf-8")
+
+        # Extract detailed mapping info for each imported person before closing DB conn
+        details = []
+        for pid in new_ids:
+            try:
+                row = conn.execute("SELECT first_name, surname FROM person WHERE person_id = ?", (pid,)).fetchone()
+                fullname = f"{row['first_name']} {row['surname']}" if row else pid
+            except Exception:
+                fullname = pid
+
+            icfs = []
+            try:
+                icf_rows = conn.execute("""
+                    SELECT h.icf_code 
+                    FROM hc_descriptor h
+                    JOIN _known_icf k ON k.icf_code = h.icf_code
+                    WHERE h.person_id = ?
+                """, (pid,)).fetchall()
+                icfs = [r["icf_code"] for r in icf_rows]
+            except Exception as e:
+                logger.warning("[importer] Error querying imported ICFs for %s: %s", pid, e)
+
+            jobs = []
+            try:
+                job_rows = conn.execute("""
+                    SELECT j.job_id 
+                    FROM job_evaluation j
+                    JOIN _known_jobs k ON k.job_id = j.job_id
+                    WHERE j.person_id = ?
+                """, (pid,)).fetchall()
+                jobs = [r["job_id"] for r in job_rows]
+            except Exception as e:
+                logger.warning("[importer] Error querying imported jobs for %s: %s", pid, e)
+
+            details.append({
+                "person_id": pid,
+                "fullname": fullname,
+                "icfs": icfs,
+                "jobs": jobs
+            })
+        result.details = details
 
         result.persons_added = len(new_ids)
         conn.close()

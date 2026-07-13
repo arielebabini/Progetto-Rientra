@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import './JobAnalysisView.css';
+import './HealthConditionWizard.css';
 import {
   fetchMatchResults,
   fetchSkillDetail,
@@ -208,6 +209,19 @@ const CRIT_RANK: Record<string, number> = {
   'EXTREMELY CRITICAL': 4,
 };
 const ANCHOR_ICON = ['—', '↑', '↑↑', '↑↑↑'];
+
+const CloseIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"></line>
+    <line x1="6" y1="6" x2="18" y2="18"></line>
+  </svg>
+);
+
+const CheckIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12"></polyline>
+  </svg>
+);
 
 
 
@@ -678,203 +692,108 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
   /* ── Main render ── */
   return (
     <div className="ja-root">
-
-      {/* KPI strip */}
-      <div className="ja-kpi-row">
-        <div className="ja-kpi">
-          <span className="ja-kpi-val">{stats.total}</span>
-          <span className="ja-kpi-lbl">Jobs evaluated</span>
-        </div>
-        <div className="ja-kpi">
-          <span className="ja-kpi-val" style={{ color: '#5bbf82' }}>{stats.suitable}</span>
-          <span className="ja-kpi-lbl">Suitable</span>
-        </div>
-        <div className="ja-kpi">
-          <span className="ja-kpi-val" style={{ color: '#c4a83a' }}>{stats.precaution}</span>
-          <span className="ja-kpi-lbl">With precautions</span>
-        </div>
-        <div className="ja-kpi">
-          <span className="ja-kpi-val" style={{ color: '#c04040' }}>{stats.unsuitable}</span>
-          <span className="ja-kpi-lbl">Not suitable</span>
-        </div>
-        <div className="ja-kpi">
-          <span className="ja-kpi-val">{stats.avgGCS.toFixed(1)}%</span>
-          <span className="ja-kpi-lbl">Avg GCS</span>
-        </div>
-        <div className="ja-kpi">
-          <span className="ja-kpi-val">{stats.avgAISA.toFixed(1)}%</span>
-          <span className="ja-kpi-lbl">Avg AISA</span>
-        </div>
-      </div>
-
-      {/* Tab bar */}
-      <div className="ja-tab-bar">
-        <button className={`ja-tab${mainTab === 'map' ? ' active' : ''}`} onClick={() => setMainTab('map')}>Suitability Map</button>
-        <button className={`ja-tab${mainTab === 'detail' ? ' active' : ''}`} onClick={() => setMainTab('detail')}>Skill Detail</button>
-        <div className="ja-tab-spacer" />
-        <button className="ja-btn-edit-jobs" id="btn-edit-jobs" onClick={openEditJobs} title="Edit assigned jobs for this worker">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-          </svg>
-          Edit Jobs
-        </button>
-        <span className="ja-worker-chip">{workerDisplayName}</span>
-      </div>
-
-      {/* ── MAP tab ── */}
-      {mainTab === 'map' && (
-        <div className="ja-tab-content">
-          <div className="ja-map-body">
-            <div className="ja-scatter-area">
-              <div className="ja-scatter-legend">
-                {[['#ef4444', 'Not suitable'], ['#f59e0b', 'With precautions'], ['#22c55e', 'Suitable']].map(([c, l]) => (
-                  <span key={l} className="ja-legend-item">
-                    <span className="ja-legend-dot" style={{ background: c }} />{l}
-                  </span>
-                ))}
-              </div>
-              <ScatterPlot
-                matchResults={matchResults}
-                jobA={jobA}
-                jobB={jobB}
-                onSelect={id => setJobA(id)}
-              />
+      {editJobsOpen ? (
+        <div className="hc-wizard-modal" style={{ animation: 'contentFadeIn 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards' }}>
+          {/* Header */}
+          <div className="hc-wizard-header">
+            <div>
+              <h2 className="hc-wizard-title">Edit Job Assignments</h2>
+              <p className="hc-wizard-subtitle">
+                {workerDisplayName} — select jobs to evaluate from the ontology
+              </p>
             </div>
-            <div className="ja-jobs-sidebar">
-              <div className="ja-jobs-sidebar-hdr">Jobs</div>
-              <ul className="ja-jobs-list" role="listbox">
-                {[...matchResults].sort((a, b) => {
-                  const rank: Record<string, number> = { 'NOT SUITABLE': 0, 'SUITABLE WITH PRECAUTIONS': 1, 'SUITABLE': 2 };
-                  const rankA = rank[a.suitability] ?? 3;
-                  const rankB = rank[b.suitability] ?? 3;
-                  if (rankA !== rankB) return rankA - rankB;
-                  return a.job_id.localeCompare(b.job_id);
-                }).map(r => (
-                  <li key={r.job_id} role="option" aria-selected={r.job_id === jobA}
-                    className={`ja-job-item${r.job_id === jobA ? ' selected' : ''}`}
-                    onClick={() => setJobA(r.job_id)}>
-                    <span className="ja-job-dot" style={{ background: r.suitability_color }} />
-                    <span className="ja-job-label">{r.job_id.replace(/_/g, ' ')}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <button className="hc-wizard-close-btn" onClick={() => setEditJobsOpen(false)} disabled={savingJobs} aria-label="Close dialog"><CloseIcon /></button>
           </div>
-        </div>
-      )}
 
-
-
-      {/* ── DETAIL tab ── */}
-      {mainTab === 'detail' && (
-        <div className="ja-tab-content">
-          <div className="ja-detail-body">
-            <div className="ja-detail-split">
-              {jobA && renderSkillsTable(
-                'A', jobA, setJobA, skillDataA, loadingA, menuOpenA, setMenuOpenA,
-                sortsA, setSortsA, skillSearchA, setSkillSearchA, showSearchA, setShowSearchA,
-                expandedSkillA, setExpandedSkillA,
-              )}
-              {splitMode && jobB && renderSkillsTable(
-                'B', jobB, setJobB, skillDataB, loadingB, menuOpenB, setMenuOpenB,
-                sortsB, setSortsB, skillSearchB, setSkillSearchB, showSearchB, setShowSearchB,
-                expandedSkillB, setExpandedSkillB,
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Edit Jobs Modal ── */}
-      {editJobsOpen && (
-        <div className="ja-modal-backdrop" onClick={() => !savingJobs && setEditJobsOpen(false)}>
-          <div className="ja-modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Edit job assignments">
-
-            {/* Header */}
-            <div className="ja-modal-header">
-              <div className="ja-modal-title-block">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#4DD9C0', flexShrink: 0 }}>
-                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 2 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                </svg>
-                <div>
-                  <h2 className="ja-modal-title">Edit Job Assignments</h2>
-                  <p className="ja-modal-subtitle">
-                    {workerDisplayName} — select jobs to evaluate from the ontology
-                  </p>
-                </div>
-              </div>
-              <button className="ja-modal-close" onClick={() => setEditJobsOpen(false)} disabled={savingJobs} aria-label="Close">✕</button>
-            </div>
-
-            {/* Search bar + counter */}
-            <div className="ja-modal-search-row">
-              <div className="ja-modal-search-wrap">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'rgba(255,255,255,0.35)', flexShrink: 0 }}>
-                  <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
+          {/* Content area */}
+          <div className="hc-wizard-content">
+            {/* Toolbar: Search input + Actions */}
+            <div className="hc-wizard-toolbar">
+              <div className="hc-search-wrapper" style={{ maxWidth: '360px' }}>
+                <span className="hc-search-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                </span>
                 <input
-                  id="edit-jobs-search"
-                  className="ja-modal-search-input"
-                  placeholder="Search jobs…"
+                  type="text"
+                  className="hc-search-input"
+                  placeholder="Search jobs..."
                   value={jobSearch}
                   onChange={e => setJobSearch(e.target.value)}
                   autoFocus
                 />
                 {jobSearch && (
-                  <button className="ja-modal-search-clear" onClick={() => setJobSearch('')}>✕</button>
+                  <button
+                    className="hc-toast-close"
+                    style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    onClick={() => setJobSearch('')}
+                  >
+                    ✕
+                  </button>
                 )}
               </div>
-              <span className="ja-modal-counter">
-                <span style={{ color: '#4DD9C0', fontWeight: 700 }}>{draftJobIds.size}</span>
-                <span style={{ color: 'rgba(255,255,255,0.3)' }}> / {allOntologyJobs.length} selected</span>
-              </span>
-            </div>
 
-            {/* Quick actions */}
-            <div className="ja-modal-quick-actions">
-              <button className="ja-modal-action-btn" onClick={() => setDraftJobIds(new Set(allOntologyJobs.map(j => j.id)))}>Select all</button>
-              <button className="ja-modal-action-btn" onClick={() => setDraftJobIds(new Set())}>Clear all</button>
+              <span className="ja-modal-counter" style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)' }}>
+                <strong style={{ color: '#ffffff', fontWeight: 700 }}>{draftJobIds.size}</strong> / {allOntologyJobs.length} selected
+              </span>
+
+              {/* Quick actions (Select all / Clear all) */}
+              <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
+                <button className="ja-modal-action-btn" onClick={() => setDraftJobIds(new Set(allOntologyJobs.map(j => j.id)))}>Select all</button>
+                <button className="ja-modal-action-btn" onClick={() => setDraftJobIds(new Set())}>Clear all</button>
+              </div>
             </div>
 
             {/* Job list */}
-            <div className="ja-modal-list">
+            <div className="hc-wizard-table-container">
               {loadingAllJobs ? (
                 <div className="ja-center" style={{ padding: '40px' }}>
                   <div className="wp-spinner" />
                   <span className="ja-status-txt">Loading job catalogue…</span>
                 </div>
               ) : (
-                allOntologyJobs
-                  .filter(j => j.label.toLowerCase().includes(jobSearch.toLowerCase()) || j.id.toLowerCase().includes(jobSearch.toLowerCase()))
-                  .map(job => {
-                    const checked = draftJobIds.has(job.id);
-                    const toggle = () => setDraftJobIds(prev => {
-                      const next = new Set(prev);
-                      if (checked) next.delete(job.id); else next.add(job.id);
-                      return next;
-                    });
-                    return (
-                      <label key={job.id} className={`ja-modal-job-row${checked ? ' checked' : ''}`} htmlFor={`job-cb-${job.id}`}>
-                        <span className={`ja-modal-checkbox${checked ? ' checked' : ''}`} aria-hidden="true">
-                          {checked && (
-                            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-                              <polyline points="2 6 5 9 10 3" stroke="#0f2233" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          )}
-                        </span>
-                        <input
-                          id={`job-cb-${job.id}`}
-                          type="checkbox"
-                          checked={checked}
-                          onChange={toggle}
-                          style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
-                        />
-                        <span className="ja-modal-job-label">{job.label}</span>
-                        <span className="ja-modal-job-id">{job.id}</span>
-                      </label>
-                    );
-                  })
+                <table className="hc-wizard-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: 60 }}><CheckIcon /></th>
+                      <th style={{ width: '45%' }}>Job Label</th>
+                      <th>ID</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allOntologyJobs
+                      .filter(j => j.label.toLowerCase().includes(jobSearch.toLowerCase()) || j.id.toLowerCase().includes(jobSearch.toLowerCase()))
+                      .map(job => {
+                        const checked = draftJobIds.has(job.id);
+                        const toggle = () => setDraftJobIds(prev => {
+                          const next = new Set(prev);
+                          if (checked) next.delete(job.id); else next.add(job.id);
+                          return next;
+                        });
+                        return (
+                          <tr
+                            key={job.id}
+                            className={checked ? 'selected-row' : ''}
+                            onClick={toggle}
+                          >
+                            <td>
+                              <div className={`hc-checkbox ${checked ? 'checked' : ''}`}>
+                                {checked && <CheckIcon />}
+                              </div>
+                            </td>
+                            <td style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+                              {job.label}
+                            </td>
+                            <td className="hc-table-code" style={{ opacity: checked ? 1 : 0.6 }}>
+                              {job.id}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    }
+                  </tbody>
+                </table>
               )}
               {!loadingAllJobs && allOntologyJobs.length > 0 &&
                 allOntologyJobs.filter(j => j.label.toLowerCase().includes(jobSearch.toLowerCase()) || j.id.toLowerCase().includes(jobSearch.toLowerCase())).length === 0 && (
@@ -882,43 +801,150 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
               )}
             </div>
 
-            {/* Error */}
+            {/* Error messaging */}
             {saveError && (
-              <div className="ja-modal-error">
-                <span style={{ fontSize: '1rem' }}>⚠</span>
-                {saveError}
+              <div className="hc-wizard-error" style={{ margin: '12px 0 0 0' }}>
+                ⚠ {saveError}
               </div>
             )}
 
             {/* Footer */}
-            <div className="ja-modal-footer">
-              <button className="ja-modal-btn-cancel" onClick={() => setEditJobsOpen(false)} disabled={savingJobs}>Cancel</button>
-              <button
-                id="btn-save-jobs"
-                className="ja-modal-btn-save"
-                onClick={saveJobAssignment}
-                disabled={savingJobs}
-              >
-                {savingJobs ? (
-                  <>
-                    <div className="wp-spinner" style={{ width: 14, height: 14, borderWidth: 2 }} />
-                    Saving & Re-running Pellet…
-                  </>
-                ) : (
-                  <>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Save Assignment
-                  </>
-                )}
-              </button>
+            <div className="hc-wizard-footer" style={{ borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: '12px' }}>
+              <div className="hc-footer-left">
+                <button className="hc-btn-secondary" onClick={() => setEditJobsOpen(false)} disabled={savingJobs}>Cancel</button>
+              </div>
+              <div className="hc-footer-right">
+                <button
+                  className="hc-btn-primary"
+                  onClick={saveJobAssignment}
+                  disabled={savingJobs}
+                >
+                  {savingJobs ? (
+                    <>
+                      <span className="wp-spinner" style={{ width: 14, height: 14, borderWidth: 2, marginRight: 6 }} />
+                      Saving & Re-running Pellet…
+                    </>
+                  ) : (
+                    <>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      Save Assignment
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
           </div>
         </div>
-      )}
+      ) : (
+        <>
+          {/* KPI strip */}
+          <div className="ja-kpi-row">
+            <div className="ja-kpi">
+              <span className="ja-kpi-val">{stats.total}</span>
+              <span className="ja-kpi-lbl">Jobs evaluated</span>
+            </div>
+            <div className="ja-kpi">
+              <span className="ja-kpi-val" style={{ color: '#5bbf82' }}>{stats.suitable}</span>
+              <span className="ja-kpi-lbl">Suitable</span>
+            </div>
+            <div className="ja-kpi">
+              <span className="ja-kpi-val" style={{ color: '#c4a83a' }}>{stats.precaution}</span>
+              <span className="ja-kpi-lbl">With precautions</span>
+            </div>
+            <div className="ja-kpi">
+              <span className="ja-kpi-val" style={{ color: '#c04040' }}>{stats.unsuitable}</span>
+              <span className="ja-kpi-lbl">Not suitable</span>
+            </div>
+            <div className="ja-kpi">
+              <span className="ja-kpi-val">{stats.avgGCS.toFixed(1)}%</span>
+              <span className="ja-kpi-lbl">Avg GCS</span>
+            </div>
+            <div className="ja-kpi">
+              <span className="ja-kpi-val">{stats.avgAISA.toFixed(1)}%</span>
+              <span className="ja-kpi-lbl">Avg AISA</span>
+            </div>
+          </div>
 
+          {/* Tab bar */}
+          <div className="ja-tab-bar">
+            <button className={`ja-tab${mainTab === 'map' ? ' active' : ''}`} onClick={() => setMainTab('map')}>Suitability Map</button>
+            <button className={`ja-tab${mainTab === 'detail' ? ' active' : ''}`} onClick={() => setMainTab('detail')}>Skill Detail</button>
+            <div className="ja-tab-spacer" />
+            <button className="ja-btn-edit-jobs" id="btn-edit-jobs" onClick={openEditJobs} title="Edit assigned jobs for this worker" style={{ marginRight: 0 }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+              Edit Jobs
+            </button>
+          </div>
+
+          {/* ── MAP tab ── */}
+          {mainTab === 'map' && (
+            <div className="ja-tab-content">
+              <div className="ja-map-body">
+                <div className="ja-scatter-area">
+                  <div className="ja-scatter-legend">
+                    {[['#ef4444', 'Not suitable'], ['#f59e0b', 'With precautions'], ['#22c55e', 'Suitable']].map(([c, l]) => (
+                      <span key={l} className="ja-legend-item">
+                        <span className="ja-legend-dot" style={{ background: c }} />{l}
+                      </span>
+                    ))}
+                  </div>
+                  <ScatterPlot
+                    matchResults={matchResults}
+                    jobA={jobA}
+                    jobB={jobB}
+                    onSelect={id => setJobA(id)}
+                  />
+                </div>
+                <div className="ja-jobs-sidebar">
+                  <div className="ja-jobs-sidebar-hdr">Jobs</div>
+                  <ul className="ja-jobs-list" role="listbox">
+                    {[...matchResults].sort((a, b) => {
+                      const rank: Record<string, number> = { 'NOT SUITABLE': 0, 'SUITABLE WITH PRECAUTIONS': 1, 'SUITABLE': 2 };
+                      const rankA = rank[a.suitability] ?? 3;
+                      const rankB = rank[b.suitability] ?? 3;
+                      if (rankA !== rankB) return rankA - rankB;
+                      return a.job_id.localeCompare(b.job_id);
+                    }).map(r => (
+                      <li key={r.job_id} role="option" aria-selected={r.job_id === jobA}
+                        className={`ja-job-item${r.job_id === jobA ? ' selected' : ''}`}
+                        onClick={() => setJobA(r.job_id)}>
+                        <span className="ja-job-dot" style={{ background: r.suitability_color }} />
+                        <span className="ja-job-label">{r.job_id.replace(/_/g, ' ')}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── DETAIL tab ── */}
+          {mainTab === 'detail' && (
+            <div className="ja-tab-content">
+              <div className="ja-detail-body">
+                <div className="ja-detail-split">
+                  {jobA && renderSkillsTable(
+                    'A', jobA, setJobA, skillDataA, loadingA, menuOpenA, setMenuOpenA,
+                    sortsA, setSortsA, skillSearchA, setSkillSearchA, showSearchA, setShowSearchA,
+                    expandedSkillA, setExpandedSkillA,
+                  )}
+                  {splitMode && jobB && renderSkillsTable(
+                    'B', jobB, setJobB, skillDataB, loadingB, menuOpenB, setMenuOpenB,
+                    sortsB, setSortsB, skillSearchB, setSkillSearchB, showSearchB, setShowSearchB,
+                    expandedSkillB, setExpandedSkillB,
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

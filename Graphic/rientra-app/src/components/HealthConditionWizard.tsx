@@ -548,7 +548,7 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
                       Core Set
                       {wizardSelectedCoreSets.length > 0 && (
                         <span style={{
-                          background: '#4DD9C0', color: '#0f2233', borderRadius: '99px',
+                          background: '#ffffff', color: '#0f2233', borderRadius: '99px',
                           fontSize: '0.7rem', fontWeight: 700, padding: '1px 7px',
                         }}>{wizardSelectedCoreSets.length}</span>
                       )}
@@ -571,7 +571,7 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
                           {wizardSelectedCoreSets.length > 0 && (
                             <button
                               onClick={() => setWizardSelectedCoreSets([])}
-                              style={{ background: 'none', border: 'none', color: '#4DD9C0', cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}
+                              style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}
                             >Clear all</button>
                           )}
                         </div>
@@ -608,15 +608,15 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
                               >
                                 <span style={{
                                   width: 16, height: 16, borderRadius: 4, flexShrink: 0,
-                                  border: `2px solid ${checked ? '#4DD9C0' : 'rgba(255,255,255,0.3)'}`,
-                                  background: checked ? '#4DD9C0' : 'transparent',
+                                  border: `2px solid ${checked ? '#ffffff' : 'rgba(255,255,255,0.3)'}`,
+                                  background: 'transparent',
                                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                                   transition: 'all 0.15s',
                                   pointerEvents: 'none',
                                 }}>
                                   {checked && (
                                     <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-                                      <polyline points="2 6 5 9 10 3" stroke="#0f2233" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                      <polyline points="2 6 5 9 10 3" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                   )}
                                 </span>
@@ -643,7 +643,7 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
                       Category
                       {selectedCategories.length > 0 && (
                         <span style={{
-                          background: '#4DD9C0', color: '#0f2233', borderRadius: '99px',
+                          background: '#ffffff', color: '#0f2233', borderRadius: '99px',
                           fontSize: '0.7rem', fontWeight: 700, padding: '1px 7px',
                         }}>{selectedCategories.length}</span>
                       )}
@@ -666,7 +666,7 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
                           {selectedCategories.length > 0 && (
                             <button
                               onClick={() => setSelectedCategories([])}
-                              style={{ background: 'none', border: 'none', color: '#4DD9C0', cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}
+                              style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}
                             >Clear all</button>
                           )}
                         </div>
@@ -700,15 +700,15 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
                             >
                               <span style={{
                                 width: 16, height: 16, borderRadius: 4, flexShrink: 0,
-                                border: `2px solid ${checked ? '#4DD9C0' : 'rgba(255,255,255,0.3)'}`,
-                                background: checked ? '#4DD9C0' : 'transparent',
+                                border: `2px solid ${checked ? '#ffffff' : 'rgba(255,255,255,0.3)'}`,
+                                background: 'transparent',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 transition: 'all 0.15s',
                                 pointerEvents: 'none',
                               }}>
                                 {checked && (
                                   <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-                                    <polyline points="2 6 5 9 10 3" stroke="#0f2233" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                    <polyline points="2 6 5 9 10 3" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                   </svg>
                                 )}
                               </span>
