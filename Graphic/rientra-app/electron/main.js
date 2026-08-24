@@ -286,3 +286,41 @@ ipcMain.handle('read-file-buffer', async (_event, filePath) => {
     return { ok: false, error: err.message };
   }
 });
+
+// ─── IPC — check if ontology file exists ──────────────────────────────────
+ipcMain.handle('check-ontology-exists', async () => {
+  try {
+    const serviceDir = getServiceDir();
+    if (!fs.existsSync(serviceDir)) return false;
+    const files = fs.readdirSync(serviceDir);
+    const extensions = ['.rdf', '.owl', '.ttl', '.n3'];
+    return files.some(file => extensions.includes(path.extname(file).toLowerCase()));
+  } catch (err) {
+    console.error('[IPC Check Ontology] Error:', err);
+    return false;
+  }
+});
+
+// ─── IPC — copy selected ontology file and restart Python service ─────────
+ipcMain.handle('upload-ontology-file', async (_event, filePath) => {
+  try {
+    const serviceDir = getServiceDir();
+    if (!fs.existsSync(serviceDir)) {
+      fs.mkdirSync(serviceDir, { recursive: true });
+    }
+    const destPath = path.join(serviceDir, path.basename(filePath));
+    fs.copyFileSync(filePath, destPath);
+    console.log(`[IPC Upload Ontology] Copied ${filePath} to ${destPath}`);
+
+    // Restart Python service
+    stopPythonService();
+    startPythonService();
+    console.log('[IPC Upload Ontology] Python service restarted successfully');
+    return { ok: true };
+  } catch (err) {
+    console.error('[IPC Upload Ontology] Error:', err);
+    return { ok: false, error: err.message };
+  }
+});
+
+

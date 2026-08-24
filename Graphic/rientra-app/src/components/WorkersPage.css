@@ -24,31 +24,52 @@
   pointer-events: none;
   animation: blobDrift 12s ease-in-out infinite alternate;
 }
+
 .bg-blob-1 {
-  width: 500px; height: 500px;
+  width: 500px;
+  height: 500px;
   background: radial-gradient(circle, #4a90b8 0%, #1e6688 60%, transparent 100%);
-  top: -150px; left: -100px;
+  top: -150px;
+  left: -100px;
   animation-duration: 14s;
 }
+
 .bg-blob-2 {
-  width: 400px; height: 400px;
+  width: 400px;
+  height: 400px;
   background: radial-gradient(circle, #6a5acd 0%, #3b308a 60%, transparent 100%);
-  bottom: -100px; right: 150px;
+  bottom: -100px;
+  right: 150px;
   animation-duration: 10s;
   animation-delay: -4s;
 }
+
 .bg-blob-3 {
-  width: 350px; height: 350px;
+  width: 350px;
+  height: 350px;
   background: radial-gradient(circle, #20b2aa 0%, #107070 60%, transparent 100%);
-  top: 40%; left: 55%;
+  top: 40%;
+  left: 55%;
   animation-duration: 16s;
   animation-delay: -8s;
 }
+
 @keyframes blobDrift {
-  0%   { transform: translate(0, 0) scale(1); }
-  33%  { transform: translate(30px, -20px) scale(1.05); }
-  66%  { transform: translate(-20px, 30px) scale(0.95); }
-  100% { transform: translate(20px, 20px) scale(1.02); }
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  33% {
+    transform: translate(30px, -20px) scale(1.05);
+  }
+
+  66% {
+    transform: translate(-20px, 30px) scale(0.95);
+  }
+
+  100% {
+    transform: translate(20px, 20px) scale(1.02);
+  }
 }
 
 /* ═══════════════════════════════════════════
@@ -84,7 +105,10 @@
   gap: 10px;
   cursor: pointer;
 }
-.wp-nav-brand:hover .wp-nav-title { color: #4DD9C0; }
+
+.wp-nav-brand:hover .wp-nav-title {
+  color: #4DD9C0;
+}
 
 .wp-nav-logo {
   width: 32px;
@@ -122,6 +146,7 @@
   transition: background 0.2s, color 0.2s;
   flex-shrink: 0;
 }
+
 .wp-breadcrumb-back-btn:hover {
   background: rgba(255, 255, 255, 0.15);
   color: #fff;
@@ -189,6 +214,7 @@
   transition: color 0.2s, border-color 0.2s, background 0.2s;
   flex-shrink: 0;
 }
+
 .wp-nav-home-btn:hover {
   color: #ffffff;
   border-color: rgba(255, 255, 255, 0.35);
@@ -205,7 +231,8 @@
   display: flex;
   overflow: hidden;
   min-height: 0;
-  height: 0; /* forces flex children to respect parent height */
+  height: 0;
+  /* forces flex children to respect parent height */
 }
 
 /* ═══════════════════════════════════════════
@@ -225,7 +252,8 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 14px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  overflow: hidden; /* no sidebar-level scrollbar */
+  overflow: hidden;
+  /* no sidebar-level scrollbar */
   transition: width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), min-width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), max-width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), padding 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), margin 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.35s ease;
 }
 
@@ -262,6 +290,7 @@
   justify-content: center;
   transition: background 0.15s, color 0.15s;
 }
+
 .wp-icon-button:hover {
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
@@ -279,6 +308,7 @@
   position: relative;
   margin-bottom: 14px;
 }
+
 .wp-search-icon {
   position: absolute;
   left: 10px;
@@ -289,6 +319,7 @@
   align-items: center;
   pointer-events: none;
 }
+
 .wp-search-input {
   width: 100%;
   background: rgba(255, 255, 255, 0.08);
@@ -301,11 +332,16 @@
   outline: none;
   transition: border-color 0.2s, background 0.2s;
 }
-.wp-search-input::placeholder { color: rgba(255, 255, 255, 0.35); }
+
+.wp-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
 .wp-search-input:focus {
   border-color: rgba(255, 255, 255, 0.5);
   background: rgba(255, 255, 255, 0.11);
 }
+
 .wp-search-action-icon {
   position: absolute;
   right: 10px;
@@ -318,6 +354,7 @@
   cursor: pointer;
   transition: color 0.15s;
 }
+
 .wp-search-action-icon:hover {
   color: #fff;
 }
@@ -331,6 +368,7 @@
   margin-bottom: 16px;
   gap: 4px;
 }
+
 .wp-toggle-btn {
   flex: 1;
   display: flex;
@@ -348,9 +386,11 @@
   cursor: pointer;
   transition: all 0.2s;
 }
+
 .wp-toggle-btn:hover {
   color: rgba(255, 255, 255, 0.9);
 }
+
 .wp-toggle-btn.active {
   background: rgba(255, 255, 255, 0.15);
   color: #ffffff;
@@ -378,12 +418,17 @@
   padding: 0;
   margin: 0 0 12px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.15) transparent;
-  min-height: 0; /* allow shrinking inside flex column */
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  min-height: 0;
+  /* allow shrinking inside flex column */
 }
-.wp-worker-list::-webkit-scrollbar { width: 4px; }
+
+.wp-worker-list::-webkit-scrollbar {
+  width: 4px;
+}
+
 .wp-worker-list::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 99px;
 }
 
@@ -395,10 +440,12 @@
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
+
 .wp-worker-item:hover {
   background: rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.95);
 }
+
 .wp-worker-item.selected {
   background: rgba(255, 255, 255, 0.12);
   color: #ffffff;
@@ -423,14 +470,18 @@
   cursor: pointer;
   transition: filter 0.2s, transform 0.2s, box-shadow 0.2s;
   box-shadow: 0 4px 14px rgba(42, 168, 200, 0.3);
-  flex-shrink: 0; /* never squish this button */
-  margin-top: 0;  /* spacing handled by worker list's flex: 1 */
+  flex-shrink: 0;
+  /* never squish this button */
+  margin-top: 0;
+  /* spacing handled by worker list's flex: 1 */
 }
+
 .wp-add-btn:hover {
   filter: brightness(1.1);
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(42, 168, 200, 0.5);
 }
+
 .wp-add-btn:active {
   transform: translateY(0);
   filter: brightness(0.95);
@@ -442,7 +493,8 @@
 .wp-main {
   position: relative;
   flex: 1;
-  overflow: hidden; /* no outer scroll — inner sections scroll independently */
+  overflow: hidden;
+  /* no outer scroll — inner sections scroll independently */
   padding: 10px;
   display: flex;
   flex-direction: column;
@@ -455,7 +507,7 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 14px;
   padding: 24px 28px;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -478,6 +530,7 @@
     opacity: 0;
     transform: translateY(6px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -511,10 +564,12 @@
   cursor: pointer;
   transition: all 0.2s;
 }
+
 .wp-btn-secondary:hover {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.3);
 }
+
 .wp-btn-secondary:active {
   transform: translateY(1px);
 }
@@ -544,6 +599,7 @@
   font-size: 0.875rem;
   color: rgba(255, 255, 255, 0.55);
 }
+
 .wp-worker-meta strong {
   color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
@@ -577,11 +633,15 @@
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.15) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
-.wp-section--scroll::-webkit-scrollbar { width: 5px; }
+
+.wp-section--scroll::-webkit-scrollbar {
+  width: 5px;
+}
+
 .wp-section--scroll::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 99px;
 }
 
@@ -622,20 +682,26 @@
   color: #ffffff;
   cursor: pointer;
   transition: filter 0.2s, transform 0.15s, box-shadow 0.2s;
-  box-shadow: 0 3px 12px rgba(42,168,200,0.3);
+  box-shadow: 0 3px 12px rgba(42, 168, 200, 0.3);
   white-space: nowrap;
 }
+
 .wp-btn-primary:hover {
   filter: brightness(1.1);
   transform: translateY(-1px);
-  box-shadow: 0 5px 18px rgba(42,168,200,0.5);
+  box-shadow: 0 5px 18px rgba(42, 168, 200, 0.5);
 }
-.wp-btn-primary:active { transform: translateY(0); filter: brightness(0.95); }
+
+.wp-btn-primary:active {
+  transform: translateY(0);
+  filter: brightness(0.95);
+}
 
 /* Dots button */
 .wp-dots-wrapper {
   position: relative;
 }
+
 .wp-btn-dots {
   display: flex;
   align-items: center;
@@ -649,9 +715,11 @@
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
-.wp-btn-dots:hover, .wp-btn-dots.active {
+
+.wp-btn-dots:hover,
+.wp-btn-dots.active {
   background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255,255,255,0.3);
+  border-color: rgba(255, 255, 255, 0.3);
   color: #fff;
 }
 
@@ -663,17 +731,25 @@
   background: rgba(24, 44, 74, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 10px;
   padding: 6px;
   min-width: 180px;
   z-index: 50;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   animation: dropdownIn 0.15s ease;
 }
+
 @keyframes dropdownIn {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .wp-dropdown-item {
@@ -687,13 +763,14 @@
   border-radius: 7px;
   font-family: 'Inter', sans-serif;
   font-size: 0.82rem;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
   text-align: left;
 }
+
 .wp-dropdown-item:hover {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   color: #fff;
 }
 
@@ -705,12 +782,17 @@
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
   scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.15) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
   min-height: 0;
 }
-.wp-table-wrapper::-webkit-scrollbar { width: 5px; height: 5px; }
+
+.wp-table-wrapper::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
 .wp-table-wrapper::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 99px;
 }
 
@@ -737,7 +819,8 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  background: #1a2e4a; /* solid to prevent row bleed-through */
+  background: #1a2e4a;
+  /* solid to prevent row bleed-through */
 }
 
 .wp-table td {
@@ -752,11 +835,14 @@
   padding-left: 36px;
 }
 
-.wp-table tbody tr:last-child td { border-bottom: none; }
+.wp-table tbody tr:last-child td {
+  border-bottom: none;
+}
 
 .wp-table tbody tr {
   transition: background 0.15s;
 }
+
 .wp-table tbody tr:hover {
   background: rgba(77, 217, 192, 0.06);
 }
@@ -841,13 +927,17 @@
   user-select: none;
   transition: color 0.15s, background-color 0.15s;
 }
+
 .wp-th-sortable:hover {
   color: rgba(255, 255, 255, 0.75);
-  background-color: #223856; /* solid slightly lighter than #1a2e4a to prevent bleed-through */
+  background-color: #223856;
+  /* solid slightly lighter than #1a2e4a to prevent bleed-through */
 }
+
 .wp-th-sorted {
-  color: #4DD9C0 !important;
+  color: #ffffff !important;
 }
+
 .wp-sort-icon {
   display: inline-block;
   margin-left: 4px;
@@ -856,17 +946,19 @@
   vertical-align: middle;
   transition: opacity 0.15s;
 }
+
 .wp-th-sortable:hover .wp-sort-icon {
   opacity: 0.7;
 }
+
 .wp-sort-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   margin-left: 5px;
   padding: 1px 5px;
-  background: rgba(77, 217, 192, 0.18);
-  color: #4DD9C0;
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
   border-radius: 4px;
   font-size: 0.68rem;
   font-weight: 700;
@@ -874,6 +966,7 @@
   vertical-align: middle;
   line-height: 1.4;
 }
+
 
 /* qualifier badge */
 .wp-qualifier-badge {
@@ -904,12 +997,15 @@
   color: rgba(255, 255, 255, 0.35);
   font-size: 0.85rem;
   line-height: 1.6;
-  display: none; /* shown via JS/React when tbody has no rows */
+  display: none;
+  /* shown via JS/React when tbody has no rows */
 }
+
 /* If tbody is empty, show it — React will control this */
 .wp-table-empty.visible {
   display: block;
 }
+
 .wp-table-empty-hint {
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.2);
@@ -920,34 +1016,36 @@
    TAB BAR (inside worker detail panel)
 ═══════════════════════════════════════════ */
 .wp-tab-bar {
-  display:     flex;
-  gap:         4px;
-  padding:     4px;
-  background:  rgba(255,255,255,0.04);
-  border:      1px solid rgba(255,255,255,0.08);
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
-  width:       fit-content;
+  width: fit-content;
 }
 
 .wp-tab {
-  padding:     7px 18px;
-  background:  none;
-  border:      none;
+  padding: 7px 18px;
+  background: none;
+  border: none;
   border-radius: 7px;
   font-family: 'Inter', sans-serif;
-  font-size:   0.82rem;
+  font-size: 0.82rem;
   font-weight: 500;
-  color:       rgba(255,255,255,0.5);
-  cursor:      pointer;
-  transition:  background 0.18s, color 0.18s;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
 }
+
 .wp-tab:hover {
-  background: rgba(255,255,255,0.07);
-  color:      rgba(255,255,255,0.8);
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.8);
 }
+
 .wp-tab.active {
-  background: rgba(77,217,192,0.18);
-  color:      #4DD9C0;
+  background: rgba(77, 217, 192, 0.18);
+  color: #4DD9C0;
   font-weight: 600;
 }
 
@@ -977,7 +1075,7 @@
 .wp-empty-title {
   font-size: 1.15rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: #ffffff;
 }
 
 .wp-empty-subtitle {
@@ -997,12 +1095,15 @@
     max-width: 180px;
     padding: 16px 10px 12px;
   }
+
   .wp-panel {
     padding: 18px 16px;
   }
+
   .wp-worker-id-value {
     font-size: 1.5rem;
   }
+
   .wp-section-header {
     flex-direction: column;
     align-items: flex-start;
@@ -1026,33 +1127,48 @@
   border: 1px solid transparent;
   transition: all 0.3s ease;
 }
+
 .wp-service-badge--loading {
   color: rgba(245, 158, 11, 0.9);
   background: rgba(245, 158, 11, 0.1);
   border-color: rgba(245, 158, 11, 0.25);
 }
+
 .wp-service-badge--ready {
   color: rgba(34, 197, 94, 0.9);
   background: rgba(34, 197, 94, 0.1);
   border-color: rgba(34, 197, 94, 0.25);
 }
+
 .wp-service-badge--error {
   color: rgba(239, 68, 68, 0.9);
   background: rgba(239, 68, 68, 0.1);
   border-color: rgba(239, 68, 68, 0.25);
 }
+
 .wp-service-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: currentColor;
 }
+
 .wp-service-badge--loading .wp-service-dot {
   animation: servicePulse 1.2s ease-in-out infinite;
 }
+
 @keyframes servicePulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.4; transform: scale(0.7); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.4;
+    transform: scale(0.7);
+  }
 }
 
 /* ═══════════════════════════════════════════
@@ -1109,6 +1225,7 @@
   color: rgba(255, 255, 255, 0.85);
   margin: 0;
 }
+
 .wp-loading-phase {
   font-size: 0.82rem;
   color: rgba(255, 255, 255, 0.45);
@@ -1121,25 +1238,28 @@
   gap: 24px;
   padding: 14px 24px;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
 }
+
 .wp-loading-stat {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
 }
+
 .wp-loading-stat-val {
   font-size: 1.25rem;
   font-weight: 700;
   color: #4DD9C0;
   line-height: 1;
 }
+
 .wp-loading-stat-lbl {
   font-size: 0.68rem;
   font-weight: 500;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -1164,21 +1284,37 @@
 }
 
 @keyframes barFill {
-  0%   { width: 0%; opacity: 1; }
-  85%  { width: 100%; opacity: 1; }
-  95%  { width: 100%; opacity: 0; }
-  100% { width: 0%; opacity: 0; }
+  0% {
+    width: 0%;
+    opacity: 1;
+  }
+
+  85% {
+    width: 100%;
+    opacity: 1;
+  }
+
+  95% {
+    width: 100%;
+    opacity: 0;
+  }
+
+  100% {
+    width: 0%;
+    opacity: 0;
+  }
 }
 
 /* Footer hints */
 .wp-loading-elapsed {
   font-size: 0.75rem;
-  color: rgba(255,255,255,0.3);
+  color: rgba(255, 255, 255, 0.3);
   margin: -8px 0 0;
 }
+
 .wp-loading-hint {
   font-size: 0.72rem;
-  color: rgba(255,255,255,0.2);
+  color: rgba(255, 255, 255, 0.2);
   max-width: 300px;
   line-height: 1.5;
 }
@@ -1186,7 +1322,7 @@
 /* Error state inside loading screen */
 .wp-loading-error-icon {
   font-size: 2.5rem;
-  color: rgba(239,68,68,0.8);
+  color: rgba(239, 68, 68, 0.8);
 }
 
 /* ═══════════════════════════════════════════
@@ -1196,31 +1332,41 @@
   pointer-events: none;
   padding: 10px;
 }
+
 .wp-skeleton-line {
   display: block;
   height: 10px;
   width: 70%;
   border-radius: 5px;
   background: linear-gradient(90deg,
-    rgba(255,255,255,0.07) 25%,
-    rgba(255,255,255,0.14) 50%,
-    rgba(255,255,255,0.07) 75%
-  );
+      rgba(255, 255, 255, 0.07) 25%,
+      rgba(255, 255, 255, 0.14) 50%,
+      rgba(255, 255, 255, 0.07) 75%);
   background-size: 200% 100%;
   animation: skeletonShimmer 1.4s linear infinite;
 }
+
 @keyframes skeletonShimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
+
 .wp-worker-item--empty {
   font-size: 0.78rem;
-  color: rgba(255,255,255,0.25);
+  color: rgba(255, 255, 255, 0.25);
   cursor: default;
   padding: 10px;
   font-style: italic;
 }
-.wp-worker-item--empty:hover { background: none; }
+
+.wp-worker-item--empty:hover {
+  background: none;
+}
 
 /* ═══════════════════════════════════════════
    WORKER HEADER EXTRAS
@@ -1230,13 +1376,14 @@
   padding: 2px 8px;
   border-radius: 99px;
   font-weight: 600;
-  color: rgba(255,255,255,0.35);
-  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
+
 .wp-selected-badge.active {
   color: #4DD9C0;
-  border-color: rgba(77,217,192,0.3);
-  background: rgba(77,217,192,0.08);
+  border-color: rgba(77, 217, 192, 0.3);
+  background: rgba(77, 217, 192, 0.08);
 }
 
 /* ═══════════════════════════════════════════
@@ -1248,7 +1395,7 @@
   justify-content: center;
   gap: 12px;
   padding: 40px 20px;
-  color: rgba(255,255,255,0.45);
+  color: rgba(255, 255, 255, 0.45);
   font-size: 0.85rem;
 }
 
@@ -1256,27 +1403,53 @@
 .wp-spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid rgba(77,217,192,0.2);
+  border: 2px solid rgba(77, 217, 192, 0.2);
   border-top-color: #4DD9C0;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   flex-shrink: 0;
 }
+
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Effective qualifier colour tiers */
-.wp-qualifier-badge--eff { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); }
-.wp-eff-0 { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.4); }
-.wp-eff-1 { background: rgba(34,197,94,0.15);   color: #4ade80; }
-.wp-eff-2 { background: rgba(245,158,11,0.15);  color: #fbbf24; }
-.wp-eff-3 { background: rgba(249,115,22,0.15);  color: #fb923c; }
-.wp-eff-4 { background: rgba(239,68,68,0.18);   color: #f87171; }
+.wp-qualifier-badge--eff {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.wp-eff-0 {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.wp-eff-1 {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.wp-eff-2 {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+
+.wp-eff-3 {
+  background: rgba(249, 115, 22, 0.15);
+  color: #fb923c;
+}
+
+.wp-eff-4 {
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+}
 
 /* N/A placeholder */
 .wp-na {
-  color: rgba(255,255,255,0.2);
+  color: rgba(255, 255, 255, 0.2);
   font-size: 0.85rem;
 }
 
@@ -1284,7 +1457,7 @@
 .wp-table-empty code {
   font-family: 'Courier New', monospace;
   font-size: 0.8rem;
-  background: rgba(77,217,192,0.1);
+  background: rgba(77, 217, 192, 0.1);
   color: #4DD9C0;
   padding: 1px 5px;
   border-radius: 4px;
@@ -1299,9 +1472,15 @@
   pointer-events: none;
   animation: workerSwitchPulse 0.9s ease-in-out infinite alternate;
 }
+
 @keyframes workerSwitchPulse {
-  from { opacity: 0.45; }
-  to   { opacity: 0.75; }
+  from {
+    opacity: 0.45;
+  }
+
+  to {
+    opacity: 0.75;
+  }
 }
 
 .wp-worker-switching-label {
@@ -1320,9 +1499,17 @@
   flex-shrink: 0;
   animation: switchDotBlink 0.7s ease-in-out infinite alternate;
 }
+
 @keyframes switchDotBlink {
-  from { opacity: 0.3; transform: scale(0.7); }
-  to   { opacity: 1;   transform: scale(1.2); }
+  from {
+    opacity: 0.3;
+    transform: scale(0.7);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 
 
@@ -1344,8 +1531,13 @@
 }
 
 @keyframes backdropFadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .wp-modal {
@@ -1366,8 +1558,15 @@
 }
 
 @keyframes modalSlideIn {
-  from { opacity: 0; transform: translateY(20px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .wp-modal-icon {
@@ -1458,7 +1657,8 @@
 
 .wp-service-loading-spinner {
   position: absolute;
-  top: 0; left: 0;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   border: 2px solid rgba(245, 158, 11, 0.15);
@@ -1476,8 +1676,13 @@
 }
 
 @keyframes wp-service-spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Tooltip card */
@@ -1488,12 +1693,13 @@
   top: calc(100% + 10px);
   right: 0;
   width: 250px;
-  background: rgba(20, 32, 52, 0.96);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  background: rgba(24, 44, 74, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
   padding: 12px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   z-index: 1000;
   transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
   transform: translateY(-5px);
@@ -1781,4 +1987,3 @@
 .wp-modal-close-btn:active {
   transform: translateY(0);
 }
-

@@ -795,111 +795,111 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
               </div>
               <div ref={reviewScrollRef} className="hc-wizard-review-container">
 
-              {toModify.length > 0 && (
-                <div className="hc-review-group">
-                  <div className="hc-review-table-wrapper">
-                    <ReviewTableHeader />
-                    {toModify.map(c => {
-                      const prevQ = getPreviousQualifier(c.icf_code);
-                      const showPrevious = hasQualifierChanged(c.icf_code);
-                      const isExpanded = expandedReviewCode === c.icf_code;
-                      const description = getReviewDescription(c.icf_code);
-                      const parsedDescription = parseConditionDescription(description);
-                      return (
-                        <ReviewExpandableRow
-                          key={c.icf_code}
-                          icfCode={c.icf_code}
-                          icfName={c.icf_name}
-                          description={description}
-                          parsedDescription={parsedDescription}
-                          isExpanded={isExpanded}
-                          isError={assignedQualifiers[c.icf_code] == null}
-                          statusBadge={<span className="hc-status-badge hc-badge-modify">Modify</span>}
-                          qualifierContent={(
-                            <QualifierSelector
-                              val={assignedQualifiers[c.icf_code] ?? null}
-                              onChange={(q) => handleQualifierSelect(c.icf_code, q)}
-                              allowZero={true}
-                            />
-                          )}
-                          previousContent={showPrevious ? prevQ : '-'}
-                          onToggle={() => toggleReviewExpansion(c.icf_code)}
-                        />
-                      );
-                    })}
+                {toModify.length > 0 && (
+                  <div className="hc-review-group">
+                    <div className="hc-review-table-wrapper">
+                      <ReviewTableHeader />
+                      {toModify.map(c => {
+                        const prevQ = getPreviousQualifier(c.icf_code);
+                        const showPrevious = hasQualifierChanged(c.icf_code);
+                        const isExpanded = expandedReviewCode === c.icf_code;
+                        const description = getReviewDescription(c.icf_code);
+                        const parsedDescription = parseConditionDescription(description);
+                        return (
+                          <ReviewExpandableRow
+                            key={c.icf_code}
+                            icfCode={c.icf_code}
+                            icfName={c.icf_name}
+                            description={description}
+                            parsedDescription={parsedDescription}
+                            isExpanded={isExpanded}
+                            isError={assignedQualifiers[c.icf_code] == null}
+                            statusBadge={<span className="hc-status-badge hc-badge-modify">Modify</span>}
+                            qualifierContent={(
+                              <QualifierSelector
+                                val={assignedQualifiers[c.icf_code] ?? null}
+                                onChange={(q) => handleQualifierSelect(c.icf_code, q)}
+                                allowZero={true}
+                              />
+                            )}
+                            previousContent={showPrevious ? prevQ : '-'}
+                            onToggle={() => toggleReviewExpansion(c.icf_code)}
+                          />
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {toAdd.length > 0 && (
-                <div className="hc-review-group">
-                  <h4 className="hc-group-title">New added codes</h4>
-                  <div className="hc-review-table-wrapper">
-                    <ReviewTableHeader />
-                    {toAdd.map(c => {
-                      const isExpanded = expandedReviewCode === c.icf_code;
-                      const description = getReviewDescription(c.icf_code);
-                      const parsedDescription = parseConditionDescription(description);
-                      return (
-                        <ReviewExpandableRow
-                          key={c.icf_code}
-                          icfCode={c.icf_code}
-                          icfName={c.icf_name}
-                          description={description}
-                          parsedDescription={parsedDescription}
-                          isExpanded={isExpanded}
-                          isError={assignedQualifiers[c.icf_code] == null}
-                          statusBadge={<span className="hc-status-badge hc-badge-add">New addition</span>}
-                          qualifierContent={(
-                            <QualifierSelector
-                              val={assignedQualifiers[c.icf_code] ?? null}
-                              onChange={(q) => handleQualifierSelect(c.icf_code, q)}
-                            />
-                          )}
-                          previousContent={'-'}
-                          onToggle={() => toggleReviewExpansion(c.icf_code)}
-                        />
-                      );
-                    })}
+                {toAdd.length > 0 && (
+                  <div className="hc-review-group">
+                    <h4 className="hc-group-title">New added codes</h4>
+                    <div className="hc-review-table-wrapper">
+                      <ReviewTableHeader />
+                      {toAdd.map(c => {
+                        const isExpanded = expandedReviewCode === c.icf_code;
+                        const description = getReviewDescription(c.icf_code);
+                        const parsedDescription = parseConditionDescription(description);
+                        return (
+                          <ReviewExpandableRow
+                            key={c.icf_code}
+                            icfCode={c.icf_code}
+                            icfName={c.icf_name}
+                            description={description}
+                            parsedDescription={parsedDescription}
+                            isExpanded={isExpanded}
+                            isError={assignedQualifiers[c.icf_code] == null}
+                            statusBadge={<span className="hc-status-badge hc-badge-add">New addition</span>}
+                            qualifierContent={(
+                              <QualifierSelector
+                                val={assignedQualifiers[c.icf_code] ?? null}
+                                onChange={(q) => handleQualifierSelect(c.icf_code, q)}
+                              />
+                            )}
+                            previousContent={'-'}
+                            onToggle={() => toggleReviewExpansion(c.icf_code)}
+                          />
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {toRemove.length > 0 && (
-                <div className="hc-review-group">
-                  <h4 className="hc-group-title">Codes to be removed</h4>
-                  <div className="hc-review-table-wrapper">
-                    <ReviewTableHeader />
-                    {toRemove.map(c => {
-                      const isExpanded = expandedReviewCode === c.icf_code;
-                      const description = c.description || '';
-                      const parsedDescription = parseConditionDescription(description);
-                      return (
-                        <ReviewExpandableRow
-                          key={c.icf_code}
-                          icfCode={c.icf_code}
-                          icfName={c.icf_name}
-                          description={description}
-                          parsedDescription={parsedDescription}
-                          isExpanded={isExpanded}
-                          isDimmed={true}
-                          statusBadge={<span className="hc-status-badge hc-badge-remove">For removal</span>}
-                          qualifierContent={'-'}
-                          previousContent={'-'}
-                          onToggle={() => toggleReviewExpansion(c.icf_code)}
-                        />
-                      );
-                    })}
+                {toRemove.length > 0 && (
+                  <div className="hc-review-group">
+                    <h4 className="hc-group-title">Codes to be removed</h4>
+                    <div className="hc-review-table-wrapper">
+                      <ReviewTableHeader />
+                      {toRemove.map(c => {
+                        const isExpanded = expandedReviewCode === c.icf_code;
+                        const description = c.description || '';
+                        const parsedDescription = parseConditionDescription(description);
+                        return (
+                          <ReviewExpandableRow
+                            key={c.icf_code}
+                            icfCode={c.icf_code}
+                            icfName={c.icf_name}
+                            description={description}
+                            parsedDescription={parsedDescription}
+                            isExpanded={isExpanded}
+                            isDimmed={true}
+                            statusBadge={<span className="hc-status-badge hc-badge-remove">For removal</span>}
+                            qualifierContent={'-'}
+                            previousContent={'-'}
+                            onToggle={() => toggleReviewExpansion(c.icf_code)}
+                          />
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {toModify.length === 0 && toAdd.length === 0 && toRemove.length === 0 && (
-                <div className="hc-review-empty">
-                  {reviewSearch ? 'No codes match your search.' : 'No changes made.'}
-                </div>
-              )}
-            </div>
+                {toModify.length === 0 && toAdd.length === 0 && toRemove.length === 0 && (
+                  <div className="hc-review-empty">
+                    {reviewSearch ? 'No codes match your search.' : 'No changes made.'}
+                  </div>
+                )}
+              </div>
             </>
           )}
 

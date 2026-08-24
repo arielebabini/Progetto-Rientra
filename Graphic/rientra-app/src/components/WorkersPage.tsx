@@ -279,7 +279,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // ── Import modal state ────────────────────────────────────────────────────
-  type ImportPhase = 'idle' | 'picking' | 'uploading' | 'done' | 'error';
+  type ImportPhase = 'idle' | 'instructions' | 'picking' | 'uploading' | 'done' | 'error';
   const [importPhase, setImportPhase] = useState<ImportPhase>('idle');
   const [importResult, setImportResult] = useState<ImportWorkersResult | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
@@ -309,6 +309,25 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [coreSetFilterOpen]);
+
+  // ── Global ESC key event listener to deselect worker ──
+  useEffect(() => {
+    function handleGlobalKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        if (coreSetFilterOpen || dotsMenuOpen || isWizardOpen || importModalOpen) {
+          return;
+        }
+        if (selectedWorker !== null) {
+          setSelectedWorker(null);
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleGlobalKeyDown);
+    };
+  }, [selectedWorker, coreSetFilterOpen, dotsMenuOpen, isWizardOpen, importModalOpen]);
   // ── Table sort state ───────────────────────────────────────────────
   // icf_code cycles: 'b' → 'd' → removed
   // name / eff_qualifier cycle: 'asc' → 'desc' → removed
@@ -518,23 +537,16 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
   };
 
 
-  // ── Add Worker: open native dialog → upload SQL → reload workers ───────
-  const handleAddWorker = async () => {
-    if (importPhase === 'uploading') return;
-
-    // 1. Open native file dialog via Electron IPC
+  // ── Add Worker: show instructions first, then import SQL dataset ───────
+  const triggerFileSelection = async () => {
     const electronAPI = (window as any).electronAPI;
     if (!electronAPI?.showOpenDialog) {
       setImportError('File dialog not available (Electron API missing).');
-      setImportModalOpen(true);
+      setImportPhase('error');
       return;
     }
 
     setImportPhase('picking');
-    setImportModalOpen(true);
-    setImportResult(null);
-    setImportError(null);
-
     const dialogResult = await electronAPI.showOpenDialog({
       title: 'Select SQL Dataset',
       filters: [{ name: 'SQL Files', extensions: ['sql'] }],
@@ -542,15 +554,14 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
     });
 
     if (dialogResult.canceled || !dialogResult.filePaths?.length) {
-      setImportPhase('idle');
-      setImportModalOpen(false);
+      setImportPhase('instructions');
       return;
     }
 
     const filePath = dialogResult.filePaths[0];
     const fileName = filePath.split('/').pop() || 'dataset.sql';
 
-    // 2. Read file bytes via Electron IPC
+    // Read file bytes via Electron IPC
     setImportPhase('uploading');
     const readResult = await electronAPI.readFileBuffer(filePath);
     if (!readResult.ok) {
@@ -559,23 +570,35 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
       return;
     }
 
-    // 3. Upload to Python service
+    // Upload to Python service
     try {
       const result = await importWorkers(readResult.data as number[], fileName);
       setImportResult(result);
-      setImportPhase('done');
-
-      // 4. Reload worker list and wait for reasoning recompute
-      if (result.persons_added > 0) {
-        if (pollRef.current) {
-          clearTimeout(pollRef.current);
+      if (result.error) {
+        setImportError(result.error);
+        setImportPhase('error');
+      } else {
+        setImportPhase('done');
+        // Reload worker list and wait for reasoning recompute
+        if (result.persons_added > 0) {
+          if (pollRef.current) {
+            clearTimeout(pollRef.current);
+          }
+          poll();
         }
-        poll();
       }
     } catch (err: any) {
       setImportError(err?.message ?? 'Import failed.');
       setImportPhase('error');
     }
+  };
+
+  const handleAddWorker = () => {
+    if (importPhase === 'uploading') return;
+    setImportPhase('instructions');
+    setImportModalOpen(true);
+    setImportResult(null);
+    setImportError(null);
   };
 
 
@@ -1117,7 +1140,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                     <div className="wp-empty-icon" style={{ opacity: 0.9 }}>
                       <div style={{
                          width: 64, height: 64,
-                         backgroundColor: 'rgba(77,217,192,0.8)',
+                         backgroundColor: '#ffffff',
                          maskImage: 'url(./Vector.png)',
                          maskSize: 'contain',
                          maskRepeat: 'no-repeat',
@@ -1140,7 +1163,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                     <div className="wp-empty-icon" style={{ opacity: 0.9 }}>
                       <div style={{
                          width: 64, height: 64,
-                         backgroundColor: 'rgba(77,217,192,0.8)',
+                         backgroundColor: '#ffffff',
                          maskImage: 'url(./User_scan_fill.png)',
                          maskSize: 'contain',
                          maskRepeat: 'no-repeat',
@@ -1172,13 +1195,63 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
         <div
           className="wp-modal-backdrop"
           onClick={() => {
-            if (importPhase === 'done' || importPhase === 'error') {
+            if (importPhase === 'done' || importPhase === 'error' || importPhase === 'instructions') {
               setImportModalOpen(false);
               setImportPhase('idle');
             }
           }}
         >
           <div className="wp-modal" onClick={e => e.stopPropagation()}>
+            {/* Instructions */}
+            {importPhase === 'instructions' && (
+              <>
+                <div className="uom-icon-wrapper" style={{ borderColor: 'rgba(239, 68, 68, 0.3)', margin: '0 auto 12px' }}>
+                  <svg className="uom-icon uom-icon-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <h3 className="wp-modal-title" style={{ marginBottom: 6 }}>Import Worker Dataset</h3>
+                <p className="wp-modal-sub" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.4, marginBottom: 12 }}>
+                  To import new workers, please upload a local SQL file containing the required tables. The importer uses an in-memory database to execute your SQL script.
+                </p>
+                
+                <div style={{ alignSelf: 'stretch', textAlign: 'left', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '12px 16px', marginBottom: 16 }}>
+                  <h4 style={{ fontSize: '0.8rem', fontWeight: 600, color: '#ffffff', marginBottom: 6 }}>Required Schema:</h4>
+                  <ul style={{ fontSize: '0.74rem', color: 'rgba(255,255,255,0.65)', paddingLeft: 14, margin: '0 0 10px 0', lineHeight: 1.5 }}>
+                    <li>
+                      <strong style={{ color: '#ffffff' }}>person</strong>: <code>person_id</code> (PRIMARY KEY), <code>first_name</code>, <code>surname</code> (optional: <code>TIN</code>, <code>city</code>, <code>country</code>, <code>zip_code</code>, <code>birthday</code>)
+                    </li>
+                    <li>
+                      <strong style={{ color: '#ffffff' }}>hc_descriptor</strong>: <code>person_id</code>, <code>icf_code</code>, <code>qualifier</code> (0-4)
+                    </li>
+                    <li>
+                      <strong style={{ color: '#ffffff' }}>job_evaluation</strong>: <code>person_id</code>, <code>job_id</code> (evaluated job IDs, e.g. Job_AssemblyWorker)
+                    </li>
+                  </ul>
+                  
+                  <h4 style={{ fontSize: '0.8rem', fontWeight: 600, color: '#ffffff', marginBottom: 6 }}>Example SQL Schema:</h4>
+                  <pre style={{ margin: 0, padding: '8px 10px', background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6, fontSize: '0.7rem', color: '#e2e8f0', fontFamily: 'monospace', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.4 }}>{`CREATE TABLE person (
+  person_id TEXT PRIMARY KEY, first_name TEXT, surname TEXT
+);
+CREATE TABLE hc_descriptor (
+  person_id TEXT, icf_code TEXT, qualifier INT
+);
+CREATE TABLE job_evaluation (
+  person_id TEXT, job_id TEXT
+);`}</pre>
+                </div>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignSelf: 'stretch' }}>
+                  <button className="uom-btn-primary" onClick={triggerFileSelection}>
+                    Select SQL File
+                  </button>
+                  <button className="uom-btn-secondary" onClick={() => { setImportModalOpen(false); setImportPhase('idle'); }}>
+                    Cancel
+                  </button>
+                </div>
+              </>
+            )}
+
             {/* Uploading */}
             {importPhase === 'uploading' && (
               <>
@@ -1289,7 +1362,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                 )}
 
                 <button
-                  className="wp-modal-close-btn"
+                  className="uom-btn-secondary"
                   style={{ marginTop: 22 }}
                   onClick={() => { setImportModalOpen(false); setImportPhase('idle'); }}
                 >
@@ -1307,8 +1380,8 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                   {importError}
                 </p>
                 <button
-                  className="wp-btn-primary"
-                  style={{ marginTop: 20, width: '100%' }}
+                  className="uom-btn-primary"
+                  style={{ marginTop: 20 }}
                   onClick={() => { setImportModalOpen(false); setImportPhase('idle'); }}
                 >
                   Close

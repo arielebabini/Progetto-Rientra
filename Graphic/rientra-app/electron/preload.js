@@ -11,4 +11,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Read a file from disk and return its bytes as a number[] (safe to transfer)
   readFileBuffer: (filePath) => ipcRenderer.invoke('read-file-buffer', filePath),
+
+  // Check if the ontology file (Rientra.rdf) exists
+  checkOntologyExists: () => ipcRenderer.invoke('check-ontology-exists'),
+
+  // Copy the selected ontology file and restart the Python service
+  uploadOntologyFile: (filePath) => ipcRenderer.invoke('upload-ontology-file', filePath),
 });
+
