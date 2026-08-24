@@ -110,7 +110,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
       {/* Header / Brand */}
       <header className="home-header">
         <div className="brand">
-          <img src="/logo-rientra.png" alt="Rientra Logo" className="brand-logo" />
+          <img src="./logo-rientra.png" alt="Rientra Logo" className="brand-logo" />
           <div className="brand-text">
             <span className="brand-title">RIENTR@ returns</span>
             <span className="brand-subtitle">Decision Support System</span>
@@ -144,8 +144,8 @@ export default function HomePage({ onNavigate }: HomePageProps) {
       {/* Footer Logos */}
       <footer className="home-footer">
         <div className="footer-logos">
-          <img src="/logo-stiima.png" alt="STIIMA CNR Logo" className="footer-logo footer-logo-stiima" />
-          <img src="/logo-inail.png" alt="INAIL Logo" className="footer-logo footer-logo-inail" />
+          <img src="./logo-stiima.png" alt="STIIMA CNR Logo" className="footer-logo footer-logo-stiima" />
+          <img src="./logo-inail.png" alt="INAIL Logo" className="footer-logo footer-logo-inail" />
         </div>
       </footer>
     </div>

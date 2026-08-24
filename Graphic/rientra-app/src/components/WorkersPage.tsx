@@ -53,11 +53,11 @@ const ArchiveIcon = () => (
     width: 16,
     height: 16,
     backgroundColor: 'currentColor',
-    maskImage: 'url(/Archive.png)',
+    maskImage: 'url(./Archive.png)',
     maskSize: 'contain',
     maskRepeat: 'no-repeat',
     maskPosition: 'center',
-    WebkitMaskImage: 'url(/Archive.png)',
+    WebkitMaskImage: 'url(./Archive.png)',
     WebkitMaskSize: 'contain',
     WebkitMaskRepeat: 'no-repeat',
     WebkitMaskPosition: 'center'
@@ -178,7 +178,7 @@ function LoadingScreen({ status, error, onRetry }: LoadingScreenProps) {
       {/* Static larger logo loader */}
       <div className="wp-loading-orb">
         <div className="wp-orb-logo-container">
-          <img src="/logo-rientra.png" alt="Loading" className="wp-orb-logo-img" />
+          <img src="./logo-rientra.png" alt="Loading" className="wp-orb-logo-img" />
         </div>
       </div>
 
@@ -601,7 +601,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
           )}
           <div className="wp-nav-brand" onClick={onNavigateHome} role="button"
             onKeyDown={e => e.key === 'Enter' && onNavigateHome()}>
-            <img src="/logo-rientra.png" alt="Rientra Logo" className="wp-nav-logo" />
+            <img src="./logo-rientra.png" alt="Rientra Logo" className="wp-nav-logo" />
             <span className="wp-nav-title">RIENTR@</span>
           </div>
         </div>
@@ -671,7 +671,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
           ) : (
             <div className="wp-service-loading-wrap">
               <div className="wp-service-loading-spinner"></div>
-              <img src="/logo-rientra.png" className="wp-service-loading-logo" alt="Loading" />
+              <img src="./logo-rientra.png" className="wp-service-loading-logo" alt="Loading" />
             </div>
           )}
 
@@ -1116,17 +1116,17 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                   <>
                     <div className="wp-empty-icon" style={{ opacity: 0.9 }}>
                       <div style={{
-                        width: 64, height: 64,
-                        backgroundColor: 'rgba(77,217,192,0.8)',
-                        maskImage: 'url(/Vector.png)',
-                        maskSize: 'contain',
-                        maskRepeat: 'no-repeat',
-                        maskPosition: 'center',
-                        WebkitMaskImage: 'url(/Vector.png)',
-                        WebkitMaskSize: 'contain',
-                        WebkitMaskRepeat: 'no-repeat',
-                        WebkitMaskPosition: 'center'
-                      }} />
+                         width: 64, height: 64,
+                         backgroundColor: 'rgba(77,217,192,0.8)',
+                         maskImage: 'url(./Vector.png)',
+                         maskSize: 'contain',
+                         maskRepeat: 'no-repeat',
+                         maskPosition: 'center',
+                         WebkitMaskImage: 'url(./Vector.png)',
+                         WebkitMaskSize: 'contain',
+                         WebkitMaskRepeat: 'no-repeat',
+                         WebkitMaskPosition: 'center'
+                       }} />
                     </div>
                     <h3 className="wp-empty-title">
                       No workers are archived yet!
@@ -1139,17 +1139,17 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                   <>
                     <div className="wp-empty-icon" style={{ opacity: 0.9 }}>
                       <div style={{
-                        width: 64, height: 64,
-                        backgroundColor: 'rgba(77,217,192,0.8)',
-                        maskImage: 'url(/User_scan_fill.png)',
-                        maskSize: 'contain',
-                        maskRepeat: 'no-repeat',
-                        maskPosition: 'center',
-                        WebkitMaskImage: 'url(/User_scan_fill.png)',
-                        WebkitMaskSize: 'contain',
-                        WebkitMaskRepeat: 'no-repeat',
-                        WebkitMaskPosition: 'center'
-                      }} />
+                         width: 64, height: 64,
+                         backgroundColor: 'rgba(77,217,192,0.8)',
+                         maskImage: 'url(./User_scan_fill.png)',
+                         maskSize: 'contain',
+                         maskRepeat: 'no-repeat',
+                         maskPosition: 'center',
+                         WebkitMaskImage: 'url(./User_scan_fill.png)',
+                         WebkitMaskSize: 'contain',
+                         WebkitMaskRepeat: 'no-repeat',
+                         WebkitMaskPosition: 'center'
+                       }} />
                     </div>
                     <h3 className="wp-empty-title">
                       {workers.length === 0 ? 'No workers in ontology' : 'No worker selected'}

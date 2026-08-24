@@ -22,3 +22,16 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Electron build outputs
+dist-electron
+
+# Python virtual environment
+python-service/.venv
+
+# Bundled Java JRE binary folder
+python-service/jre
+
+# Reasoning cache and database backups
+python-service/reasoning_cache
+python-service/Rientra_backup.rdf

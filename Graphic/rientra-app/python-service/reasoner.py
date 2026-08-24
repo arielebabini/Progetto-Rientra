@@ -28,6 +28,22 @@ logging.disable(logging.WARNING)
 try:
     import owlready2
     owlready2.set_log_level(0)
+
+    # ── Configure custom Java path if passed from Electron or bundled locally ──
+    import os
+    from pathlib import Path
+    if "JAVA_EXE" in os.environ:
+        owlready2.JAVA_EXE = os.environ["JAVA_EXE"]
+    else:
+        # Fallback detection for bundled JRE relative to this script
+        _current_dir = Path(__file__).parent.resolve()
+        _bundled_jre_mac = _current_dir / "jre" / "Contents" / "Home" / "bin" / "java"
+        _bundled_jre_win = _current_dir / "jre" / "bin" / "java.exe"
+        if _bundled_jre_mac.exists():
+            owlready2.JAVA_EXE = str(_bundled_jre_mac)
+        elif _bundled_jre_win.exists():
+            owlready2.JAVA_EXE = str(_bundled_jre_win)
+
     from owlready2 import (
         default_world,
         get_ontology,
@@ -599,8 +615,7 @@ def _run_pellet(onto) -> Optional[float]:
         msg = str(exc)
         if "UnsupportedClassVersionError" in msg:
             raise RuntimeError(
-                "Java version too old for Pellet. Requires Java 11+. "
-                "Check with: java -version"
+                f"Java version too old for Pellet. Requires Java 11+. Actual error: {msg}"
             ) from exc
         raise RuntimeError(f"Pellet error: {exc}") from exc
     finally:

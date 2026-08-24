@@ -1,38 +1,174 @@
 const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const path = require('path');
-const { spawn } = require('child_process');
+const { spawn, execSync } = require('child_process');
 const fs = require('fs');
 
 // ─── Dev vs Production ──────────────────────────────────────────────────────
 const isDev = process.env.NODE_ENV === 'development';
-
-// ─── Python microservice ─────────────────────────────────────────────────────
-const PYTHON_PORT = 8000;
-const SERVICE_DIR = path.join(__dirname, '..', 'python-service');
-
-// Cross-platform venv & fallback Python resolution
 const isWindows = process.platform === 'win32';
-const VENV_PYTHON = isWindows
-  ? path.join(SERVICE_DIR, '.venv', 'Scripts', 'python.exe')
-  : path.join(SERVICE_DIR, '.venv', 'bin', 'python3');
-const FALLBACK_PYTHON = isWindows ? 'python' : 'python3';
 
+// On macOS, GUI apps do not inherit shell environment variables. Prepend Homebrew, keg-only OpenJDK, and standard local bins to PATH.
+if (process.platform === 'darwin') {
+  process.env.PATH = `/opt/homebrew/bin:/opt/homebrew/opt/openjdk/bin:/usr/local/bin:/usr/local/opt/openjdk/bin:${process.env.PATH}`;
+}
 
+// ─── Python microservice configuration ───────────────────────────────────────
+const PYTHON_PORT = 8000;
+
+function getServiceDir() {
+  return isDev
+    ? path.join(__dirname, '..', 'python-service')
+    : path.join(app.getPath('userData'), 'python-service');
+}
+
+function getVenvPython() {
+  const serviceDir = getServiceDir();
+  return isWindows
+    ? path.join(serviceDir, '.venv', 'Scripts', 'python.exe')
+    : path.join(serviceDir, '.venv', 'bin', 'python3');
+}
+
+function getFallbackPython() {
+  const candidates = isWindows ? ['python', 'python3'] : ['python3', 'python'];
+  for (const cmd of candidates) {
+    try {
+      execSync(`"${cmd}" --version`, { stdio: 'ignore' });
+      return cmd;
+    } catch (e) {
+      // continue
+    }
+  }
+  return isWindows ? 'python' : 'python3';
+}
+
+const FALLBACK_PYTHON = getFallbackPython();
+
+// ─── System Prerequisites Verification ───────────────────────────────────────
+function checkPythonInstalled() {
+  try {
+    execSync(`"${FALLBACK_PYTHON}" --version`, { stdio: 'ignore' });
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function checkJavaInstalled() {
+  const serviceDir = getServiceDir();
+  const bundledMacJava = path.join(serviceDir, 'jre', 'Contents', 'Home', 'bin', 'java');
+  const bundledWinJava = path.join(serviceDir, 'jre', 'bin', 'java.exe');
+
+  if (fs.existsSync(bundledMacJava) || fs.existsSync(bundledWinJava)) {
+    console.log('[Java Check] Using bundled JRE.');
+    return true;
+  }
+
+  try {
+    execSync('java -version', { stdio: 'ignore' });
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+// ─── Production Environment Sync & Setup ─────────────────────────────────────
+function preparePythonService() {
+  if (isDev) return;
+
+  const srcDir = path.join(process.resourcesPath, 'python-service');
+  const serviceDir = getServiceDir();
+
+  if (!fs.existsSync(serviceDir)) {
+    fs.mkdirSync(serviceDir, { recursive: true });
+  }
+
+  console.log(`[Python Setup] Syncing python-service to ${serviceDir}`);
+  fs.cpSync(srcDir, serviceDir, {
+    recursive: true,
+    filter: (src) => {
+      const relative = path.relative(srcDir, src);
+      if (
+        relative.startsWith('.venv') ||
+        relative.startsWith('__pycache__') ||
+        relative.startsWith('reasoning_cache')
+      ) {
+        return false;
+      }
+      if (relative === 'Rientra.rdf' && fs.existsSync(path.join(serviceDir, 'Rientra.rdf'))) {
+        return false;
+      }
+      return true;
+    }
+  });
+}
+
+function ensureVenvAndDeps() {
+  const serviceDir = getServiceDir();
+  const venvDir = path.join(serviceDir, '.venv');
+
+  if (!fs.existsSync(venvDir)) {
+    console.log('[Python Setup] .venv not found. Creating virtual environment...');
+    
+    dialog.showMessageBoxSync({
+      type: 'info',
+      title: 'Inizializzazione Applicazione',
+      message: 'Configurazione dell\'ambiente Python locale in corso.',
+      detail: 'Sto creando l\'ambiente virtuale locale e installando le librerie necessarie (FastAPI, Owlready2, morph-kgc, ecc.).\n\nQuesta operazione viene eseguita solo al primo avvio e potrebbe richiedere da 1 a 3 minuti. Fai clic su OK per iniziare.',
+      buttons: ['OK']
+    });
+
+    try {
+      execSync(`"${FALLBACK_PYTHON}" -m venv .venv`, { cwd: serviceDir });
+      console.log('[Python Setup] .venv created successfully.');
+      
+      const pipExe = isWindows
+        ? path.join(venvDir, 'Scripts', 'pip.exe')
+        : path.join(venvDir, 'bin', 'pip');
+        
+      console.log('[Python Setup] Installing dependencies...');
+      execSync(`"${pipExe}" install -r requirements.txt`, { cwd: serviceDir });
+      console.log('[Python Setup] Dependencies installed successfully.');
+    } catch (err) {
+      console.error('[Python Setup] Error during environment setup:', err);
+      dialog.showErrorBox(
+        'Errore di Inizializzazione',
+        'Si è verificato un errore durante la configurazione delle dipendenze Python:\n\n' + err.message
+      );
+    }
+  }
+}
+
+// ─── Process Control ────────────────────────────────────────────────────────
 let pythonProcess = null;
 
 function startPythonService() {
-  // Use the virtualenv Python if it exists, fall back to system python3
-  const pythonExe = fs.existsSync(VENV_PYTHON) ? VENV_PYTHON : FALLBACK_PYTHON;
+  const serviceDir = getServiceDir();
+  const venvPython = getVenvPython();
+  const pythonExe = fs.existsSync(venvPython) ? venvPython : FALLBACK_PYTHON;
 
   console.log(`[Python] Starting uvicorn with ${pythonExe}`);
-  console.log(`[Python] Service dir: ${SERVICE_DIR}`);
+  console.log(`[Python] Service dir: ${serviceDir}`);
+
+  // If a bundled JRE exists, set the JAVA_EXE env variable to point to it
+  const bundledMacJava = path.join(serviceDir, 'jre', 'Contents', 'Home', 'bin', 'java');
+  const bundledWinJava = path.join(serviceDir, 'jre', 'bin', 'java.exe');
+  
+  const env = { ...process.env };
+  if (fs.existsSync(bundledMacJava)) {
+    env.JAVA_EXE = bundledMacJava;
+    console.log(`[Python Setup] Passing bundled macOS JRE JAVA_EXE: ${env.JAVA_EXE}`);
+  } else if (fs.existsSync(bundledWinJava)) {
+    env.JAVA_EXE = bundledWinJava;
+    console.log(`[Python Setup] Passing bundled Windows JRE JAVA_EXE: ${env.JAVA_EXE}`);
+  }
 
   pythonProcess = spawn(
     pythonExe,
     ['-m', 'uvicorn', 'main:app', '--host', '127.0.0.1', '--port', String(PYTHON_PORT)],
     {
-      cwd: SERVICE_DIR,
-      stdio: ['ignore', 'pipe', 'pipe'],  // capture stdout/stderr
+      cwd: serviceDir,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: env,
     }
   );
 
@@ -76,7 +212,6 @@ function createWindow() {
 
   if (isDev) {
     win.loadURL('http://localhost:5173');
-    // win.webContents.openDevTools({ mode: 'detach' }); // uncomment to debug
   } else {
     win.loadFile(path.join(__dirname, '../dist/index.html'));
   }
@@ -85,7 +220,31 @@ function createWindow() {
 // ─── App lifecycle ──────────────────────────────────────────────────────────
 app.whenReady().then(() => {
   Menu.setApplicationMenu(null); // Remove native menu bar
-  startPythonService();   // ← start Python before opening the window
+
+  // 1. Prepare files in production
+  preparePythonService();
+
+  // 2. Validate prerequisites
+  const hasPython = checkPythonInstalled();
+  const hasJava = checkJavaInstalled();
+
+  if (!hasPython || !hasJava) {
+    let msg = 'I seguenti componenti richiesti non sono stati trovati sul sistema:\n\n';
+    if (!hasPython) msg += '❌ Python 3 (versione 3.11 o superiore)\n';
+    if (!hasJava) msg += '❌ Java (JRE o JDK versione 11 o superiore, richiesta dal ragionatore Pellet)\n';
+    msg += '\nAssicurati che siano installati e aggiunti al PATH di sistema, quindi riavvia l\'applicazione.';
+    
+    dialog.showErrorBox('Componenti di sistema mancanti', msg);
+    app.quit();
+    return;
+  }
+
+  // 3. Setup virtualenv if in production
+  if (!isDev) {
+    ensureVenvAndDeps();
+  }
+
+  startPythonService();
   createWindow();
 
   app.on('activate', () => {
