@@ -8,6 +8,7 @@ import {
   fetchCoreSets,
   selectWorker,
   importWorkers,
+  deleteWorker,
   type ServiceStatus,
   type Worker,
   type HealthCondition,
@@ -90,6 +91,14 @@ const XIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="18" y1="6" x2="6" y2="18"></line>
     <line x1="6" y1="6" x2="18" y2="18"></line>
+  </svg>
+);
+const TrashIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6"></polyline>
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+    <line x1="10" y1="11" x2="10" y2="17"></line>
+    <line x1="14" y1="11" x2="14" y2="17"></line>
   </svg>
 );
 
@@ -440,15 +449,18 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
         return;
       }
       if (s.status === 'error') {
+        setIsReady(false);
         setServiceError(s.message);
         // Poll again in 3000ms even in error state to recover
         pollRef.current = setTimeout(poll, 3000);
         return;
       }
       // still loading — poll again in 2000ms
+      setIsReady(false);
       pollRef.current = setTimeout(poll, 2000);
     } catch (err) {
       // service not yet reachable — retry in 2000ms
+      setIsReady(false);
       pollRef.current = setTimeout(poll, 2000);
     }
   }, []);
@@ -474,7 +486,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
 
   // ── Fetch health conditions when a worker is selected ──────────────
   useEffect(() => {
-    if (!selectedWorker) return;
+    if (!selectedWorker || !isReady) return;
     setConditions([]);
     setExpandedConditionCode(null);
     setLoadingConditions(true);
@@ -482,7 +494,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
       .then(r => setConditions(r.conditions))
       .catch(e => console.error('fetchHealthConditions:', e))
       .finally(() => setLoadingConditions(false));
-  }, [selectedWorker]);
+  }, [selectedWorker, isReady]);
 
   const toggleArchiveStatus = (workerId: string) => {
     setArchivedWorkerIds(prev => {
@@ -533,6 +545,23 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
       setSelectedWorker(w);
     } finally {
       setSwitchingWorkerId(null);
+    }
+  };
+
+  const handleDeleteWorker = async (e: React.MouseEvent, w: Worker) => {
+    e.stopPropagation();
+    const fullName = displayName(w);
+    const confirmDelete = window.confirm(`Sei sicuro di voler rimuovere permanentemente il paziente "${fullName}" e tutti i suoi dati dall'ontologia?`);
+    if (!confirmDelete) return;
+
+    try {
+      if (selectedWorker?.id === w.id) {
+        setSelectedWorker(null);
+      }
+      await deleteWorker(w.id);
+      poll();
+    } catch (err: any) {
+      alert(`Errore durante l'eliminazione: ${err?.message || err}`);
     }
   };
 
@@ -729,7 +758,14 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
       <div className="wp-body">
 
         {/* ── Left Sidebar ── */}
-        <aside className={`wp-sidebar ${isSidebarOpen ? '' : 'wp-sidebar--closed'}`}>
+        <aside
+          className={`wp-sidebar ${isSidebarOpen ? '' : 'wp-sidebar--closed'}`}
+          style={{
+            pointerEvents: isReady ? 'auto' : 'none',
+            opacity: isReady ? 1 : 0.6,
+            transition: 'opacity 0.2s ease, transform 0.3s ease',
+          }}
+        >
           <div className="wp-sidebar-header">
             <span className="wp-sidebar-title">Workers</span>
             <button className="wp-icon-button" onClick={() => setIsSidebarOpen(false)} aria-label="Close sidebar">
@@ -788,7 +824,19 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                   onKeyDown={e => e.key === 'Enter' && handleSelectWorker(w)}>
                   {isSwitching
                     ? <span className="wp-worker-switching-label">{displayName(w)}<span className="wp-worker-switching-dot" /></span>
-                    : displayName(w)
+                    : (
+                      <>
+                        <span className="wp-worker-name">{displayName(w)}</span>
+                        <button
+                          className="wp-worker-delete-btn"
+                          onClick={(e) => handleDeleteWorker(e, w)}
+                          title="Elimina permanentemente"
+                          aria-label="Elimina permanentemente"
+                        >
+                          <TrashIcon />
+                        </button>
+                      </>
+                    )
                   }
                 </li>
               );

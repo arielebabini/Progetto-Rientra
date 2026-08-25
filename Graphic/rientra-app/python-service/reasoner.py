@@ -49,6 +49,7 @@ try:
         get_ontology,
         sync_reasoner_pellet,
         Thing,
+        owl_world,
     )
 except ImportError as exc:
     raise ImportError(
@@ -568,6 +569,31 @@ def _load_ontology(path: str, reload: bool = False):
     """Load the ontology file into the owlready2 default_world."""
     abs_path = os.path.abspath(path)
     iri = f"file://{abs_path}"
+
+    if reload:
+        try:
+            default_world.close()
+        except Exception:
+            pass
+        default_world.ontologies.clear()
+        default_world._props.clear()
+        default_world._reasoning_props.clear()
+        default_world._entities.clear()
+        default_world._namespaces.clear()
+        default_world._fusion_class_cache.clear()
+        default_world._rdflib_store = None
+        default_world.graph = None
+
+        if owl_world is not None:
+            default_world._entities.update(owl_world._entities)
+            default_world._props.update(owl_world._props)
+
+        try:
+            default_world.set_backend(backend="sqlite", filename=":memory:")
+            default_world.get_ontology("http://anonymous/")
+        except Exception as exc:
+            raise RuntimeError(f"Cannot reset owlready2 backend: {exc}") from exc
+
     buf = io.StringIO()
     with contextlib.redirect_stderr(buf):
         try:
@@ -1663,3 +1689,50 @@ def update_worker_jobs(worker_id: str, job_ids: list[str]) -> dict:
         "assigned"  : assigned,
         "unresolved": unresolved,
     }
+
+
+def delete_worker(worker_id: str) -> dict:
+    """
+    Permanently delete a worker (Person individual) and all their associated
+    data (HealthCondition, Descriptors) from the ontology.
+    """
+    if not _live_reasoner_ready:
+        raise RuntimeError(
+            "The live ontology is still warming up in background. "
+            "Worker deletion will be available as soon as the reasoner finishes."
+        )
+
+    person_ind = default_world.search_one(iri="*#" + worker_id)
+    if person_ind is None:
+        raise KeyError(f"Worker '{worker_id}' not found in ontology.")
+
+    is_in_hc_prop = default_world.search_one(iri=IRI_IS_IN_HC)
+    is_described_by = default_world.search_one(iri=IRI_IS_DESCRIBED_BY)
+
+    with _hc_lock, _job_lock:
+        # Find and destroy associated HealthCondition and Descriptors
+        if is_in_hc_prop is not None:
+            hc_inds = list(is_in_hc_prop[person_ind] or [])
+            for hc_ind in hc_inds:
+                if is_described_by is not None:
+                    des_inds = list(is_described_by[hc_ind] or [])
+                    for des_ind in des_inds:
+                        try:
+                            owlready2.destroy_entity(des_ind)
+                        except Exception:
+                            pass
+                try:
+                    owlready2.destroy_entity(hc_ind)
+                except Exception:
+                    pass
+
+        # Destroy the person individual itself
+        try:
+            owlready2.destroy_entity(person_ind)
+        except Exception as exc:
+            raise RuntimeError(f"Failed to destroy Person individual: {exc}") from exc
+
+    _refresh_reasoning_artifacts()
+
+    return {"worker_id": worker_id, "deleted": True}
+

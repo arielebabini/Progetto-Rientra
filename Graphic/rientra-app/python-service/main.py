@@ -44,6 +44,7 @@ from reasoner import (
     update_health_conditions,
     update_worker_jobs,
     inject_imported_workers,
+    delete_worker,
 )
 from models import (
     StatusResponse,
@@ -65,6 +66,7 @@ from models import (
     UpdateHealthConditionsResponse,
     UpdateWorkerJobsRequest,
     UpdateWorkerJobsResponse,
+    DeleteWorkerResponse,
 )
 
 
@@ -132,6 +134,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def add_no_cache_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -238,6 +249,32 @@ def get_worker(worker_id: str) -> WorkerDetail:
         raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+# ── DELETE /workers/{worker_id} ───────────────────────────────────────────────
+
+@app.delete(
+    "/workers/{worker_id}",
+    response_model=DeleteWorkerResponse,
+    summary="Permanently delete a worker and their data from the ontology",
+    tags=["Workers"],
+)
+def delete_worker_endpoint(worker_id: str) -> DeleteWorkerResponse:
+    """
+    Permanently deletes a worker (Person) and all their associated health condition
+    and descriptor data from the owlready2 in-memory ontology, and saves the ontology.
+    """
+    _require_ready()
+    try:
+        data = delete_worker(worker_id)
+        return DeleteWorkerResponse(**data)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
 
 
 # ── GET /jobs ─────────────────────────────────────────────────────────────────

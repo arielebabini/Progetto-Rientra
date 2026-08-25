@@ -184,3 +184,11 @@ class UpdateWorkerJobsResponse(BaseModel):
         default_factory=list,
         description="Requested IDs not found in the ontology (skipped).",
     )
+
+
+# ── Delete Worker ─────────────────────────────────────────────────────────────
+
+class DeleteWorkerResponse(BaseModel):
+    worker_id: str
+    deleted: bool
+

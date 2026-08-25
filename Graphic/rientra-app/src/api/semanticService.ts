@@ -156,6 +156,23 @@ export function selectWorker(workerId: string): Promise<SelectWorkerResponse> {
   });
 }
 
+// ── Worker deletion ───────────────────────────────────────────────────────────
+
+export interface DeleteWorkerResponse {
+  worker_id: string;
+  deleted: boolean;
+}
+
+/**
+ * Permanently delete a worker and their data from the ontology.
+ */
+export function deleteWorker(workerId: string): Promise<DeleteWorkerResponse> {
+  return apiFetch<DeleteWorkerResponse>(`/workers/${encodeURIComponent(workerId)}`, {
+    method: 'DELETE',
+  });
+}
+
+
 // ── ICF catalogue (HC wizard) ─────────────────────────────────────────────────
 
 export interface IcfCodeEntry {

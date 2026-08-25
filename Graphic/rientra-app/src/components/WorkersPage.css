@@ -439,6 +439,10 @@
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
 }
 
 .wp-worker-item:hover {
@@ -451,6 +455,41 @@
   color: #ffffff;
   font-weight: 600;
 }
+
+.wp-worker-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 8px;
+}
+
+.wp-worker-delete-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  margin: -4px;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s, color 0.15s, background-color 0.15s;
+}
+
+.wp-worker-item:hover .wp-worker-delete-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.wp-worker-delete-btn:hover {
+  color: #ef4444;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
 
 /* Add Worker button — always pinned at bottom of sidebar */
 .wp-add-btn {
