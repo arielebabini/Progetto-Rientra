@@ -289,7 +289,7 @@ app.whenReady().then(() => {
   if (!hasPython || !hasJava) {
     let msg = 'I seguenti componenti richiesti non sono stati trovati sul sistema:\n\n';
     if (!hasPython) msg += '❌ Python 3 (versione 3.11 o superiore)\n';
-    if (!hasJava) msg += '❌ Java (JRE o JDK versione 11 o superiore, richiesta dal ragionatore Pellet)\n';
+    if (!hasJava) msg += '❌ Java (JRE o JDK versione 17 o superiore, richiesta dal ragionatore Pellet)\n';
     msg += '\nAssicurati che siano installati e aggiunti al PATH di sistema, quindi riavvia l\'applicazione.';
     
     dialog.showErrorBox('Componenti di sistema mancanti', msg);

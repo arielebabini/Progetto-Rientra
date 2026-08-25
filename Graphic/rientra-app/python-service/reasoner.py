@@ -53,7 +53,7 @@ try:
 except ImportError as exc:
     raise ImportError(
         "owlready2 is not installed. Run: pip install owlready2\n"
-        "Also requires Java 11+ in PATH for Pellet."
+        "Also requires Java 17+ in PATH for Pellet."
     ) from exc
 
 
@@ -615,7 +615,7 @@ def _run_pellet(onto) -> Optional[float]:
         msg = str(exc)
         if "UnsupportedClassVersionError" in msg:
             raise RuntimeError(
-                f"Java version too old for Pellet. Requires Java 11+. Actual error: {msg}"
+                f"Java version too old for Pellet. Requires Java 17+. Actual error: {msg}"
             ) from exc
         raise RuntimeError(f"Pellet error: {exc}") from exc
     finally:

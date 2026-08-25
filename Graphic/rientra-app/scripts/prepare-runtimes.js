@@ -4,7 +4,7 @@ const { execSync } = require('child_process');
 const https = require('https');
 
 const PYTHON_URL = 'https://www.nuget.org/api/v2/package/python/3.11.9';
-const JRE_URL = 'https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.22%2B7/OpenJDK11U-jre_x64_windows_hotspot_11.0.22_7.zip';
+const JRE_URL = 'https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.10%2B7/OpenJDK17U-jre_x64_windows_hotspot_17.0.10_7.zip';
 
 const PYTHON_WIN_DIR = path.join(__dirname, '..', 'python-service', 'python-win');
 const JRE_WIN_DIR = path.join(__dirname, '..', 'python-service', 'jre-win');
@@ -91,7 +91,7 @@ async function main() {
       const jreZip = path.join(TEMP_DIR, 'jre-win.zip');
       const tempExtract = path.join(TEMP_DIR, 'jre-extract');
       
-      console.log(`[Runtimes Setup] Downloading Windows JRE 11 from Adoptium...`);
+      console.log(`[Runtimes Setup] Downloading Windows JRE 17 from Adoptium...`);
       await downloadFile(JRE_URL, jreZip);
       
       // Extract JRE
