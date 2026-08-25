@@ -21,6 +21,12 @@ function getServiceDir() {
     : path.join(app.getPath('userData'), 'python-service');
 }
 
+function getRuntimeDir() {
+  return isDev
+    ? path.join(__dirname, '..', 'python-service')
+    : path.join(process.resourcesPath, 'python-service');
+}
+
 function getVenvPython() {
   const serviceDir = getServiceDir();
   return isWindows
@@ -29,8 +35,8 @@ function getVenvPython() {
 }
 
 function getFallbackPython() {
-  const serviceDir = getServiceDir();
-  const bundledWinPython = path.join(serviceDir, 'python', 'python.exe');
+  const runtimeDir = getRuntimeDir();
+  const bundledWinPython = path.join(runtimeDir, 'python-win', 'python.exe');
   
   if (isWindows && fs.existsSync(bundledWinPython)) {
     console.log('[Python Check] Using bundled Python.');
@@ -60,12 +66,12 @@ function checkPythonInstalled() {
 }
 
 function checkJavaInstalled() {
-  const serviceDir = getServiceDir();
-  const bundledMacJava = path.join(serviceDir, 'jre', 'Contents', 'Home', 'bin', 'java');
-  const bundledWinJava = path.join(serviceDir, 'jre', 'bin', 'java.exe');
+  const runtimeDir = getRuntimeDir();
+  const bundledMacJava = path.join(runtimeDir, 'jre', 'Contents', 'Home', 'bin', 'java');
+  const bundledWinJava = path.join(runtimeDir, 'jre', 'bin', 'java.exe');
   
-  const devMacJava = path.join(serviceDir, 'jre-mac', 'Contents', 'Home', 'bin', 'java');
-  const devWinJava = path.join(serviceDir, 'jre-win', 'bin', 'java.exe');
+  const devMacJava = path.join(runtimeDir, 'jre-mac', 'Contents', 'Home', 'bin', 'java');
+  const devWinJava = path.join(runtimeDir, 'jre-win', 'bin', 'java.exe');
 
   if (
     fs.existsSync(bundledMacJava) ||
@@ -96,6 +102,18 @@ function preparePythonService() {
     fs.mkdirSync(serviceDir, { recursive: true });
   }
 
+  // Delete legacy/old runtime directories and .venv from userData if they exist from older runs
+  const legacyJre = path.join(serviceDir, 'jre');
+  const legacyPython = path.join(serviceDir, 'python');
+  if (fs.existsSync(legacyJre) || fs.existsSync(legacyPython)) {
+    console.log('[Python Setup] Cleaning up legacy runtimes from userData...');
+    try { fs.rmSync(legacyJre, { recursive: true, force: true }); } catch (e) {}
+    try { fs.rmSync(legacyPython, { recursive: true, force: true }); } catch (e) {}
+    // Delete .venv to force recreation with new base Python
+    const legacyVenv = path.join(serviceDir, '.venv');
+    try { fs.rmSync(legacyVenv, { recursive: true, force: true }); } catch (e) {}
+  }
+
   console.log(`[Python Setup] Syncing python-service to ${serviceDir}`);
   fs.cpSync(srcDir, serviceDir, {
     recursive: true,
@@ -104,7 +122,11 @@ function preparePythonService() {
       if (
         relative.startsWith('.venv') ||
         relative.startsWith('__pycache__') ||
-        relative.startsWith('reasoning_cache')
+        relative.startsWith('reasoning_cache') ||
+        relative.startsWith('jre') ||
+        relative.startsWith('jre-mac') ||
+        relative.startsWith('jre-win') ||
+        relative.startsWith('python-win')
       ) {
         return false;
       }
@@ -114,44 +136,6 @@ function preparePythonService() {
       return true;
     }
   });
-
-  // Set up the correct platform-specific JRE
-  const targetJreDir = path.join(serviceDir, 'jre');
-  if (!fs.existsSync(targetJreDir)) {
-    const srcJre = isWindows
-      ? path.join(serviceDir, 'jre-win')
-      : path.join(serviceDir, 'jre-mac');
-      
-    if (fs.existsSync(srcJre)) {
-      console.log(`[Python Setup] Setting up JRE from ${srcJre}`);
-      fs.renameSync(srcJre, targetJreDir);
-    }
-  }
-
-  // Set up Windows portable Python
-  const targetPythonDir = path.join(serviceDir, 'python');
-  if (isWindows && !fs.existsSync(targetPythonDir)) {
-    const srcPython = path.join(serviceDir, 'python-win');
-    if (fs.existsSync(srcPython)) {
-      console.log(`[Python Setup] Setting up Python from ${srcPython}`);
-      fs.renameSync(srcPython, targetPythonDir);
-    }
-  }
-
-  // Clean up unused runtimes from userData to save disk space
-  const unusedJre = isWindows
-    ? path.join(serviceDir, 'jre-mac')
-    : path.join(serviceDir, 'jre-win');
-  if (fs.existsSync(unusedJre)) {
-    try { fs.rmSync(unusedJre, { recursive: true, force: true }); } catch (e) {}
-  }
-  
-  if (!isWindows) {
-    const unusedPython = path.join(serviceDir, 'python-win');
-    if (fs.existsSync(unusedPython)) {
-      try { fs.rmSync(unusedPython, { recursive: true, force: true }); } catch (e) {}
-    }
-  }
 }
 
 function ensureVenvAndDeps() {
