@@ -65,21 +65,36 @@ function checkPythonInstalled() {
   }
 }
 
-function checkJavaInstalled() {
+function getBundledJavaExe() {
   const runtimeDir = getRuntimeDir();
-  const bundledMacJava = path.join(runtimeDir, 'jre', 'Contents', 'Home', 'bin', 'java');
-  const bundledWinJava = path.join(runtimeDir, 'jre', 'bin', 'java.exe');
-  
-  const devMacJava = path.join(runtimeDir, 'jre-mac', 'Contents', 'Home', 'bin', 'java');
-  const devWinJava = path.join(runtimeDir, 'jre-win', 'bin', 'java.exe');
+  const serviceDir = getServiceDir();
 
-  if (
-    fs.existsSync(bundledMacJava) ||
-    fs.existsSync(bundledWinJava) ||
-    fs.existsSync(devMacJava) ||
-    fs.existsSync(devWinJava)
-  ) {
-    console.log('[Java Check] Using bundled JRE.');
+  const candidates = isWindows
+    ? [
+        path.join(runtimeDir, 'jre', 'bin', 'java.exe'),
+        path.join(runtimeDir, 'jre-win', 'bin', 'java.exe'),
+        path.join(serviceDir, 'jre', 'bin', 'java.exe'),
+        path.join(serviceDir, 'jre-win', 'bin', 'java.exe'),
+      ]
+    : [
+        path.join(runtimeDir, 'jre', 'Contents', 'Home', 'bin', 'java'),
+        path.join(runtimeDir, 'jre-mac', 'Contents', 'Home', 'bin', 'java'),
+        path.join(serviceDir, 'jre', 'Contents', 'Home', 'bin', 'java'),
+        path.join(serviceDir, 'jre-mac', 'Contents', 'Home', 'bin', 'java'),
+      ];
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+function checkJavaInstalled() {
+  const bundledJava = getBundledJavaExe();
+  if (bundledJava) {
+    console.log(`[Java Check] Using bundled JRE at ${bundledJava}`);
     return true;
   }
 
@@ -186,21 +201,11 @@ function startPythonService() {
   console.log(`[Python] Service dir: ${serviceDir}`);
 
   // If a bundled JRE exists, set the JAVA_EXE env variable to point to it
-  const bundledMacJava = path.join(serviceDir, 'jre', 'Contents', 'Home', 'bin', 'java');
-  const bundledWinJava = path.join(serviceDir, 'jre', 'bin', 'java.exe');
-  
-  const devMacJava = path.join(serviceDir, 'jre-mac', 'Contents', 'Home', 'bin', 'java');
-  const devWinJava = path.join(serviceDir, 'jre-win', 'bin', 'java.exe');
-  
+  const bundledJava = getBundledJavaExe();
   const env = { ...process.env };
-  const macJava = fs.existsSync(bundledMacJava) ? bundledMacJava : (fs.existsSync(devMacJava) ? devMacJava : null);
-  const winJava = fs.existsSync(bundledWinJava) ? bundledWinJava : (fs.existsSync(devWinJava) ? devWinJava : null);
 
-  if (macJava) {
-    env.JAVA_EXE = macJava;
-    console.log(`[Python Setup] Passing JRE JAVA_EXE: ${env.JAVA_EXE}`);
-  } else if (winJava) {
-    env.JAVA_EXE = winJava;
+  if (bundledJava) {
+    env.JAVA_EXE = bundledJava;
     console.log(`[Python Setup] Passing JRE JAVA_EXE: ${env.JAVA_EXE}`);
   }
 

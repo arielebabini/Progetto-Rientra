@@ -37,12 +37,15 @@ try:
     else:
         # Fallback detection for bundled JRE relative to this script
         _current_dir = Path(__file__).parent.resolve()
-        _bundled_jre_mac = _current_dir / "jre" / "Contents" / "Home" / "bin" / "java"
-        _bundled_jre_win = _current_dir / "jre" / "bin" / "java.exe"
-        if _bundled_jre_mac.exists():
-            owlready2.JAVA_EXE = str(_bundled_jre_mac)
-        elif _bundled_jre_win.exists():
-            owlready2.JAVA_EXE = str(_bundled_jre_win)
+        for _candidate in [
+            _current_dir / "jre" / "Contents" / "Home" / "bin" / "java",
+            _current_dir / "jre-mac" / "Contents" / "Home" / "bin" / "java",
+            _current_dir / "jre" / "bin" / "java.exe",
+            _current_dir / "jre-win" / "bin" / "java.exe",
+        ]:
+            if _candidate.exists():
+                owlready2.JAVA_EXE = str(_candidate)
+                break
 
     from owlready2 import (
         default_world,

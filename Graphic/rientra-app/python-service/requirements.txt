@@ -1,0 +1,24 @@
+# Rientr@ Semantic Microservice — Python dependencies
+
+# ── Core API framework ─────────────────────────────────────────────────────────
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+
+# ── Data validation (response models) ─────────────────────────────────────────
+pydantic>=2.0.0
+
+# ── Ontology reasoning ────────────────────────────────────────────────────────
+# owlready2 pinned to 0.46 for universal Java 8/11/17/21 compatibility with Pellet.
+owlready2==0.46
+
+# ── RDB2RDF import pipeline ───────────────────────────────────────────────────
+# morph-kgc: W3C R2RML materialiser used by the import pipeline.
+# rdflib: RDF graph manipulation for mapping generation + triple injection.
+morph-kgc>=2.6.0
+rdflib>=6.3.2
+
+# ── File upload support (required by FastAPI for UploadFile / File(...)) ───────
+python-multipart>=0.0.9
+
+# ── SQLAlchemy (required by morph-kgc for relational DB connections) ───────────
+sqlalchemy>=2.0.0
