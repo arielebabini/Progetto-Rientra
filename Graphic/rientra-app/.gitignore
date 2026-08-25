@@ -31,6 +31,10 @@ python-service/.venv
 
 # Bundled Java JRE binary folder
 python-service/jre
+python-service/jre-mac
+python-service/jre-win
+python-service/python-win
+temp-runtimes/
 
 # Reasoning cache and database backups
 python-service/reasoning_cache

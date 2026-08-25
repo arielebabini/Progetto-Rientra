@@ -29,6 +29,14 @@ function getVenvPython() {
 }
 
 function getFallbackPython() {
+  const serviceDir = getServiceDir();
+  const bundledWinPython = path.join(serviceDir, 'python', 'python.exe');
+  
+  if (isWindows && fs.existsSync(bundledWinPython)) {
+    console.log('[Python Check] Using bundled Python.');
+    return bundledWinPython;
+  }
+
   const candidates = isWindows ? ['python', 'python3'] : ['python3', 'python'];
   for (const cmd of candidates) {
     try {
@@ -41,12 +49,10 @@ function getFallbackPython() {
   return isWindows ? 'python' : 'python3';
 }
 
-const FALLBACK_PYTHON = getFallbackPython();
-
 // ─── System Prerequisites Verification ───────────────────────────────────────
 function checkPythonInstalled() {
   try {
-    execSync(`"${FALLBACK_PYTHON}" --version`, { stdio: 'ignore' });
+    execSync(`"${getFallbackPython()}" --version`, { stdio: 'ignore' });
     return true;
   } catch (e) {
     return false;
@@ -57,8 +63,16 @@ function checkJavaInstalled() {
   const serviceDir = getServiceDir();
   const bundledMacJava = path.join(serviceDir, 'jre', 'Contents', 'Home', 'bin', 'java');
   const bundledWinJava = path.join(serviceDir, 'jre', 'bin', 'java.exe');
+  
+  const devMacJava = path.join(serviceDir, 'jre-mac', 'Contents', 'Home', 'bin', 'java');
+  const devWinJava = path.join(serviceDir, 'jre-win', 'bin', 'java.exe');
 
-  if (fs.existsSync(bundledMacJava) || fs.existsSync(bundledWinJava)) {
+  if (
+    fs.existsSync(bundledMacJava) ||
+    fs.existsSync(bundledWinJava) ||
+    fs.existsSync(devMacJava) ||
+    fs.existsSync(devWinJava)
+  ) {
     console.log('[Java Check] Using bundled JRE.');
     return true;
   }
@@ -100,6 +114,44 @@ function preparePythonService() {
       return true;
     }
   });
+
+  // Set up the correct platform-specific JRE
+  const targetJreDir = path.join(serviceDir, 'jre');
+  if (!fs.existsSync(targetJreDir)) {
+    const srcJre = isWindows
+      ? path.join(serviceDir, 'jre-win')
+      : path.join(serviceDir, 'jre-mac');
+      
+    if (fs.existsSync(srcJre)) {
+      console.log(`[Python Setup] Setting up JRE from ${srcJre}`);
+      fs.renameSync(srcJre, targetJreDir);
+    }
+  }
+
+  // Set up Windows portable Python
+  const targetPythonDir = path.join(serviceDir, 'python');
+  if (isWindows && !fs.existsSync(targetPythonDir)) {
+    const srcPython = path.join(serviceDir, 'python-win');
+    if (fs.existsSync(srcPython)) {
+      console.log(`[Python Setup] Setting up Python from ${srcPython}`);
+      fs.renameSync(srcPython, targetPythonDir);
+    }
+  }
+
+  // Clean up unused runtimes from userData to save disk space
+  const unusedJre = isWindows
+    ? path.join(serviceDir, 'jre-mac')
+    : path.join(serviceDir, 'jre-win');
+  if (fs.existsSync(unusedJre)) {
+    try { fs.rmSync(unusedJre, { recursive: true, force: true }); } catch (e) {}
+  }
+  
+  if (!isWindows) {
+    const unusedPython = path.join(serviceDir, 'python-win');
+    if (fs.existsSync(unusedPython)) {
+      try { fs.rmSync(unusedPython, { recursive: true, force: true }); } catch (e) {}
+    }
+  }
 }
 
 function ensureVenvAndDeps() {
@@ -118,7 +170,7 @@ function ensureVenvAndDeps() {
     });
 
     try {
-      execSync(`"${FALLBACK_PYTHON}" -m venv .venv`, { cwd: serviceDir });
+      execSync(`"${getFallbackPython()}" -m venv .venv`, { cwd: serviceDir });
       console.log('[Python Setup] .venv created successfully.');
       
       const pipExe = isWindows
@@ -144,7 +196,7 @@ let pythonProcess = null;
 function startPythonService() {
   const serviceDir = getServiceDir();
   const venvPython = getVenvPython();
-  const pythonExe = fs.existsSync(venvPython) ? venvPython : FALLBACK_PYTHON;
+  const pythonExe = fs.existsSync(venvPython) ? venvPython : getFallbackPython();
 
   console.log(`[Python] Starting uvicorn with ${pythonExe}`);
   console.log(`[Python] Service dir: ${serviceDir}`);
@@ -153,13 +205,19 @@ function startPythonService() {
   const bundledMacJava = path.join(serviceDir, 'jre', 'Contents', 'Home', 'bin', 'java');
   const bundledWinJava = path.join(serviceDir, 'jre', 'bin', 'java.exe');
   
+  const devMacJava = path.join(serviceDir, 'jre-mac', 'Contents', 'Home', 'bin', 'java');
+  const devWinJava = path.join(serviceDir, 'jre-win', 'bin', 'java.exe');
+  
   const env = { ...process.env };
-  if (fs.existsSync(bundledMacJava)) {
-    env.JAVA_EXE = bundledMacJava;
-    console.log(`[Python Setup] Passing bundled macOS JRE JAVA_EXE: ${env.JAVA_EXE}`);
-  } else if (fs.existsSync(bundledWinJava)) {
-    env.JAVA_EXE = bundledWinJava;
-    console.log(`[Python Setup] Passing bundled Windows JRE JAVA_EXE: ${env.JAVA_EXE}`);
+  const macJava = fs.existsSync(bundledMacJava) ? bundledMacJava : (fs.existsSync(devMacJava) ? devMacJava : null);
+  const winJava = fs.existsSync(bundledWinJava) ? bundledWinJava : (fs.existsSync(devWinJava) ? devWinJava : null);
+
+  if (macJava) {
+    env.JAVA_EXE = macJava;
+    console.log(`[Python Setup] Passing JRE JAVA_EXE: ${env.JAVA_EXE}`);
+  } else if (winJava) {
+    env.JAVA_EXE = winJava;
+    console.log(`[Python Setup] Passing JRE JAVA_EXE: ${env.JAVA_EXE}`);
   }
 
   pythonProcess = spawn(

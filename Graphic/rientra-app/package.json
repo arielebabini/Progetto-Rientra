@@ -8,6 +8,7 @@
     "dev:vite": "vite",
     "dev:electron": "cross-env NODE_ENV=development electron .",
     "dev": "concurrently -k \"npm run dev:vite\" \"wait-on http://localhost:5173 && npm run dev:electron\"",
+    "prebuild": "node scripts/prepare-runtimes.js",
     "build": "tsc -b && vite build",
     "build:app": "npm run build && electron-builder",
     "lint": "eslint .",
