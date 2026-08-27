@@ -45,6 +45,7 @@ from reasoner import (
     update_worker_jobs,
     inject_imported_workers,
     delete_worker,
+    clear_snapshot_cache,
 )
 from models import (
     StatusResponse,
@@ -732,6 +733,7 @@ async def import_workers_endpoint(request: Request) -> JSONResponse:
     # Update the live in-memory ontology and snapshot cache by triggering a reload and re-running reasoning in the background
     if result.new_person_ids or result.updated_ids:
         try:
+            clear_snapshot_cache(clean_disk=True)
             state.set_loading("Applying imported changes and recomputing inference...")
             thread = threading.Thread(
                 target=load_and_reason,
@@ -762,6 +764,14 @@ async def import_workers_endpoint(request: Request) -> JSONResponse:
         "backup_path"      : result.backup_path,
         "error"            : None,
     })
+
+
+# ── POST /cache/clear ─────────────────────────────────────────────────────────
+@app.post("/cache/clear", summary="Clear reasoning snapshot cache")
+@app.delete("/cache", summary="Clear reasoning snapshot cache")
+def clear_cache_endpoint():
+    clear_snapshot_cache(clean_disk=True)
+    return {"cleared": True, "message": "Reasoning snapshot cache cleared."}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

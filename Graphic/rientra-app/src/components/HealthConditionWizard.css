@@ -625,8 +625,8 @@
 .hc-spinner {
   width: 32px;
   height: 32px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-top-color: var(--brand-teal);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-top-color: #ffffff;
   border-radius: 50%;
   animation: hc-spin 1s linear infinite;
   margin-bottom: 16px;

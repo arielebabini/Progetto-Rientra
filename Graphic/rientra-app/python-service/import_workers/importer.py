@@ -585,16 +585,16 @@ def validate_sql_dataset(
         errors.append(ValidationErrorItem(
             category="schema",
             field="table:person",
-            message="Tabella obbligatoria 'person' mancante nel file SQL.",
-            fix_hint="Definisci la tabella 'person' con le colonne: person_id, first_name, surname."
+            message="Required table 'person' is missing in the SQL file.",
+            fix_hint="Define the 'person' table with columns: person_id, first_name, surname."
         ))
 
     if "hc_descriptor" not in tables:
         errors.append(ValidationErrorItem(
             category="schema",
             field="table:hc_descriptor",
-            message="Tabella obbligatoria 'hc_descriptor' mancante nel file SQL.",
-            fix_hint="Definisci la tabella 'hc_descriptor' con le colonne: person_id, icf_code, qualifier."
+            message="Required table 'hc_descriptor' is missing in the SQL file.",
+            fix_hint="Define the 'hc_descriptor' table with columns: person_id, icf_code, qualifier."
         ))
 
     if errors:
@@ -607,8 +607,8 @@ def validate_sql_dataset(
             errors.append(ValidationErrorItem(
                 category="schema",
                 field=f"person.{req}",
-                message=f"La tabella 'person' non contiene la colonna obbligatoria '{req}'.",
-                fix_hint=f"Aggiungi la colonna '{req}' alla definizione della tabella 'person'."
+                message=f"The 'person' table is missing required column '{req}'.",
+                fix_hint=f"Add column '{req}' to the 'person' table definition."
             ))
 
     hc_cols = {row[1].lower() for row in cursor.execute("PRAGMA table_info(hc_descriptor)").fetchall()}
@@ -617,8 +617,8 @@ def validate_sql_dataset(
             errors.append(ValidationErrorItem(
                 category="schema",
                 field=f"hc_descriptor.{req}",
-                message=f"La tabella 'hc_descriptor' non contiene la colonna obbligatoria '{req}'.",
-                fix_hint=f"Aggiungi la colonna '{req}' alla definizione della tabella 'hc_descriptor'."
+                message=f"The 'hc_descriptor' table is missing required column '{req}'.",
+                fix_hint=f"Add column '{req}' to the 'hc_descriptor' table definition."
             ))
 
     if "job_evaluation" in tables:
@@ -628,8 +628,8 @@ def validate_sql_dataset(
                 errors.append(ValidationErrorItem(
                     category="schema",
                     field=f"job_evaluation.{req}",
-                    message=f"La tabella 'job_evaluation' non contiene la colonna obbligatoria '{req}'.",
-                    fix_hint=f"Aggiungi la colonna '{req}' alla tabella 'job_evaluation'."
+                    message=f"The 'job_evaluation' table is missing required column '{req}'.",
+                    fix_hint=f"Add column '{req}' to the 'job_evaluation' table."
                 ))
 
     if errors:
@@ -640,8 +640,8 @@ def validate_sql_dataset(
     if not persons:
         errors.append(ValidationErrorItem(
             category="person",
-            message="La tabella 'person' è vuota. Nessun lavoratore da importare.",
-            fix_hint="Inserisci almeno un record nella tabella 'person'."
+            message="The 'person' table is empty. No workers to import.",
+            fix_hint="Insert at least one record into the 'person' table."
         ))
         return errors
 
@@ -658,8 +658,8 @@ def validate_sql_dataset(
             errors.append(ValidationErrorItem(
                 category="person",
                 field="person_id",
-                message="Trovato record persona con 'person_id' vuoto o nullo.",
-                fix_hint="Ogni persona deve avere un identificatore univoco non vuoto."
+                message="Found person record with empty or null 'person_id'.",
+                fix_hint="Each person must have a non-empty unique identifier."
             ))
             continue
 
@@ -673,8 +673,8 @@ def validate_sql_dataset(
                 person_id=raw_pid,
                 field="person_id",
                 value=raw_pid,
-                message=f"L'identificatore '{raw_pid}' contiene caratteri speciali o spazi non consentiti.",
-                fix_hint="Usa solo caratteri alfanumerici, trattini e underscore per i person_id."
+                message=f"Identifier '{raw_pid}' contains disallowed special characters or spaces.",
+                fix_hint="Use only alphanumeric characters, dashes, and underscores for person_id."
             ))
 
         # Duplicate PID in the SQL file
@@ -684,8 +684,8 @@ def validate_sql_dataset(
                 person_id=raw_pid,
                 field="person_id",
                 value=raw_pid,
-                message=f"ID lavoratore duplicato '{raw_pid}' all'interno del file SQL.",
-                fix_hint=f"Rimuovi o rinomina il record duplicato per '{raw_pid}'."
+                message=f"Duplicate worker ID '{raw_pid}' in the SQL file.",
+                fix_hint=f"Remove or rename the duplicate record for '{raw_pid}'."
             ))
         else:
             seen_pids.add(sanitized_pid)
@@ -697,16 +697,16 @@ def validate_sql_dataset(
                 category="person",
                 person_id=raw_pid,
                 field="first_name",
-                message=f"Nome ('first_name') mancante o vuoto per il lavoratore '{raw_pid}'.",
-                fix_hint="Specifica il nome per ciascun lavoratore."
+                message=f"Missing or empty first name ('first_name') for worker '{raw_pid}'.",
+                fix_hint="Specify a first name for each worker."
             ))
         if sname is None or not str(sname).strip():
             errors.append(ValidationErrorItem(
                 category="person",
                 person_id=raw_pid,
                 field="surname",
-                message=f"Cognome ('surname') mancante o vuoto per il lavoratore '{raw_pid}'.",
-                fix_hint="Specifica il cognome per ciascun lavoratore."
+                message=f"Missing or empty surname ('surname') for worker '{raw_pid}'.",
+                fix_hint="Specify a surname for each worker."
             ))
 
         # Check optional fields if present in schema
@@ -718,8 +718,8 @@ def validate_sql_dataset(
                     person_id=raw_pid,
                     field="birthday",
                     value=bday,
-                    message=f"Formato data di nascita non valido '{bday}' per il lavoratore '{raw_pid}'.",
-                    fix_hint="Utilizza il formato standard YYYY-MM-DD o ISO dateTime (es. 1985-04-12)."
+                    message=f"Invalid birthday format '{bday}' for worker '{raw_pid}'.",
+                    fix_hint="Use standard YYYY-MM-DD or ISO dateTime format (e.g. 1985-04-12)."
                 ))
 
     # 4. Check Records in `hc_descriptor`
@@ -741,8 +741,8 @@ def validate_sql_dataset(
                 person_id=str(h_pid) if h_pid else "NULL",
                 field="person_id",
                 value=str(h_pid),
-                message=f"Descrittore ICF collegato a un 'person_id' inesistente nella tabella person: '{h_pid}'.",
-                fix_hint=f"Assicurati che '{h_pid}' sia presente nella tabella 'person'."
+                message=f"ICF descriptor references non-existent person_id in 'person' table: '{h_pid}'.",
+                fix_hint=f"Ensure '{h_pid}' exists in the 'person' table."
             ))
             continue
 
@@ -754,8 +754,8 @@ def validate_sql_dataset(
                 category="health_condition",
                 person_id=h_pid_sanitized,
                 field="icf_code",
-                message=f"Codice ICF vuoto o nullo per il lavoratore '{h_pid_sanitized}'.",
-                fix_hint="Specifica un codice ICF valido per ogni riga di 'hc_descriptor'."
+                message=f"Empty or null ICF code for worker '{h_pid_sanitized}'.",
+                fix_hint="Specify a valid ICF code for each row in 'hc_descriptor'."
             ))
         else:
             icf_str = str(icf).strip()
@@ -766,8 +766,8 @@ def validate_sql_dataset(
                     person_id=h_pid_sanitized,
                     field="icf_code",
                     value=icf_str,
-                    message=f"Prefisso ICF non valido per '{icf_str}' (lavoratore '{h_pid_sanitized}'). I codici ICF devono iniziare per 'b' (Funzioni Corporee), 'd' (Attività e Partecipazione) o 's' (Strutture Corporee).",
-                    fix_hint="Correggi il codice ICF utilizzando un prefisso 'b', 'd' o 's'."
+                    message=f"Invalid ICF prefix for '{icf_str}' (worker '{h_pid_sanitized}'). ICF codes must start with 'b' (Body Functions), 'd' (Activities & Participation) or 's' (Body Structures).",
+                    fix_hint="Correct the ICF code to start with 'b', 'd', or 's'."
                 ))
             elif icf_str not in known_icf:
                 errors.append(ValidationErrorItem(
@@ -775,8 +775,8 @@ def validate_sql_dataset(
                     person_id=h_pid_sanitized,
                     field="icf_code",
                     value=icf_str,
-                    message=f"Il codice ICF '{icf_str}' (lavoratore '{h_pid_sanitized}') non esiste nell'ontologia Rientr@ caricata.",
-                    fix_hint="Usa solo codici ICF presenti nel core set dell'ontologia Rientr@."
+                    message=f"ICF code '{icf_str}' (worker '{h_pid_sanitized}') does not exist in the loaded Rientr@ ontology.",
+                    fix_hint="Use only ICF codes that belong to the loaded Rientr@ ontology Core Sets."
                 ))
 
             # Duplicate ICF for same person
@@ -787,8 +787,8 @@ def validate_sql_dataset(
                     person_id=h_pid_sanitized,
                     field="icf_code",
                     value=icf_str,
-                    message=f"Codice ICF duplicato '{icf_str}' per il lavoratore '{h_pid_sanitized}'.",
-                    fix_hint=f"Rimuovi la riga duplicata del codice '{icf_str}' per '{h_pid_sanitized}' in 'hc_descriptor'."
+                    message=f"Duplicate ICF code '{icf_str}' for worker '{h_pid_sanitized}'.",
+                    fix_hint=f"Remove the duplicate '{icf_str}' row for '{h_pid_sanitized}' in 'hc_descriptor'."
                 ))
             else:
                 seen_person_icf.add(key)
@@ -799,8 +799,8 @@ def validate_sql_dataset(
                 category="health_condition",
                 person_id=h_pid_sanitized,
                 field="qualifier",
-                message=f"Qualificatore nullo per il codice '{icf}' (lavoratore '{h_pid_sanitized}').",
-                fix_hint="Il qualificatore deve essere un numero intero tra 0 e 4."
+                message=f"Null qualifier for code '{icf}' (worker '{h_pid_sanitized}').",
+                fix_hint="The qualifier must be an integer between 0 and 4."
             ))
         else:
             try:
@@ -811,8 +811,8 @@ def validate_sql_dataset(
                         person_id=h_pid_sanitized,
                         field="qualifier",
                         value=str(qual),
-                        message=f"Qualificatore fuori intervallo ({qual}) per il codice '{icf}' (lavoratore '{h_pid_sanitized}'). Valori ammessi: 0 (nessun problema), 1 (lieve), 2 (moderato), 3 (grave), 4 (completo).",
-                        fix_hint="Imposta il qualificatore su un valore intero da 0 a 4."
+                        message=f"Qualifier out of range ({qual}) for code '{icf}' (worker '{h_pid_sanitized}'). Allowed values: 0 (no impairment), 1 (mild), 2 (moderate), 3 (severe), 4 (complete).",
+                        fix_hint="Set qualifier to an integer value from 0 to 4."
                     ))
             except (ValueError, TypeError):
                 errors.append(ValidationErrorItem(
@@ -820,8 +820,8 @@ def validate_sql_dataset(
                     person_id=h_pid_sanitized,
                     field="qualifier",
                     value=str(qual),
-                    message=f"Valore qualificatore non numerico '{qual}' per il codice '{icf}' (lavoratore '{h_pid_sanitized}').",
-                    fix_hint="Il qualificatore deve essere un numero intero da 0 a 4."
+                    message=f"Non-numeric qualifier value '{qual}' for code '{icf}' (worker '{h_pid_sanitized}').",
+                    fix_hint="The qualifier must be an integer between 0 and 4."
                 ))
 
     # Check that each valid person has at least one HC descriptor
@@ -831,8 +831,8 @@ def validate_sql_dataset(
                 category="health_condition",
                 person_id=pid,
                 field="hc_descriptor",
-                message=f"Il lavoratore '{pid}' non ha alcuna condizione di salute (descrittore ICF) associata.",
-                fix_hint=f"Aggiungi almeno una riga nella tabella 'hc_descriptor' per il lavoratore '{pid}'."
+                message=f"Worker '{pid}' does not have any associated health conditions (ICF descriptors).",
+                fix_hint=f"Add at least one row in 'hc_descriptor' for worker '{pid}'."
             ))
 
     # 5. Check Records in `job_evaluation` if present
@@ -852,8 +852,8 @@ def validate_sql_dataset(
                     person_id=str(j_pid) if j_pid else "NULL",
                     field="person_id",
                     value=str(j_pid),
-                    message=f"Valutazione mansione collegata a un 'person_id' inesistente nella tabella person: '{j_pid}'.",
-                    fix_hint=f"Verifica che '{j_pid}' sia inserito nella tabella 'person'."
+                    message=f"Job evaluation references non-existent person_id in 'person' table: '{j_pid}'.",
+                    fix_hint=f"Ensure '{j_pid}' is present in the 'person' table."
                 ))
                 continue
 
@@ -862,8 +862,8 @@ def validate_sql_dataset(
                     category="job",
                     person_id=j_pid_sanitized,
                     field="job_id",
-                    message=f"Identificatore mansione (job_id) vuoto o nullo per il lavoratore '{j_pid_sanitized}'.",
-                    fix_hint="Specifica un job_id valido per ogni valutazione di mansione."
+                    message=f"Empty or null job_id for worker '{j_pid_sanitized}'.",
+                    fix_hint="Specify a valid job_id for each job evaluation."
                 ))
             else:
                 job_str = str(job_id).strip()
@@ -874,8 +874,8 @@ def validate_sql_dataset(
                         person_id=j_pid_sanitized,
                         field="job_id",
                         value=job_str,
-                        message=f"La mansione '{job_str}' associata a '{j_pid_sanitized}' non esiste nell'ontologia Rientr@.",
-                        fix_hint=f"Usa identificatori di mansione presenti nell'ontologia (es. {available_sample}...). Assicurati che il nome corrisponda all'ID dell'ontologia."
+                        message=f"Job role '{job_str}' assigned to '{j_pid_sanitized}' does not exist in the loaded Rientr@ ontology.",
+                        fix_hint=f"Use job identifiers present in the ontology (e.g. {available_sample}...). Ensure casing matches the ontology ID."
                     ))
 
                 # Duplicate job evaluation for same person
@@ -886,8 +886,8 @@ def validate_sql_dataset(
                         person_id=j_pid_sanitized,
                         field="job_id",
                         value=job_str,
-                        message=f"Mansione duplicata '{job_str}' per il lavoratore '{j_pid_sanitized}'.",
-                        fix_hint=f"Rimuovi l'assegnazione duplicata per '{job_str}' su '{j_pid_sanitized}' in 'job_evaluation'."
+                        message=f"Duplicate job evaluation '{job_str}' for worker '{j_pid_sanitized}'.",
+                        fix_hint=f"Remove the duplicate assignment for '{job_str}' on '{j_pid_sanitized}' in 'job_evaluation'."
                     ))
                 else:
                     seen_person_jobs.add(job_key)
@@ -1000,11 +1000,11 @@ def import_sql_dataset(
             result.validation_errors = [
                 ValidationErrorItem(
                     category="schema",
-                    message=f"Errore di sintassi o esecuzione nel file SQL: {sql_err}",
-                    fix_hint="Controlla la sintassi SQL (CREATE TABLE, INSERT INTO) nel file."
+                    message=f"Syntax or execution error in SQL file: {sql_err}",
+                    fix_hint="Check the SQL syntax (CREATE TABLE, INSERT INTO) in the file."
                 ).to_dict()
             ]
-            result.error = f"Errore di sintassi SQL nel file: {sql_err}"
+            result.error = f"SQL syntax error in file: {sql_err}"
             return result
 
         # 2. Read ontology text and extract known entities
@@ -1013,11 +1013,11 @@ def import_sql_dataset(
         known_jobs = _extract_known_jobs(ontology_path)
 
         # 3. PRE-VALIDATION: Check all criteria
-        val_errors = validate_sql_dataset(conn, rdf_text, known_icf, known_jobs)
-        if val_errors:
-            result.validation_errors = [e.to_dict() for e in val_errors]
-            err_count = len(val_errors)
-            result.error = f"Validazione fallita: riscontrati {err_count} problema/i nel file. L'importazione è stata bloccata per prevenire conflitti nell'ontologia."
+        errors = validate_sql_dataset(conn, rdf_text, known_icf, known_jobs)
+        if errors:
+            err_count = len(errors)
+            result.validation_errors = [e.to_dict() for e in errors]
+            result.error = f"Validation failed: found {err_count} issue(s) in the file. The import was blocked to prevent conflicts in the ontology."
             conn.close()
             return result
 

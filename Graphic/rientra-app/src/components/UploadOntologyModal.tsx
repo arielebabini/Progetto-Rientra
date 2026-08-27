@@ -28,7 +28,7 @@ export default function UploadOntologyModal({ onClose, onUploadSuccess }: Upload
   const handleSelectFile = async () => {
     const electronAPI = (window as any).electronAPI;
     if (!electronAPI?.showOpenDialog || !electronAPI?.uploadOntologyFile) {
-      setErrorMessage('Funzionalità di sistema non disponibili (Electron API non trovata).');
+      setErrorMessage('System functionality unavailable (Electron API not found).');
       setUploadState('error');
       return;
     }

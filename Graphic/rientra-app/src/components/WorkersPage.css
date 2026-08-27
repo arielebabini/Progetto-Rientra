@@ -1317,8 +1317,8 @@
   height: 100%;
   width: 0%;
   border-radius: 99px;
-  background: #4DD9C0;
-  box-shadow: 0 0 10px rgba(77, 217, 192, 0.6);
+  background: #ffffff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
   animation: barFill 4s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
 }
 
@@ -1442,8 +1442,8 @@
 .wp-spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid rgba(77, 217, 192, 0.2);
-  border-top-color: #4DD9C0;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-top-color: #ffffff;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   flex-shrink: 0;
@@ -1888,9 +1888,9 @@
 }
 
 .wp-imported-person-name {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #4DD9C0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #ffffff;
 }
 
 .wp-imported-person-id {
@@ -2032,6 +2032,152 @@
 ═══════════════════════════════════════════ */
 
 .wp-modal-error-circle {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.15);
+  box-sizing: border-box;
+}
+
+.wp-val-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+
+.wp-val-errors-container {
+  width: 100%;
+  max-height: 250px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0 16px;
+  padding-right: 4px;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.wp-val-errors-container::-webkit-scrollbar {
+  width: 5px;
+}
+
+.wp-val-errors-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.wp-val-error-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-left: 3px solid #ef4444;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-sizing: border-box;
+  transition: background 0.15s ease;
+}
+
+.wp-val-error-card:hover {
+  background: rgba(15, 23, 42, 0.8);
+}
+
+.wp-val-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.wp-val-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.wp-val-badge-schema {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.wp-val-badge-health_condition {
+  background: rgba(249, 115, 22, 0.2);
+  color: #fdba74;
+  border: 1px solid rgba(249, 115, 22, 0.35);
+}
+
+.wp-val-badge-ontology_conflict {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fde68a;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.wp-val-badge-job {
+  background: rgba(168, 85, 247, 0.2);
+  color: #d8b4fe;
+  border: 1px solid rgba(168, 85, 247, 0.35);
+}
+
+.wp-val-badge-person {
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.wp-val-pill {
+  font-size: 0.68rem;
+  font-family: monospace;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.85);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.wp-val-msg {
+  font-size: 0.78rem;
+  color: #f1f5f9;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.wp-val-hint {
+  font-size: 0.72rem;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px dashed rgba(56, 189, 248, 0.25);
+  padding: 5px 8px;
+  border-radius: 6px;
+  line-height: 1.35;
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+IMPORT VALIDATION ERROR DASHBOARD ═══════════════════════════════════════════ */ .wp-modal-error-circle {
   width: 54px;
   height: 54px;
   border-radius: 50%;

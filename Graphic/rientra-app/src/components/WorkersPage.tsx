@@ -150,15 +150,9 @@ interface LoadingScreenProps {
 
 function LoadingScreen({ status, error, onRetry }: LoadingScreenProps) {
   const [dots, setDots] = useState('');
-  const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
     const t = setInterval(() => setDots(d => d.length >= 3 ? '' : d + '.'), 500);
-    return () => clearInterval(t);
-  }, []);
-
-  useEffect(() => {
-    const t = setInterval(() => setElapsed(e => e + 1), 1000);
     return () => clearInterval(t);
   }, []);
 
@@ -196,37 +190,10 @@ function LoadingScreen({ status, error, onRetry }: LoadingScreenProps) {
       </h3>
       <p className="wp-loading-phase">{phase}</p>
 
-      {/* Stats row */}
-      {status?.stats && (
-        <div className="wp-loading-stats">
-          <div className="wp-loading-stat">
-            <span className="wp-loading-stat-val">{status.stats.classes}</span>
-            <span className="wp-loading-stat-lbl">Classes</span>
-          </div>
-          <div className="wp-loading-stat">
-            <span className="wp-loading-stat-val">{status.stats.individuals}</span>
-            <span className="wp-loading-stat-lbl">Individuals</span>
-          </div>
-          <div className="wp-loading-stat">
-            <span className="wp-loading-stat-val">{status.stats.properties}</span>
-            <span className="wp-loading-stat-lbl">Properties</span>
-          </div>
-        </div>
-      )}
-
       {/* Progress bar — indeterminate */}
       <div className="wp-loading-bar-track">
         <div className="wp-loading-bar-fill" />
       </div>
-
-      <p className="wp-loading-elapsed">
-        {elapsed}s elapsed
-        {status?.elapsed_pellet ? ` · Pellet took ${status.elapsed_pellet.toFixed(1)}s` : ''}
-      </p>
-
-      <p className="wp-loading-hint">
-        This runs once per session — subsequent queries are instant.
-      </p>
     </div>
   );
 }
@@ -254,7 +221,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [loadingWorkers, setLoadingWorkers] = useState(false);
   const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
-  
+
   const [archivedWorkerIds, setArchivedWorkerIds] = useState<Set<string>>(() => {
     try {
       const stored = localStorage.getItem('archivedWorkers');
@@ -553,7 +520,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
   const handleDeleteWorker = async (e: React.MouseEvent, w: Worker) => {
     e.stopPropagation();
     const fullName = displayName(w);
-    const confirmDelete = window.confirm(`Sei sicuro di voler rimuovere permanentemente il paziente "${fullName}" e tutti i suoi dati dall'ontologia?`);
+    const confirmDelete = window.confirm(`Are you sure you want to permanently remove worker "${fullName}" and all their associated data from the ontology?`);
     if (!confirmDelete) return;
 
     try {
@@ -563,7 +530,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
       await deleteWorker(w.id);
       poll();
     } catch (err: any) {
-      alert(`Errore durante l'eliminazione: ${err?.message || err}`);
+      alert(`Error during deletion: ${err?.message || err}`);
     }
   };
 
@@ -606,7 +573,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
       const result = await importWorkers(readResult.data as number[], fileName);
       setImportResult(result);
       if (result.validation_errors && result.validation_errors.length > 0) {
-        setImportError(result.error || `Validazione fallita: ${result.validation_errors.length} problemi rilevati nel file SQL.`);
+        setImportError(result.error || `Validation failed: ${result.validation_errors.length} issue(s) detected in the SQL file.`);
         setImportPhase('error');
       } else if (result.error) {
         setImportError(result.error);
@@ -674,42 +641,42 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
             </svg>
           </button>
           <div className="wp-breadcrumbs-box">
-          {(() => {
-            const navTitle = activeNav === 'workers' ? 'Worker Information' : activeNav === 'jobs-analysis' ? 'Job Analysis' : 'Job Positions';
-            const breadcrumbItems = [];
-            breadcrumbItems.push({ label: 'Home', onClick: onNavigateHome });
-            breadcrumbItems.push({ label: navTitle, onClick: isWizardOpen ? () => setIsWizardOpen(false) : undefined });
-            if (activeNav === 'workers' && isWizardOpen) {
-              breadcrumbItems.push({ label: 'Modify Health Conditions' });
-            }
-            if (activeNav === 'workers' && isWizardOpen && healthWizardStep === 'review') {
-              breadcrumbItems.push({ label: 'Assign Points & Review Changes' });
-            }
+            {(() => {
+              const navTitle = activeNav === 'workers' ? 'Worker Information' : activeNav === 'jobs-analysis' ? 'Job Analysis' : 'Job Positions';
+              const breadcrumbItems = [];
+              breadcrumbItems.push({ label: 'Home', onClick: onNavigateHome });
+              breadcrumbItems.push({ label: navTitle, onClick: isWizardOpen ? () => setIsWizardOpen(false) : undefined });
+              if (activeNav === 'workers' && isWizardOpen) {
+                breadcrumbItems.push({ label: 'Modify Health Conditions' });
+              }
+              if (activeNav === 'workers' && isWizardOpen && healthWizardStep === 'review') {
+                breadcrumbItems.push({ label: 'Assign Points & Review Changes' });
+              }
 
-            return breadcrumbItems.map((item, index) => {
-              const isCurrent = index === breadcrumbItems.length - 1;
-              const isLastBeforeCurrent = index === breadcrumbItems.length - 2;
+              return breadcrumbItems.map((item, index) => {
+                const isCurrent = index === breadcrumbItems.length - 1;
+                const isLastBeforeCurrent = index === breadcrumbItems.length - 2;
 
-              return (
-                <span key={index} className="wp-breadcrumb-segment">
-                  <span
-                    className={`wp-breadcrumb-text ${isCurrent ? 'current' : ''} ${isLastBeforeCurrent ? 'last-before-current' : ''}`}
-                    onClick={item.onClick}
-                    role={item.onClick ? "button" : undefined}
-                  >
-                    {item.label}
-                  </span>
-                  {!isCurrent && (
-                    <span className="wp-breadcrumb-separator">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="9 18 15 12 9 6"></polyline>
-                      </svg>
+                return (
+                  <span key={index} className="wp-breadcrumb-segment">
+                    <span
+                      className={`wp-breadcrumb-text ${isCurrent ? 'current' : ''} ${isLastBeforeCurrent ? 'last-before-current' : ''}`}
+                      onClick={item.onClick}
+                      role={item.onClick ? "button" : undefined}
+                    >
+                      {item.label}
                     </span>
-                  )}
-                </span>
-              );
-            });
-          })()}
+                    {!isCurrent && (
+                      <span className="wp-breadcrumb-separator">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                      </span>
+                    )}
+                  </span>
+                );
+              });
+            })()}
           </div>
         </div>
 
@@ -835,8 +802,8 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                         <button
                           className="wp-worker-delete-btn"
                           onClick={(e) => handleDeleteWorker(e, w)}
-                          title="Elimina permanentemente"
-                          aria-label="Elimina permanentemente"
+                          title="Delete permanently"
+                          aria-label="Delete permanently"
                         >
                           <TrashIcon />
                         </button>
@@ -1192,17 +1159,17 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                   <>
                     <div className="wp-empty-icon" style={{ opacity: 0.9 }}>
                       <div style={{
-                         width: 64, height: 64,
-                         backgroundColor: '#ffffff',
-                         maskImage: 'url(./Vector.png)',
-                         maskSize: 'contain',
-                         maskRepeat: 'no-repeat',
-                         maskPosition: 'center',
-                         WebkitMaskImage: 'url(./Vector.png)',
-                         WebkitMaskSize: 'contain',
-                         WebkitMaskRepeat: 'no-repeat',
-                         WebkitMaskPosition: 'center'
-                       }} />
+                        width: 64, height: 64,
+                        backgroundColor: '#ffffff',
+                        maskImage: 'url(./Vector.png)',
+                        maskSize: 'contain',
+                        maskRepeat: 'no-repeat',
+                        maskPosition: 'center',
+                        WebkitMaskImage: 'url(./Vector.png)',
+                        WebkitMaskSize: 'contain',
+                        WebkitMaskRepeat: 'no-repeat',
+                        WebkitMaskPosition: 'center'
+                      }} />
                     </div>
                     <h3 className="wp-empty-title">
                       No workers are archived yet!
@@ -1215,17 +1182,17 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                   <>
                     <div className="wp-empty-icon" style={{ opacity: 0.9 }}>
                       <div style={{
-                         width: 64, height: 64,
-                         backgroundColor: '#ffffff',
-                         maskImage: 'url(./User_scan_fill.png)',
-                         maskSize: 'contain',
-                         maskRepeat: 'no-repeat',
-                         maskPosition: 'center',
-                         WebkitMaskImage: 'url(./User_scan_fill.png)',
-                         WebkitMaskSize: 'contain',
-                         WebkitMaskRepeat: 'no-repeat',
-                         WebkitMaskPosition: 'center'
-                       }} />
+                        width: 64, height: 64,
+                        backgroundColor: '#ffffff',
+                        maskImage: 'url(./User_scan_fill.png)',
+                        maskSize: 'contain',
+                        maskRepeat: 'no-repeat',
+                        maskPosition: 'center',
+                        WebkitMaskImage: 'url(./User_scan_fill.png)',
+                        WebkitMaskSize: 'contain',
+                        WebkitMaskRepeat: 'no-repeat',
+                        WebkitMaskPosition: 'center'
+                      }} />
                     </div>
                     <h3 className="wp-empty-title">
                       {workers.length === 0 ? 'No workers in ontology' : 'No worker selected'}
@@ -1263,26 +1230,26 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                   </svg>
                 </div>
-                <h3 className="wp-modal-title" style={{ marginBottom: 6 }}>Importa Dataset Lavoratori</h3>
+                <h3 className="wp-modal-title" style={{ marginBottom: 6 }}>Import Workers Dataset</h3>
                 <p className="wp-modal-sub" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.4, marginBottom: 12 }}>
-                  Per importare nuovi lavoratori o aggiornare quelli esistenti, carica un file SQL locale. Se un lavoratore è già presente ma con parametri aggiornati, verrà sovrascritto; se identico, verrà ignorato.
+                  To import new workers or update existing ones, upload a local SQL file. If a worker already exists with updated parameters, it will be updated; if identical, it will be skipped.
                 </p>
-                
+
                 <div style={{ alignSelf: 'stretch', textAlign: 'left', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '12px 16px', marginBottom: 16 }}>
-                  <h4 style={{ fontSize: '0.8rem', fontWeight: 600, color: '#ffffff', marginBottom: 6 }}>Criteri e Schema Richiesti:</h4>
+                  <h4 style={{ fontSize: '0.8rem', fontWeight: 600, color: '#ffffff', marginBottom: 6 }}>Requirements & Schema:</h4>
                   <ul style={{ fontSize: '0.74rem', color: 'rgba(255,255,255,0.65)', paddingLeft: 14, margin: '0 0 10px 0', lineHeight: 1.5 }}>
                     <li>
-                      <strong style={{ color: '#ffffff' }}>person</strong>: <code>person_id</code> (PRIMARY KEY, univoco, alfanumerico), <code>first_name</code>, <code>surname</code> (opzionali: <code>TIN</code>, <code>city</code>, <code>country</code>, <code>zip_code</code>, <code>birthday</code>)
+                      <strong style={{ color: '#ffffff' }}>person</strong>: <code>person_id</code> (PRIMARY KEY, unique, alphanumeric), <code>first_name</code>, <code>surname</code> (optional: <code>TIN</code>, <code>city</code>, <code>country</code>, <code>zip_code</code>, <code>birthday</code>)
                     </li>
                     <li>
-                      <strong style={{ color: '#ffffff' }}>hc_descriptor</strong>: <code>person_id</code>, <code>icf_code</code> (codici ICF ontologia con prefisso b, d, o s), <code>qualifier</code> (intero rigorosamente da 0 a 4)
+                      <strong style={{ color: '#ffffff' }}>hc_descriptor</strong>: <code>person_id</code>, <code>icf_code</code> (ontology ICF codes with prefix b, d, or s), <code>qualifier</code> (integer strictly from 0 to 4)
                     </li>
                     <li>
-                      <strong style={{ color: '#ffffff' }}>job_evaluation</strong> (opzionale): <code>person_id</code>, <code>job_id</code> (mansioni esistenti nell'ontologia, es. Job_AssemblyWorker)
+                      <strong style={{ color: '#ffffff' }}>job_evaluation</strong> (optional): <code>person_id</code>, <code>job_id</code> (existing job roles in ontology, e.g. Job_AssemblyWorker)
                     </li>
                   </ul>
-                  
-                  <h4 style={{ fontSize: '0.8rem', fontWeight: 600, color: '#ffffff', marginBottom: 6 }}>Esempio Schema SQL:</h4>
+
+                  <h4 style={{ fontSize: '0.8rem', fontWeight: 600, color: '#ffffff', marginBottom: 6 }}>SQL Schema Example:</h4>
                   <pre style={{ margin: 0, padding: '8px 10px', background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6, fontSize: '0.7rem', color: '#e2e8f0', fontFamily: 'monospace', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.4 }}>{`CREATE TABLE person (
   person_id TEXT PRIMARY KEY, first_name TEXT, surname TEXT
 );
@@ -1293,13 +1260,13 @@ CREATE TABLE job_evaluation (
   person_id TEXT, job_id TEXT
 );`}</pre>
                 </div>
-                
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignSelf: 'stretch' }}>
                   <button className="uom-btn-primary" onClick={triggerFileSelection}>
-                    Seleziona File SQL
+                    Select SQL File
                   </button>
                   <button className="uom-btn-secondary" onClick={() => { setImportModalOpen(false); setImportPhase('idle'); }}>
-                    Annulla
+                    Cancel
                   </button>
                 </div>
               </>
@@ -1311,9 +1278,9 @@ CREATE TABLE job_evaluation (
                 <div className="wp-modal-icon">
                   <div className="wp-spinner" style={{ width: 40, height: 40, borderWidth: 3 }} />
                 </div>
-                <h3 className="wp-modal-title">Validazione & Importazione in corso…</h3>
+                <h3 className="wp-modal-title">Validation & Import in progress…</h3>
                 <p className="wp-modal-sub">
-                  Verifica criteri ontologici ed esecuzione pipeline R2RML…
+                  Checking ontology criteria and executing R2RML pipeline…
                 </p>
               </>
             )}
@@ -1321,93 +1288,120 @@ CREATE TABLE job_evaluation (
             {/* Picking file */}
             {importPhase === 'picking' && (
               <>
-                <div className="wp-modal-icon" style={{ fontSize: 40 }}>📂</div>
-                <h3 className="wp-modal-title">Apertura selezione file…</h3>
+                <div className="uom-icon-wrapper" style={{ borderColor: 'rgba(77, 217, 192, 0.3)', margin: '0 auto 12px' }}>
+                  <svg className="uom-icon" style={{ color: '#4DD9C0' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <h3 className="wp-modal-title">Opening file dialog…</h3>
               </>
             )}
 
             {/* Success */}
             {importPhase === 'done' && importResult && (
               <>
-                <div className="wp-modal-success-circle">
+                <div
+                  className="uom-icon-wrapper"
+                  style={{
+                    borderColor: (importResult.persons_added > 0 || (importResult.persons_updated || 0) > 0)
+                      ? 'rgba(34, 197, 94, 0.35)'
+                      : 'rgba(251, 191, 36, 0.35)',
+                    background: (importResult.persons_added > 0 || (importResult.persons_updated || 0) > 0)
+                      ? 'rgba(34, 197, 94, 0.08)'
+                      : 'rgba(251, 191, 36, 0.08)',
+                    margin: '0 auto 12px',
+                  }}
+                >
                   {(importResult.persons_added > 0 || (importResult.persons_updated || 0) > 0) ? (
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4DD9C0" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12"></polyline>
+                    <svg
+                      className="uom-icon"
+                      style={{ color: '#22c55e' }}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2.8}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   ) : (
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="12" y1="16" x2="12" y2="12"></line>
-                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    <svg
+                      className="uom-icon"
+                      style={{ color: '#fbbf24' }}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   )}
                 </div>
 
                 <h3 className="wp-modal-title">
                   {importResult.persons_added > 0 && (importResult.persons_updated || 0) > 0
-                    ? `${importResult.persons_added} aggiunt${importResult.persons_added > 1 ? 'i' : 'o'}, ${importResult.persons_updated} aggiornat${importResult.persons_updated! > 1 ? 'i' : 'o'}`
+                    ? `${importResult.persons_added} added, ${importResult.persons_updated} updated`
                     : importResult.persons_added > 0
-                    ? `${importResult.persons_added} lavorator${importResult.persons_added > 1 ? 'i' : 'e'} importat${importResult.persons_added > 1 ? 'i' : 'o'}`
-                    : (importResult.persons_updated || 0) > 0
-                    ? `${importResult.persons_updated} lavorator${importResult.persons_updated! > 1 ? 'i' : 'e'} aggiornat${importResult.persons_updated! > 1 ? 'i' : 'o'}`
-                    : 'Nessuna modifica necessaria'}
+                      ? `${importResult.persons_added} worker${importResult.persons_added > 1 ? 's' : ''} imported`
+                      : (importResult.persons_updated || 0) > 0
+                        ? `${importResult.persons_updated} worker${importResult.persons_updated! > 1 ? 's' : ''} updated`
+                        : 'No changes required'}
                 </h3>
 
                 {(importResult.persons_added > 0 || (importResult.persons_updated || 0) > 0) && (
                   <div className="wp-import-summary-row">
                     <div className="wp-import-summary-item">
                       <span className="wp-import-summary-val">{importResult.persons_added}</span>
-                      <span className="wp-import-summary-lbl">Nuovi</span>
+                      <span className="wp-import-summary-lbl">New</span>
                     </div>
                     <div className="wp-import-summary-item">
                       <span className="wp-import-summary-val">{importResult.persons_updated || 0}</span>
-                      <span className="wp-import-summary-lbl">Aggiornati</span>
+                      <span className="wp-import-summary-lbl">Updated</span>
                     </div>
                     <div className="wp-import-summary-item">
                       <span className="wp-import-summary-val">{importResult.icf_valid}</span>
-                      <span className="wp-import-summary-lbl">Descrittori ICF</span>
+                      <span className="wp-import-summary-lbl">ICF Descriptors</span>
                     </div>
                   </div>
                 )}
 
                 {importResult.skipped_ids && importResult.skipped_ids.length > 0 && (
                   <div className="wp-import-skipped-alert">
-                    <strong>Identici ignorati:</strong> {importResult.skipped_ids.length} lavorator{importResult.skipped_ids.length > 1 ? 'i' : 'e'} già present{importResult.skipped_ids.length > 1 ? 'i' : 'e'} con gli stessi parametri ({importResult.skipped_ids.join(', ')}).
+                    <strong>Identical skipped:</strong> {importResult.skipped_ids.length} worker{importResult.skipped_ids.length > 1 ? 's' : ''} already present with identical data ({importResult.skipped_ids.join(', ')}).
                   </div>
                 )}
 
                 {importResult.details && importResult.details.length > 0 && (
                   <div className="wp-imported-details-section">
-                    <h4 className="wp-imported-details-title">Dettagli Lavoratori Elaborati</h4>
+                    <h4 className="wp-imported-details-title">Processed Workers Details</h4>
                     <div className="wp-imported-details-list">
                       {importResult.details.map(person => {
-                        const icfsText = person.icfs.length > 0 
-                          ? (person.icfs.length <= 6 
-                              ? person.icfs.join(', ') 
-                              : person.icfs.slice(0, 5).join(', ') + ` e altri ${person.icfs.length - 5}`)
-                          : 'Nessuno';
+                        const icfsText = person.icfs.length > 0
+                          ? (person.icfs.length <= 6
+                            ? person.icfs.join(', ')
+                            : person.icfs.slice(0, 5).join(', ') + ` and ${person.icfs.length - 5} more`)
+                          : 'None';
                         const jobsText = person.jobs.length > 0
                           ? person.jobs.map(j => j.replace(/_/g, ' ')).join(', ')
-                          : 'Nessuna';
-                        
+                          : 'None';
+
                         return (
                           <div key={person.person_id} className="wp-imported-person-card">
                             <div className="wp-imported-person-header">
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <span className="wp-imported-person-name">{person.fullname}</span>
                                 <span className={`wp-val-badge ${person.is_updated ? 'wp-val-badge-ontology_conflict' : 'wp-val-badge-health_condition'}`}>
-                                  {person.is_updated ? 'Aggiornato' : 'Nuovo'}
+                                  {person.is_updated ? 'Updated' : 'New'}
                                 </span>
                               </div>
                               <span className="wp-imported-person-id">{person.person_id}</span>
                             </div>
                             <div className="wp-imported-person-body">
                               <div className="wp-imported-person-sublist">
-                                <span className="wp-imported-sublist-lbl">Descrittori ICF:</span>{' '}
+                                <span className="wp-imported-sublist-lbl">ICF Descriptors:</span>{' '}
                                 <span className="wp-imported-person-items">{icfsText}</span>
                               </div>
                               <div className="wp-imported-person-sublist">
-                                <span className="wp-imported-sublist-lbl">Mansioni valutate:</span>{' '}
+                                <span className="wp-imported-sublist-lbl">Evaluated Jobs:</span>{' '}
                                 <span className="wp-imported-person-items">{jobsText}</span>
                               </div>
                             </div>
@@ -1423,7 +1417,7 @@ CREATE TABLE job_evaluation (
                   style={{ marginTop: 22 }}
                   onClick={() => { setImportModalOpen(false); setImportPhase('idle'); }}
                 >
-                  Chiudi
+                  Close
                 </button>
               </>
             )}
@@ -1431,49 +1425,47 @@ CREATE TABLE job_evaluation (
             {/* Error / Validation Failure */}
             {importPhase === 'error' && (
               <>
-                <div className="wp-modal-error-circle">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                <div className="uom-icon-wrapper" style={{ borderColor: 'rgba(239, 68, 68, 0.3)', margin: '0 auto 12px' }}>
+                  <svg className="uom-icon uom-icon-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
                 </div>
                 <h3 className="wp-modal-title" style={{ marginBottom: 4 }}>
                   {importResult?.validation_errors && importResult.validation_errors.length > 0
-                    ? 'Importazione Bloccata'
-                    : 'Importazione Fallita'}
+                    ? 'Import Blocked'
+                    : 'Import Failed'}
                 </h3>
                 <p className="wp-modal-sub" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', marginBottom: 10, lineHeight: 1.4 }}>
                   {importResult?.validation_errors && importResult.validation_errors.length > 0
-                    ? "Il file SQL non rispetta i criteri di integrità richiesti. L'importazione è stata fermata per prevenire conflitti o anomalie nell'ontologia."
-                    : (importError || 'Si è verificato un errore durante l\'elaborazione del file.')}
+                    ? "The SQL file does not meet the required integrity criteria. The import was stopped to prevent conflicts or anomalies in the ontology."
+                    : (importError || 'An error occurred while processing the file.')}
                 </p>
 
                 {importResult?.validation_errors && importResult.validation_errors.length > 0 && (
                   <>
                     <div className="wp-val-count-badge">
-                      ⚠️ {importResult.validation_errors.length} {importResult.validation_errors.length === 1 ? 'problema da risolvere' : 'problemi da risolvere'}
+                      ⚠️ {importResult.validation_errors.length} {importResult.validation_errors.length === 1 ? 'issue to resolve' : 'issues to resolve'}
                     </div>
 
                     <div className="wp-val-errors-container">
                       {importResult.validation_errors.map((err, idx) => {
-                        let badgeLabel = 'Generale';
+                        let badgeLabel = 'General';
                         let badgeClass = 'wp-val-badge-schema';
 
                         if (err.category === 'schema') {
-                          badgeLabel = 'Struttura / Schema';
+                          badgeLabel = 'Structure / Schema';
                           badgeClass = 'wp-val-badge-schema';
                         } else if (err.category === 'person') {
-                          badgeLabel = 'Anagrafica Persona';
+                          badgeLabel = 'Person Details';
                           badgeClass = 'wp-val-badge-person';
                         } else if (err.category === 'health_condition') {
-                          badgeLabel = 'Condizione ICF / Qualifier';
+                          badgeLabel = 'ICF Condition / Qualifier';
                           badgeClass = 'wp-val-badge-health_condition';
                         } else if (err.category === 'job') {
-                          badgeLabel = 'Mansione / Job';
+                          badgeLabel = 'Job Role';
                           badgeClass = 'wp-val-badge-job';
                         } else if (err.category === 'ontology_conflict') {
-                          badgeLabel = 'Conflitto Ontologia';
+                          badgeLabel = 'Ontology Conflict';
                           badgeClass = 'wp-val-badge-ontology_conflict';
                         }
 
@@ -1482,17 +1474,17 @@ CREATE TABLE job_evaluation (
                             <div className="wp-val-card-header">
                               <span className={`wp-val-badge ${badgeClass}`}>{badgeLabel}</span>
                               {err.person_id && (
-                                <span className="wp-val-pill">Lavoratore: {err.person_id}</span>
+                                <span className="wp-val-pill">Worker: {err.person_id}</span>
                               )}
                               {err.field && (
-                                <span className="wp-val-pill">Campo: {err.field}</span>
+                                <span className="wp-val-pill">Field: {err.field}</span>
                               )}
                             </div>
                             <p className="wp-val-msg">{err.message}</p>
                             {err.fix_hint && (
                               <div className="wp-val-hint">
                                 <span>💡</span>
-                                <span><strong>Suggerimento:</strong> {err.fix_hint}</span>
+                                <span><strong>Hint:</strong> {err.fix_hint}</span>
                               </div>
                             )}
                           </div>
@@ -1504,13 +1496,13 @@ CREATE TABLE job_evaluation (
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignSelf: 'stretch', marginTop: 10 }}>
                   <button className="uom-btn-primary" onClick={triggerFileSelection}>
-                    Seleziona un altro file SQL
+                    Select another SQL file
                   </button>
                   <button
                     className="uom-btn-secondary"
                     onClick={() => { setImportModalOpen(false); setImportPhase('idle'); }}
                   >
-                    Chiudi
+                    Close
                   </button>
                 </div>
               </>

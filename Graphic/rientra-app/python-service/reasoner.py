@@ -314,6 +314,26 @@ def is_live_reasoner_ready() -> bool:
     return _live_reasoner_ready
 
 
+def clear_snapshot_cache(clean_disk: bool = True) -> None:
+    """
+    Clear the in-memory snapshot cache and optionally remove on-disk cache files.
+    """
+    global _snapshot_cache
+    _snapshot_cache = None
+    if clean_disk:
+        try:
+            cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reasoning_cache")
+            if os.path.exists(cache_dir):
+                for fname in os.listdir(cache_dir):
+                    if fname.startswith("inference_") and fname.endswith(".json"):
+                        try:
+                            os.remove(os.path.join(cache_dir, fname))
+                        except Exception:
+                            pass
+        except Exception:
+            pass
+
+
 def load_snapshot_cache(rdf_path: str = "", update_state: bool = True) -> bool:
     """
     Load a previously saved reasoning snapshot, if present and still valid.
@@ -324,20 +344,24 @@ def load_snapshot_cache(rdf_path: str = "", update_state: bool = True) -> bool:
 
     path = _resolve_rdf_path(rdf_path)
     if not path:
+        _snapshot_cache = None
         return False
 
     try:
         cache_path = _snapshot_cache_path(path)
     except OSError:
+        _snapshot_cache = None
         return False
 
     if not os.path.exists(cache_path):
+        _snapshot_cache = None
         return False
 
     try:
         with open(cache_path, "r", encoding="utf-8") as fh:
             payload = json.load(fh)
     except (OSError, json.JSONDecodeError):
+        _snapshot_cache = None
         return False
 
     required_keys = {
@@ -355,6 +379,7 @@ def load_snapshot_cache(rdf_path: str = "", update_state: bool = True) -> bool:
         "skill_details_by_worker_job",
     }
     if not required_keys.issubset(payload):
+        _snapshot_cache = None
         return False
 
     _snapshot_cache = payload
@@ -555,10 +580,13 @@ def _refresh_reasoning_artifacts() -> None:
             "properties": len(list(default_world.properties())),
         }
 
-        _live_reasoner_ready = True
-        state.set_ready(ontology_path, elapsed, stats)
+        # Clear old cache files on disk, save new snapshot and load it before declaring ready
+        clear_snapshot_cache(clean_disk=True)
         _save_snapshot_cache(ontology_path, elapsed, stats)
         load_snapshot_cache(ontology_path, update_state=False)
+
+        _live_reasoner_ready = True
+        state.set_ready(ontology_path, elapsed, stats)
     except Exception as exc:
         state.set_error(str(exc))
         raise
@@ -661,7 +689,7 @@ def load_and_reason(rdf_path: str = "") -> None:
     Updates the global `state` object when done (or on error).
     Designed to run in a background thread so the HTTP server starts immediately.
     """
-    global _live_reasoner_ready, _pending_selected_worker_id, _loaded_ontology, _icf_ind_cache
+    global _live_reasoner_ready, _pending_selected_worker_id, _loaded_ontology, _icf_ind_cache, _snapshot_cache
 
     path = _resolve_rdf_path(rdf_path)
     if not path:
@@ -691,8 +719,9 @@ def load_and_reason(rdf_path: str = "") -> None:
         workers = _snapshot_cache.get("workers", [])
         current_selected = next((w["id"] for w in workers if w.get("is_selected")), None)
 
-    # Clean up previous state to allow reload
+    # Clean up previous state to allow reload and invalidate stale snapshot cache
     _live_reasoner_ready = False
+    _snapshot_cache = None
     _icf_ind_cache.clear()
 
     try:
@@ -713,7 +742,6 @@ def load_and_reason(rdf_path: str = "") -> None:
         "individuals" : len(list(default_world.individuals())),
         "properties"  : len(list(default_world.properties())),
     }
-    _live_reasoner_ready = True
     
     # Restore the selected worker (either what was selected before, or what is pending)
     target_selected = current_selected or _pending_selected_worker_id
@@ -724,15 +752,19 @@ def load_and_reason(rdf_path: str = "") -> None:
             pass
     _pending_selected_worker_id = None
 
-    state.set_ready(path, elapsed, stats)
     # Build ICF → Core Set lookup map once, after reasoning is complete
     _build_icf_core_set_map()
+    _build_icf_ind_cache()
+
     try:
+        clear_snapshot_cache(clean_disk=True)
         _save_snapshot_cache(path, elapsed, stats)
         load_snapshot_cache(path, update_state=False)
-    except Exception:
-        # Cache persistence is best-effort; the live API must remain available.
-        pass
+    except Exception as _c_err:
+        logging.getLogger(__name__).warning("[load_and_reason] Snapshot cache failed: %s", _c_err)
+
+    _live_reasoner_ready = True
+    state.set_ready(path, elapsed, stats)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1735,6 +1767,8 @@ def delete_worker(worker_id: str) -> dict:
         except Exception as exc:
             raise RuntimeError(f"Failed to destroy Person individual: {exc}") from exc
 
+    # Invalidate cache so old snapshots without deletion don't linger
+    clear_snapshot_cache(clean_disk=True)
     _refresh_reasoning_artifacts()
 
     return {"worker_id": worker_id, "deleted": True}

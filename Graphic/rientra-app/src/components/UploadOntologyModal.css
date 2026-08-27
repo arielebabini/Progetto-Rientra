@@ -181,8 +181,8 @@
   position: relative;
   width: 64px;
   height: 64px;
-  border: 3px solid rgba(77, 217, 192, 0.1);
-  border-top-color: #4dd9c0;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-top-color: #ffffff;
   border-radius: 50%;
   animation: uomSpin 1s linear infinite;
   margin-bottom: 24px;
