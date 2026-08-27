@@ -706,11 +706,31 @@ async def import_workers_endpoint(request: Request) -> JSONResponse:
     finally:
         Path(tmp_sql.name).unlink(missing_ok=True)
 
+    if result.validation_errors:
+        return JSONResponse(
+            status_code=422,
+            content={
+                "persons_added": 0,
+                "persons_skipped": 0,
+                "icf_valid": 0,
+                "icf_skipped": 0,
+                "jobs_valid": 0,
+                "jobs_skipped": 0,
+                "new_person_ids": [],
+                "skipped_ids": [],
+                "details": [],
+                "backup_path": "",
+                "validation_errors": result.validation_errors,
+                "error": result.error,
+                "detail": result.error,
+            },
+        )
+
     if result.error:
         raise HTTPException(status_code=500, detail=result.error)
 
     # Update the live in-memory ontology and snapshot cache by triggering a reload and re-running reasoning in the background
-    if result.new_person_ids:
+    if result.new_person_ids or result.updated_ids:
         try:
             state.set_loading("Applying imported changes and recomputing inference...")
             thread = threading.Thread(
@@ -727,17 +747,20 @@ async def import_workers_endpoint(request: Request) -> JSONResponse:
             )
 
     return JSONResponse({
-        "persons_added"  : result.persons_added,
-        "persons_skipped": result.persons_skipped,
-        "icf_valid"      : result.icf_valid,
-        "icf_skipped"    : result.icf_skipped,
-        "jobs_valid"     : result.jobs_valid,
-        "jobs_skipped"   : result.jobs_skipped,
-        "new_person_ids" : result.new_person_ids,
-        "skipped_ids"    : result.skipped_ids,
-        "details"        : result.details,
-        "backup_path"    : result.backup_path,
-        "error"          : None,
+        "persons_added"    : result.persons_added,
+        "persons_updated"  : result.persons_updated,
+        "persons_skipped"  : result.persons_skipped,
+        "icf_valid"        : result.icf_valid,
+        "icf_skipped"      : result.icf_skipped,
+        "jobs_valid"       : result.jobs_valid,
+        "jobs_skipped"     : result.jobs_skipped,
+        "new_person_ids"   : result.new_person_ids,
+        "updated_ids"      : result.updated_ids,
+        "skipped_ids"      : result.skipped_ids,
+        "details"          : result.details,
+        "validation_errors": result.validation_errors,
+        "backup_path"      : result.backup_path,
+        "error"            : None,
     })
 
 

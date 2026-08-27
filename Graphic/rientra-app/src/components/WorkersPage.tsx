@@ -509,21 +509,23 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
   };
 
   // ── Filtered worker list ───────────────────────────────────────────
+  const displayName = (w: Worker) =>
+    [w.first_name, w.surname].filter(Boolean).join(' ') || w.id;
+
   const activeWorkers = workers.filter(w => !archivedWorkerIds.has(w.id));
   const archivedWorkersList = workers.filter(w => archivedWorkerIds.has(w.id));
   const displayedWorkers = activeTab === 'active' ? activeWorkers : archivedWorkersList;
 
-  const filteredWorkers = displayedWorkers.filter(w => {
-    const q = searchQuery.toLowerCase();
-    return (
-      w.id.toLowerCase().includes(q) ||
-      w.first_name.toLowerCase().includes(q) ||
-      w.surname.toLowerCase().includes(q)
-    );
-  });
-
-  const displayName = (w: Worker) =>
-    [w.first_name, w.surname].filter(Boolean).join(' ') || w.id;
+  const filteredWorkers = displayedWorkers
+    .filter(w => {
+      const q = searchQuery.toLowerCase();
+      return (
+        w.id.toLowerCase().includes(q) ||
+        w.first_name.toLowerCase().includes(q) ||
+        w.surname.toLowerCase().includes(q)
+      );
+    })
+    .sort((a, b) => displayName(a).localeCompare(displayName(b), undefined, { sensitivity: 'base' }));
 
   // Await the selection API so the ontology is flipped BEFORE JobAnalysisView
   // fires its /match request. Without this, the SPARQL FILTER(?selected = true)
@@ -603,7 +605,10 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
     try {
       const result = await importWorkers(readResult.data as number[], fileName);
       setImportResult(result);
-      if (result.error) {
+      if (result.validation_errors && result.validation_errors.length > 0) {
+        setImportError(result.error || `Validazione fallita: ${result.validation_errors.length} problemi rilevati nel file SQL.`);
+        setImportPhase('error');
+      } else if (result.error) {
         setImportError(result.error);
         setImportPhase('error');
       } else {
@@ -1253,31 +1258,31 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
             {/* Instructions */}
             {importPhase === 'instructions' && (
               <>
-                <div className="uom-icon-wrapper" style={{ borderColor: 'rgba(239, 68, 68, 0.3)', margin: '0 auto 12px' }}>
-                  <svg className="uom-icon uom-icon-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <div className="uom-icon-wrapper" style={{ borderColor: 'rgba(77, 217, 192, 0.3)', margin: '0 auto 12px' }}>
+                  <svg className="uom-icon" style={{ color: '#4DD9C0' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                   </svg>
                 </div>
-                <h3 className="wp-modal-title" style={{ marginBottom: 6 }}>Import Worker Dataset</h3>
+                <h3 className="wp-modal-title" style={{ marginBottom: 6 }}>Importa Dataset Lavoratori</h3>
                 <p className="wp-modal-sub" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.4, marginBottom: 12 }}>
-                  To import new workers, please upload a local SQL file containing the required tables. The importer uses an in-memory database to execute your SQL script.
+                  Per importare nuovi lavoratori o aggiornare quelli esistenti, carica un file SQL locale. Se un lavoratore è già presente ma con parametri aggiornati, verrà sovrascritto; se identico, verrà ignorato.
                 </p>
                 
                 <div style={{ alignSelf: 'stretch', textAlign: 'left', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '12px 16px', marginBottom: 16 }}>
-                  <h4 style={{ fontSize: '0.8rem', fontWeight: 600, color: '#ffffff', marginBottom: 6 }}>Required Schema:</h4>
+                  <h4 style={{ fontSize: '0.8rem', fontWeight: 600, color: '#ffffff', marginBottom: 6 }}>Criteri e Schema Richiesti:</h4>
                   <ul style={{ fontSize: '0.74rem', color: 'rgba(255,255,255,0.65)', paddingLeft: 14, margin: '0 0 10px 0', lineHeight: 1.5 }}>
                     <li>
-                      <strong style={{ color: '#ffffff' }}>person</strong>: <code>person_id</code> (PRIMARY KEY), <code>first_name</code>, <code>surname</code> (optional: <code>TIN</code>, <code>city</code>, <code>country</code>, <code>zip_code</code>, <code>birthday</code>)
+                      <strong style={{ color: '#ffffff' }}>person</strong>: <code>person_id</code> (PRIMARY KEY, univoco, alfanumerico), <code>first_name</code>, <code>surname</code> (opzionali: <code>TIN</code>, <code>city</code>, <code>country</code>, <code>zip_code</code>, <code>birthday</code>)
                     </li>
                     <li>
-                      <strong style={{ color: '#ffffff' }}>hc_descriptor</strong>: <code>person_id</code>, <code>icf_code</code>, <code>qualifier</code> (0-4)
+                      <strong style={{ color: '#ffffff' }}>hc_descriptor</strong>: <code>person_id</code>, <code>icf_code</code> (codici ICF ontologia con prefisso b, d, o s), <code>qualifier</code> (intero rigorosamente da 0 a 4)
                     </li>
                     <li>
-                      <strong style={{ color: '#ffffff' }}>job_evaluation</strong>: <code>person_id</code>, <code>job_id</code> (evaluated job IDs, e.g. Job_AssemblyWorker)
+                      <strong style={{ color: '#ffffff' }}>job_evaluation</strong> (opzionale): <code>person_id</code>, <code>job_id</code> (mansioni esistenti nell'ontologia, es. Job_AssemblyWorker)
                     </li>
                   </ul>
                   
-                  <h4 style={{ fontSize: '0.8rem', fontWeight: 600, color: '#ffffff', marginBottom: 6 }}>Example SQL Schema:</h4>
+                  <h4 style={{ fontSize: '0.8rem', fontWeight: 600, color: '#ffffff', marginBottom: 6 }}>Esempio Schema SQL:</h4>
                   <pre style={{ margin: 0, padding: '8px 10px', background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6, fontSize: '0.7rem', color: '#e2e8f0', fontFamily: 'monospace', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.4 }}>{`CREATE TABLE person (
   person_id TEXT PRIMARY KEY, first_name TEXT, surname TEXT
 );
@@ -1291,10 +1296,10 @@ CREATE TABLE job_evaluation (
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignSelf: 'stretch' }}>
                   <button className="uom-btn-primary" onClick={triggerFileSelection}>
-                    Select SQL File
+                    Seleziona File SQL
                   </button>
                   <button className="uom-btn-secondary" onClick={() => { setImportModalOpen(false); setImportPhase('idle'); }}>
-                    Cancel
+                    Annulla
                   </button>
                 </div>
               </>
@@ -1306,9 +1311,9 @@ CREATE TABLE job_evaluation (
                 <div className="wp-modal-icon">
                   <div className="wp-spinner" style={{ width: 40, height: 40, borderWidth: 3 }} />
                 </div>
-                <h3 className="wp-modal-title">Importing Dataset…</h3>
+                <h3 className="wp-modal-title">Validazione & Importazione in corso…</h3>
                 <p className="wp-modal-sub">
-                  Running R2RML pipeline. This may take a few seconds.
+                  Verifica criteri ontologici ed esecuzione pipeline R2RML…
                 </p>
               </>
             )}
@@ -1317,7 +1322,7 @@ CREATE TABLE job_evaluation (
             {importPhase === 'picking' && (
               <>
                 <div className="wp-modal-icon" style={{ fontSize: 40 }}>📂</div>
-                <h3 className="wp-modal-title">Opening file dialog…</h3>
+                <h3 className="wp-modal-title">Apertura selezione file…</h3>
               </>
             )}
 
@@ -1325,7 +1330,7 @@ CREATE TABLE job_evaluation (
             {importPhase === 'done' && importResult && (
               <>
                 <div className="wp-modal-success-circle">
-                  {importResult.persons_added > 0 ? (
+                  {(importResult.persons_added > 0 || (importResult.persons_updated || 0) > 0) ? (
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4DD9C0" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
@@ -1339,66 +1344,70 @@ CREATE TABLE job_evaluation (
                 </div>
 
                 <h3 className="wp-modal-title">
-                  {importResult.persons_added > 0
-                    ? `${importResult.persons_added} worker${importResult.persons_added > 1 ? 's' : ''} imported`
-                    : 'No new workers to import'}
+                  {importResult.persons_added > 0 && (importResult.persons_updated || 0) > 0
+                    ? `${importResult.persons_added} aggiunt${importResult.persons_added > 1 ? 'i' : 'o'}, ${importResult.persons_updated} aggiornat${importResult.persons_updated! > 1 ? 'i' : 'o'}`
+                    : importResult.persons_added > 0
+                    ? `${importResult.persons_added} lavorator${importResult.persons_added > 1 ? 'i' : 'e'} importat${importResult.persons_added > 1 ? 'i' : 'o'}`
+                    : (importResult.persons_updated || 0) > 0
+                    ? `${importResult.persons_updated} lavorator${importResult.persons_updated! > 1 ? 'i' : 'e'} aggiornat${importResult.persons_updated! > 1 ? 'i' : 'o'}`
+                    : 'Nessuna modifica necessaria'}
                 </h3>
 
-                {importResult.persons_added > 0 && (
+                {(importResult.persons_added > 0 || (importResult.persons_updated || 0) > 0) && (
                   <div className="wp-import-summary-row">
                     <div className="wp-import-summary-item">
-                      <span className="wp-import-summary-val">{importResult.icf_valid}</span>
-                      <span className="wp-import-summary-lbl">ICF descriptors</span>
+                      <span className="wp-import-summary-val">{importResult.persons_added}</span>
+                      <span className="wp-import-summary-lbl">Nuovi</span>
                     </div>
                     <div className="wp-import-summary-item">
-                      <span className="wp-import-summary-val">{importResult.jobs_valid}</span>
-                      <span className="wp-import-summary-lbl">Job links</span>
+                      <span className="wp-import-summary-val">{importResult.persons_updated || 0}</span>
+                      <span className="wp-import-summary-lbl">Aggiornati</span>
+                    </div>
+                    <div className="wp-import-summary-item">
+                      <span className="wp-import-summary-val">{importResult.icf_valid}</span>
+                      <span className="wp-import-summary-lbl">Descrittori ICF</span>
                     </div>
                   </div>
                 )}
 
-                {importResult.skipped_ids.length > 0 && (
+                {importResult.skipped_ids && importResult.skipped_ids.length > 0 && (
                   <div className="wp-import-skipped-alert">
-                    <strong>Skipped:</strong> {importResult.skipped_ids.length} worker{importResult.skipped_ids.length > 1 ? 's' : ''} already present ({importResult.skipped_ids.join(', ')}).
-                  </div>
-                )}
-
-                {(importResult.icf_skipped > 0 || importResult.jobs_skipped > 0) && (
-                  <div className="wp-import-warning-alert">
-                    ⚠️ {importResult.icf_skipped > 0 ? `${importResult.icf_skipped} ICF code${importResult.icf_skipped > 1 ? 's' : ''} ` : ''}
-                    {importResult.icf_skipped > 0 && importResult.jobs_skipped > 0 ? 'and ' : ''}
-                    {importResult.jobs_skipped > 0 ? `${importResult.jobs_skipped} Job${importResult.jobs_skipped > 1 ? 's' : ''} ` : ''}
-                    skipped (not found in ontology).
+                    <strong>Identici ignorati:</strong> {importResult.skipped_ids.length} lavorator{importResult.skipped_ids.length > 1 ? 'i' : 'e'} già present{importResult.skipped_ids.length > 1 ? 'i' : 'e'} con gli stessi parametri ({importResult.skipped_ids.join(', ')}).
                   </div>
                 )}
 
                 {importResult.details && importResult.details.length > 0 && (
                   <div className="wp-imported-details-section">
-                    <h4 className="wp-imported-details-title">Imported Workers Details</h4>
+                    <h4 className="wp-imported-details-title">Dettagli Lavoratori Elaborati</h4>
                     <div className="wp-imported-details-list">
                       {importResult.details.map(person => {
                         const icfsText = person.icfs.length > 0 
                           ? (person.icfs.length <= 6 
                               ? person.icfs.join(', ') 
-                              : person.icfs.slice(0, 5).join(', ') + ` and ${person.icfs.length - 5} more`)
-                          : 'None';
+                              : person.icfs.slice(0, 5).join(', ') + ` e altri ${person.icfs.length - 5}`)
+                          : 'Nessuno';
                         const jobsText = person.jobs.length > 0
                           ? person.jobs.map(j => j.replace(/_/g, ' ')).join(', ')
-                          : 'None';
+                          : 'Nessuna';
                         
                         return (
                           <div key={person.person_id} className="wp-imported-person-card">
                             <div className="wp-imported-person-header">
-                              <span className="wp-imported-person-name">{person.fullname}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <span className="wp-imported-person-name">{person.fullname}</span>
+                                <span className={`wp-val-badge ${person.is_updated ? 'wp-val-badge-ontology_conflict' : 'wp-val-badge-health_condition'}`}>
+                                  {person.is_updated ? 'Aggiornato' : 'Nuovo'}
+                                </span>
+                              </div>
                               <span className="wp-imported-person-id">{person.person_id}</span>
                             </div>
                             <div className="wp-imported-person-body">
                               <div className="wp-imported-person-sublist">
-                                <span className="wp-imported-sublist-lbl">ICF Descriptors:</span>{' '}
+                                <span className="wp-imported-sublist-lbl">Descrittori ICF:</span>{' '}
                                 <span className="wp-imported-person-items">{icfsText}</span>
                               </div>
                               <div className="wp-imported-person-sublist">
-                                <span className="wp-imported-sublist-lbl">Job evaluations:</span>{' '}
+                                <span className="wp-imported-sublist-lbl">Mansioni valutate:</span>{' '}
                                 <span className="wp-imported-person-items">{jobsText}</span>
                               </div>
                             </div>
@@ -1414,26 +1423,96 @@ CREATE TABLE job_evaluation (
                   style={{ marginTop: 22 }}
                   onClick={() => { setImportModalOpen(false); setImportPhase('idle'); }}
                 >
-                  Close
+                  Chiudi
                 </button>
               </>
             )}
 
-            {/* Error */}
+            {/* Error / Validation Failure */}
             {importPhase === 'error' && (
               <>
-                <div className="wp-modal-icon" style={{ fontSize: 36 }}>⚠️</div>
-                <h3 className="wp-modal-title">Import failed</h3>
-                <p className="wp-modal-sub" style={{ color: '#ef4444', wordBreak: 'break-word' }}>
-                  {importError}
+                <div className="wp-modal-error-circle">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                </div>
+                <h3 className="wp-modal-title" style={{ marginBottom: 4 }}>
+                  {importResult?.validation_errors && importResult.validation_errors.length > 0
+                    ? 'Importazione Bloccata'
+                    : 'Importazione Fallita'}
+                </h3>
+                <p className="wp-modal-sub" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', marginBottom: 10, lineHeight: 1.4 }}>
+                  {importResult?.validation_errors && importResult.validation_errors.length > 0
+                    ? "Il file SQL non rispetta i criteri di integrità richiesti. L'importazione è stata fermata per prevenire conflitti o anomalie nell'ontologia."
+                    : (importError || 'Si è verificato un errore durante l\'elaborazione del file.')}
                 </p>
-                <button
-                  className="uom-btn-primary"
-                  style={{ marginTop: 20 }}
-                  onClick={() => { setImportModalOpen(false); setImportPhase('idle'); }}
-                >
-                  Close
-                </button>
+
+                {importResult?.validation_errors && importResult.validation_errors.length > 0 && (
+                  <>
+                    <div className="wp-val-count-badge">
+                      ⚠️ {importResult.validation_errors.length} {importResult.validation_errors.length === 1 ? 'problema da risolvere' : 'problemi da risolvere'}
+                    </div>
+
+                    <div className="wp-val-errors-container">
+                      {importResult.validation_errors.map((err, idx) => {
+                        let badgeLabel = 'Generale';
+                        let badgeClass = 'wp-val-badge-schema';
+
+                        if (err.category === 'schema') {
+                          badgeLabel = 'Struttura / Schema';
+                          badgeClass = 'wp-val-badge-schema';
+                        } else if (err.category === 'person') {
+                          badgeLabel = 'Anagrafica Persona';
+                          badgeClass = 'wp-val-badge-person';
+                        } else if (err.category === 'health_condition') {
+                          badgeLabel = 'Condizione ICF / Qualifier';
+                          badgeClass = 'wp-val-badge-health_condition';
+                        } else if (err.category === 'job') {
+                          badgeLabel = 'Mansione / Job';
+                          badgeClass = 'wp-val-badge-job';
+                        } else if (err.category === 'ontology_conflict') {
+                          badgeLabel = 'Conflitto Ontologia';
+                          badgeClass = 'wp-val-badge-ontology_conflict';
+                        }
+
+                        return (
+                          <div key={idx} className="wp-val-error-card">
+                            <div className="wp-val-card-header">
+                              <span className={`wp-val-badge ${badgeClass}`}>{badgeLabel}</span>
+                              {err.person_id && (
+                                <span className="wp-val-pill">Lavoratore: {err.person_id}</span>
+                              )}
+                              {err.field && (
+                                <span className="wp-val-pill">Campo: {err.field}</span>
+                              )}
+                            </div>
+                            <p className="wp-val-msg">{err.message}</p>
+                            {err.fix_hint && (
+                              <div className="wp-val-hint">
+                                <span>💡</span>
+                                <span><strong>Suggerimento:</strong> {err.fix_hint}</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignSelf: 'stretch', marginTop: 10 }}>
+                  <button className="uom-btn-primary" onClick={triggerFileSelection}>
+                    Seleziona un altro file SQL
+                  </button>
+                  <button
+                    className="uom-btn-secondary"
+                    onClick={() => { setImportModalOpen(false); setImportPhase('idle'); }}
+                  >
+                    Chiudi
+                  </button>
+                </div>
               </>
             )}
           </div>

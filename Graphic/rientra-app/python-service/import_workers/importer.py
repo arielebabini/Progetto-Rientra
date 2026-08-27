@@ -79,22 +79,46 @@ CLOSING_TAG   = "</rdf:RDF>"
 QUALIFIER_MAP = {"b": "BFqual", "d": "AP1qual", "s": "BS1qual"}
 
 
-# ── Result dataclass ──────────────────────────────────────────────────────────
+# ── Result and Validation dataclasses ────────────────────────────────────────
+
+@dataclass
+class ValidationErrorItem:
+    """Represents a specific validation issue found in the imported SQL dataset."""
+    category: str        # 'schema' | 'person' | 'health_condition' | 'job' | 'ontology_conflict'
+    message: str         # Clear explanation of what is wrong
+    person_id: Optional[str] = None
+    field: Optional[str] = None
+    value: Optional[str] = None
+    fix_hint: Optional[str] = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "category": self.category,
+            "message": self.message,
+            "person_id": self.person_id,
+            "field": self.field,
+            "value": self.value,
+            "fix_hint": self.fix_hint,
+        }
+
 
 @dataclass
 class ImportResult:
-    """Summary returned to the FastAPI endpoint after a successful import."""
-    persons_added:    int = 0
-    persons_skipped:  int = 0
-    icf_valid:        int = 0
-    icf_skipped:      int = 0
-    jobs_valid:       int = 0
-    jobs_skipped:     int = 0
-    backup_path:      str = ""
-    new_person_ids:   list[str] = field(default_factory=list)
-    skipped_ids:      list[str] = field(default_factory=list)
-    details:          list[dict] = field(default_factory=list)
-    error:            Optional[str] = None
+    """Summary returned to the FastAPI endpoint after an import attempt."""
+    persons_added:     int = 0
+    persons_updated:   int = 0
+    persons_skipped:   int = 0
+    icf_valid:         int = 0
+    icf_skipped:       int = 0
+    jobs_valid:        int = 0
+    jobs_skipped:      int = 0
+    backup_path:       str = ""
+    new_person_ids:    list[str] = field(default_factory=list)
+    updated_ids:       list[str] = field(default_factory=list)
+    skipped_ids:       list[str] = field(default_factory=list)
+    details:           list[dict] = field(default_factory=list)
+    validation_errors: list[dict] = field(default_factory=list)
+    error:             Optional[str] = None
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -376,6 +400,15 @@ def _create_views(
     conn.execute("CREATE TABLE _known_jobs (job_id TEXT PRIMARY KEY)")
     conn.executemany("INSERT OR IGNORE INTO _known_jobs VALUES (?)", [(j,) for j in known_jobs])
 
+    # Ensure optional FOAF columns exist on person table with exact casing to avoid pandas/morph-kgc missing column dropna errors
+    existing_person_cols_exact = {row[1] for row in conn.execute("PRAGMA table_info(person)").fetchall()}
+    for opt_col, opt_type in [("TIN", "TEXT"), ("city", "TEXT"), ("country", "TEXT"), ("zip_code", "INT"), ("birthday", "TEXT")]:
+        if opt_col not in existing_person_cols_exact:
+            try:
+                conn.execute(f'ALTER TABLE person ADD COLUMN "{opt_col}" {opt_type}')
+            except Exception:
+                pass
+
     for view, prefix in [("v_desc_b", "b"), ("v_desc_d", "d"), ("v_desc_s", "s")]:
         conn.execute(f"DROP VIEW IF EXISTS {view}")
         conn.execute(f"""
@@ -525,6 +558,412 @@ def _triples_to_rdfxml_blocks(new_graph: "Graph", persons_to_add: set[str]) -> l
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+#  VALIDATION PIPELINE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def validate_sql_dataset(
+    conn: sqlite3.Connection,
+    rdf_text: str,
+    known_icf: set[str],
+    known_jobs: set[str],
+) -> list[ValidationErrorItem]:
+    """
+    Rigorously validate an in-memory SQL dataset against ontology and domain rules:
+      1. Schema & table presence (person, hc_descriptor, and optional job_evaluation).
+      2. Required columns in each table.
+      3. Person record validity, formatting, uniqueness, and ontology conflict detection.
+      4. Health condition descriptors referential integrity, validity, qualifier range [0-4], and uniqueness.
+      5. Job evaluation referential integrity, job existence in ontology, and uniqueness.
+    """
+    errors: list[ValidationErrorItem] = []
+    cursor = conn.cursor()
+
+    # 1. Check Tables Existence
+    tables = {row[0].lower() for row in cursor.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
+
+    if "person" not in tables:
+        errors.append(ValidationErrorItem(
+            category="schema",
+            field="table:person",
+            message="Tabella obbligatoria 'person' mancante nel file SQL.",
+            fix_hint="Definisci la tabella 'person' con le colonne: person_id, first_name, surname."
+        ))
+
+    if "hc_descriptor" not in tables:
+        errors.append(ValidationErrorItem(
+            category="schema",
+            field="table:hc_descriptor",
+            message="Tabella obbligatoria 'hc_descriptor' mancante nel file SQL.",
+            fix_hint="Definisci la tabella 'hc_descriptor' con le colonne: person_id, icf_code, qualifier."
+        ))
+
+    if errors:
+        return errors
+
+    # 2. Check Column definitions for required tables
+    person_cols = {row[1].lower() for row in cursor.execute("PRAGMA table_info(person)").fetchall()}
+    for req in ["person_id", "first_name", "surname"]:
+        if req not in person_cols:
+            errors.append(ValidationErrorItem(
+                category="schema",
+                field=f"person.{req}",
+                message=f"La tabella 'person' non contiene la colonna obbligatoria '{req}'.",
+                fix_hint=f"Aggiungi la colonna '{req}' alla definizione della tabella 'person'."
+            ))
+
+    hc_cols = {row[1].lower() for row in cursor.execute("PRAGMA table_info(hc_descriptor)").fetchall()}
+    for req in ["person_id", "icf_code", "qualifier"]:
+        if req not in hc_cols:
+            errors.append(ValidationErrorItem(
+                category="schema",
+                field=f"hc_descriptor.{req}",
+                message=f"La tabella 'hc_descriptor' non contiene la colonna obbligatoria '{req}'.",
+                fix_hint=f"Aggiungi la colonna '{req}' alla definizione della tabella 'hc_descriptor'."
+            ))
+
+    if "job_evaluation" in tables:
+        job_cols = {row[1].lower() for row in cursor.execute("PRAGMA table_info(job_evaluation)").fetchall()}
+        for req in ["person_id", "job_id"]:
+            if req not in job_cols:
+                errors.append(ValidationErrorItem(
+                    category="schema",
+                    field=f"job_evaluation.{req}",
+                    message=f"La tabella 'job_evaluation' non contiene la colonna obbligatoria '{req}'.",
+                    fix_hint=f"Aggiungi la colonna '{req}' alla tabella 'job_evaluation'."
+                ))
+
+    if errors:
+        return errors
+
+    # 3. Check Records in `person`
+    persons = cursor.execute("SELECT * FROM person").fetchall()
+    if not persons:
+        errors.append(ValidationErrorItem(
+            category="person",
+            message="La tabella 'person' è vuota. Nessun lavoratore da importare.",
+            fix_hint="Inserisci almeno un record nella tabella 'person'."
+        ))
+        return errors
+
+    seen_pids = set()
+    valid_pids = set()
+
+    for row in persons:
+        pid = row["person_id"]
+        fname = row["first_name"]
+        sname = row["surname"]
+
+        # Null / empty PID
+        if pid is None or not str(pid).strip():
+            errors.append(ValidationErrorItem(
+                category="person",
+                field="person_id",
+                message="Trovato record persona con 'person_id' vuoto o nullo.",
+                fix_hint="Ogni persona deve avere un identificatore univoco non vuoto."
+            ))
+            continue
+
+        raw_pid = str(pid).strip()
+        sanitized_pid = _sanitize_id(raw_pid)
+
+        # Invalid characters in PID (e.g. spaces, symbols)
+        if not re.match(r"^[A-Za-z0-9_\-]+$", raw_pid):
+            errors.append(ValidationErrorItem(
+                category="person",
+                person_id=raw_pid,
+                field="person_id",
+                value=raw_pid,
+                message=f"L'identificatore '{raw_pid}' contiene caratteri speciali o spazi non consentiti.",
+                fix_hint="Usa solo caratteri alfanumerici, trattini e underscore per i person_id."
+            ))
+
+        # Duplicate PID in the SQL file
+        if sanitized_pid in seen_pids:
+            errors.append(ValidationErrorItem(
+                category="person",
+                person_id=raw_pid,
+                field="person_id",
+                value=raw_pid,
+                message=f"ID lavoratore duplicato '{raw_pid}' all'interno del file SQL.",
+                fix_hint=f"Rimuovi o rinomina il record duplicato per '{raw_pid}'."
+            ))
+        else:
+            seen_pids.add(sanitized_pid)
+            valid_pids.add(sanitized_pid)
+
+        # First name / surname empty
+        if fname is None or not str(fname).strip():
+            errors.append(ValidationErrorItem(
+                category="person",
+                person_id=raw_pid,
+                field="first_name",
+                message=f"Nome ('first_name') mancante o vuoto per il lavoratore '{raw_pid}'.",
+                fix_hint="Specifica il nome per ciascun lavoratore."
+            ))
+        if sname is None or not str(sname).strip():
+            errors.append(ValidationErrorItem(
+                category="person",
+                person_id=raw_pid,
+                field="surname",
+                message=f"Cognome ('surname') mancante o vuoto per il lavoratore '{raw_pid}'.",
+                fix_hint="Specifica il cognome per ciascun lavoratore."
+            ))
+
+        # Check optional fields if present in schema
+        if "birthday" in person_cols and row["birthday"] is not None:
+            bday = str(row["birthday"]).strip()
+            if bday and not re.match(r"^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2})?)?", bday):
+                errors.append(ValidationErrorItem(
+                    category="person",
+                    person_id=raw_pid,
+                    field="birthday",
+                    value=bday,
+                    message=f"Formato data di nascita non valido '{bday}' per il lavoratore '{raw_pid}'.",
+                    fix_hint="Utilizza il formato standard YYYY-MM-DD o ISO dateTime (es. 1985-04-12)."
+                ))
+
+    # 4. Check Records in `hc_descriptor`
+    hc_rows = cursor.execute("SELECT * FROM hc_descriptor").fetchall()
+    persons_with_hc = set()
+    seen_person_icf = set()
+
+    for row in hc_rows:
+        h_pid = row["person_id"]
+        icf = row["icf_code"]
+        qual = row["qualifier"]
+
+        h_pid_sanitized = _sanitize_id(str(h_pid).strip()) if h_pid is not None else ""
+
+        # Referential integrity: person must exist in person table
+        if not h_pid_sanitized or h_pid_sanitized not in valid_pids:
+            errors.append(ValidationErrorItem(
+                category="health_condition",
+                person_id=str(h_pid) if h_pid else "NULL",
+                field="person_id",
+                value=str(h_pid),
+                message=f"Descrittore ICF collegato a un 'person_id' inesistente nella tabella person: '{h_pid}'.",
+                fix_hint=f"Assicurati che '{h_pid}' sia presente nella tabella 'person'."
+            ))
+            continue
+
+        persons_with_hc.add(h_pid_sanitized)
+
+        # ICF code checks
+        if not icf or not str(icf).strip():
+            errors.append(ValidationErrorItem(
+                category="health_condition",
+                person_id=h_pid_sanitized,
+                field="icf_code",
+                message=f"Codice ICF vuoto o nullo per il lavoratore '{h_pid_sanitized}'.",
+                fix_hint="Specifica un codice ICF valido per ogni riga di 'hc_descriptor'."
+            ))
+        else:
+            icf_str = str(icf).strip()
+            prefix = icf_str[0].lower() if icf_str else ""
+            if prefix not in QUALIFIER_MAP:
+                errors.append(ValidationErrorItem(
+                    category="health_condition",
+                    person_id=h_pid_sanitized,
+                    field="icf_code",
+                    value=icf_str,
+                    message=f"Prefisso ICF non valido per '{icf_str}' (lavoratore '{h_pid_sanitized}'). I codici ICF devono iniziare per 'b' (Funzioni Corporee), 'd' (Attività e Partecipazione) o 's' (Strutture Corporee).",
+                    fix_hint="Correggi il codice ICF utilizzando un prefisso 'b', 'd' o 's'."
+                ))
+            elif icf_str not in known_icf:
+                errors.append(ValidationErrorItem(
+                    category="health_condition",
+                    person_id=h_pid_sanitized,
+                    field="icf_code",
+                    value=icf_str,
+                    message=f"Il codice ICF '{icf_str}' (lavoratore '{h_pid_sanitized}') non esiste nell'ontologia Rientr@ caricata.",
+                    fix_hint="Usa solo codici ICF presenti nel core set dell'ontologia Rientr@."
+                ))
+
+            # Duplicate ICF for same person
+            key = (h_pid_sanitized, icf_str)
+            if key in seen_person_icf:
+                errors.append(ValidationErrorItem(
+                    category="health_condition",
+                    person_id=h_pid_sanitized,
+                    field="icf_code",
+                    value=icf_str,
+                    message=f"Codice ICF duplicato '{icf_str}' per il lavoratore '{h_pid_sanitized}'.",
+                    fix_hint=f"Rimuovi la riga duplicata del codice '{icf_str}' per '{h_pid_sanitized}' in 'hc_descriptor'."
+                ))
+            else:
+                seen_person_icf.add(key)
+
+        # Qualifier checks
+        if qual is None:
+            errors.append(ValidationErrorItem(
+                category="health_condition",
+                person_id=h_pid_sanitized,
+                field="qualifier",
+                message=f"Qualificatore nullo per il codice '{icf}' (lavoratore '{h_pid_sanitized}').",
+                fix_hint="Il qualificatore deve essere un numero intero tra 0 e 4."
+            ))
+        else:
+            try:
+                qual_int = int(qual)
+                if qual_int < 0 or qual_int > 4:
+                    errors.append(ValidationErrorItem(
+                        category="health_condition",
+                        person_id=h_pid_sanitized,
+                        field="qualifier",
+                        value=str(qual),
+                        message=f"Qualificatore fuori intervallo ({qual}) per il codice '{icf}' (lavoratore '{h_pid_sanitized}'). Valori ammessi: 0 (nessun problema), 1 (lieve), 2 (moderato), 3 (grave), 4 (completo).",
+                        fix_hint="Imposta il qualificatore su un valore intero da 0 a 4."
+                    ))
+            except (ValueError, TypeError):
+                errors.append(ValidationErrorItem(
+                    category="health_condition",
+                    person_id=h_pid_sanitized,
+                    field="qualifier",
+                    value=str(qual),
+                    message=f"Valore qualificatore non numerico '{qual}' per il codice '{icf}' (lavoratore '{h_pid_sanitized}').",
+                    fix_hint="Il qualificatore deve essere un numero intero da 0 a 4."
+                ))
+
+    # Check that each valid person has at least one HC descriptor
+    for pid in valid_pids:
+        if pid not in persons_with_hc:
+            errors.append(ValidationErrorItem(
+                category="health_condition",
+                person_id=pid,
+                field="hc_descriptor",
+                message=f"Il lavoratore '{pid}' non ha alcuna condizione di salute (descrittore ICF) associata.",
+                fix_hint=f"Aggiungi almeno una riga nella tabella 'hc_descriptor' per il lavoratore '{pid}'."
+            ))
+
+    # 5. Check Records in `job_evaluation` if present
+    if "job_evaluation" in tables:
+        job_rows = cursor.execute("SELECT * FROM job_evaluation").fetchall()
+        seen_person_jobs = set()
+
+        for row in job_rows:
+            j_pid = row["person_id"]
+            job_id = row["job_id"]
+
+            j_pid_sanitized = _sanitize_id(str(j_pid).strip()) if j_pid is not None else ""
+
+            if not j_pid_sanitized or j_pid_sanitized not in valid_pids:
+                errors.append(ValidationErrorItem(
+                    category="job",
+                    person_id=str(j_pid) if j_pid else "NULL",
+                    field="person_id",
+                    value=str(j_pid),
+                    message=f"Valutazione mansione collegata a un 'person_id' inesistente nella tabella person: '{j_pid}'.",
+                    fix_hint=f"Verifica che '{j_pid}' sia inserito nella tabella 'person'."
+                ))
+                continue
+
+            if not job_id or not str(job_id).strip():
+                errors.append(ValidationErrorItem(
+                    category="job",
+                    person_id=j_pid_sanitized,
+                    field="job_id",
+                    message=f"Identificatore mansione (job_id) vuoto o nullo per il lavoratore '{j_pid_sanitized}'.",
+                    fix_hint="Specifica un job_id valido per ogni valutazione di mansione."
+                ))
+            else:
+                job_str = str(job_id).strip()
+                if job_str not in known_jobs:
+                    available_sample = ", ".join(sorted(list(known_jobs))[:4])
+                    errors.append(ValidationErrorItem(
+                        category="job",
+                        person_id=j_pid_sanitized,
+                        field="job_id",
+                        value=job_str,
+                        message=f"La mansione '{job_str}' associata a '{j_pid_sanitized}' non esiste nell'ontologia Rientr@.",
+                        fix_hint=f"Usa identificatori di mansione presenti nell'ontologia (es. {available_sample}...). Assicurati che il nome corrisponda all'ID dell'ontologia."
+                    ))
+
+                # Duplicate job evaluation for same person
+                job_key = (j_pid_sanitized, job_str)
+                if job_key in seen_person_jobs:
+                    errors.append(ValidationErrorItem(
+                        category="job",
+                        person_id=j_pid_sanitized,
+                        field="job_id",
+                        value=job_str,
+                        message=f"Mansione duplicata '{job_str}' per il lavoratore '{j_pid_sanitized}'.",
+                        fix_hint=f"Rimuovi l'assegnazione duplicata per '{job_str}' su '{j_pid_sanitized}' in 'job_evaluation'."
+                    ))
+                else:
+                    seen_person_jobs.add(job_key)
+
+    return errors
+
+
+def _remove_person_from_rdf(text: str, pid: str) -> str:
+    """Remove existing Person, HealthCondition, and Descriptors RDF blocks for pid."""
+    text = re.sub(
+        rf'\s*<owl:NamedIndividual\s+rdf:about="http://www\.stiima\.cnr\.it/RientraHC#des_{re.escape(pid)}_[^"]+">.*?</owl:NamedIndividual>',
+        '',
+        text,
+        flags=re.DOTALL
+    )
+    text = re.sub(
+        rf'\s*<owl:NamedIndividual\s+rdf:about="http://www\.stiima\.cnr\.it/Person-CommonBox#HC{re.escape(pid)}">.*?</owl:NamedIndividual>',
+        '',
+        text,
+        flags=re.DOTALL
+    )
+    text = re.sub(
+        rf'\s*(?:<!--\s*Person:\s*{re.escape(pid)}\s*-->\s*)?<owl:NamedIndividual\s+rdf:about="http://www\.stiima\.cnr\.it/Person-CommonBox#{re.escape(pid)}">.*?</owl:NamedIndividual>',
+        '',
+        text,
+        flags=re.DOTALL
+    )
+    return text
+
+
+def _get_existing_person_data(g: "Graph", pid: str) -> dict:
+    """Extract a person's current data from the parsed ontology graph for comparison."""
+    p_iri = URIRef(str(NS_PERSON) + pid)
+    hc_iri = URIRef(str(NS_PERSON) + "HC" + pid)
+
+    first_name = str(next(g.objects(p_iri, NS_FOAF.first_name), "") or "")
+    surname = str(next(g.objects(p_iri, NS_FOAF.surname), "") or "")
+    tin = str(next(g.objects(p_iri, NS_FOAF.TIN), "") or "")
+    city = str(next(g.objects(p_iri, NS_FOAF.city), "") or "")
+    country = str(next(g.objects(p_iri, NS_FOAF.country), "") or "")
+    zip_code = str(next(g.objects(p_iri, NS_FOAF.ZIPcode), "") or "")
+    birthday = str(next(g.objects(p_iri, NS_FOAF.birthday), "") or "")
+
+    jobs = set()
+    for _, _, j_iri in g.triples((p_iri, NS_RIEONT3.isEvaluatedForJob, None)):
+        jobs.add(str(j_iri).split("#")[-1])
+
+    icfs: dict[str, int] = {}
+    for _, _, desc_iri in g.triples((hc_iri, NS_HC.isDescribedBy, None)):
+        icf_iri = next(g.objects(desc_iri, NS_HC.involvesICFCode), None)
+        if not icf_iri:
+            continue
+        icf_code = str(icf_iri).split("#")[-1]
+        prefix = icf_code[0].lower() if icf_code else "b"
+        qual_prop_name = QUALIFIER_MAP.get(prefix, "BFqual")
+        qual_val = next(g.objects(desc_iri, getattr(NS_HC, qual_prop_name)), None)
+        if qual_val is not None:
+            try:
+                icfs[icf_code] = int(str(qual_val))
+            except Exception:
+                pass
+
+    return {
+        "first_name": first_name,
+        "surname": surname,
+        "tin": tin,
+        "city": city,
+        "country": country,
+        "zip_code": zip_code,
+        "birthday": birthday,
+        "jobs": jobs,
+        "icfs": icfs,
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 #  PUBLIC ENTRY POINT
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -534,14 +973,17 @@ def import_sql_dataset(
     mapping_path: str,
 ) -> ImportResult:
     """
-    Full import pipeline:
-      1. Load SQL dataset into in-memory SQLite
-      2. Identify new/duplicate persons
-      3. Create auxiliary VIEWs for R2RML
-      4. Materialise triples with Morph-KGC
-      5. Inject XML blocks into the RDF file (in place, with .bak backup)
+    Full import pipeline with strict pre-validation:
+      1. Load SQL dataset into in-memory SQLite (safely catch syntax errors).
+      2. Extract known ontology entities (ICF codes, jobs, existing persons).
+      3. Run comprehensive validation across all criteria & parameters.
+         --> If ANY validation errors are found, abort immediately WITHOUT modifying the ontology!
+      4. Classify workers: new, identical (skip), or modified (overwrite/update).
+      5. For modified workers, remove prior RDF/XML individual blocks.
+      6. Create auxiliary VIEWs for R2RML and materialise triples with Morph-KGC.
+      7. Inject XML blocks into the RDF file (in place, with .bak backup).
 
-    Returns an ImportResult summary. On any error, result.error is set.
+    Returns an ImportResult summary.
     """
     if not _DEPS_OK:
         return ImportResult(
@@ -551,33 +993,108 @@ def import_sql_dataset(
     result = ImportResult()
 
     try:
-        # 1. Load SQL
-        conn = _load_sql(sql_path)
-        all_persons = conn.execute("SELECT person_id FROM person").fetchall()
+        # 1. Load SQL in in-memory SQLite
+        try:
+            conn = _load_sql(sql_path)
+        except sqlite3.Error as sql_err:
+            result.validation_errors = [
+                ValidationErrorItem(
+                    category="schema",
+                    message=f"Errore di sintassi o esecuzione nel file SQL: {sql_err}",
+                    fix_hint="Controlla la sintassi SQL (CREATE TABLE, INSERT INTO) nel file."
+                ).to_dict()
+            ]
+            result.error = f"Errore di sintassi SQL nel file: {sql_err}"
+            return result
 
-        # 2. Read ontology text + identify new persons
+        # 2. Read ontology text and extract known entities
         rdf_text = Path(ontology_path).read_text(encoding="utf-8")
         known_icf  = _extract_known_icf(rdf_text)
         known_jobs = _extract_known_jobs(ontology_path)
 
-        new_ids = [
-            _sanitize_id(r["person_id"]) for r in all_persons
-            if not _person_exists(rdf_text, _sanitize_id(r["person_id"]))
-        ]
-        skipped_ids = [
-            _sanitize_id(r["person_id"]) for r in all_persons
-            if _person_exists(rdf_text, _sanitize_id(r["person_id"]))
-        ]
-        result.new_person_ids  = new_ids
-        result.skipped_ids     = skipped_ids
-        result.persons_skipped = len(skipped_ids)
-
-        if not new_ids:
-            result.persons_added = 0
+        # 3. PRE-VALIDATION: Check all criteria
+        val_errors = validate_sql_dataset(conn, rdf_text, known_icf, known_jobs)
+        if val_errors:
+            result.validation_errors = [e.to_dict() for e in val_errors]
+            err_count = len(val_errors)
+            result.error = f"Validazione fallita: riscontrati {err_count} problema/i nel file. L'importazione è stata bloccata per prevenire conflitti nell'ontologia."
             conn.close()
             return result
 
-        # 3. Create auxiliary views
+        # 4. Classify new, updated, and identical (skipped) persons
+        g_existing = Graph()
+        g_existing.parse(ontology_path, format="xml")
+
+        new_ids: list[str] = []
+        updated_ids: list[str] = []
+        skipped_ids: list[str] = []
+
+        all_persons_rows = conn.execute("SELECT * FROM person").fetchall()
+        person_cols_set = {col.lower() for col in all_persons_rows[0].keys()} if all_persons_rows else set()
+
+        has_job_eval = "job_evaluation" in {r[0].lower() for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
+
+        for row in all_persons_rows:
+            raw_pid = str(row["person_id"]).strip()
+            pid = _sanitize_id(raw_pid)
+
+            fname = (row["first_name"] or "").strip()
+            sname = (row["surname"] or "").strip()
+            tin = (row["TIN"] or "").strip() if "tin" in person_cols_set and row["TIN"] is not None else ""
+            city = (row["city"] or "").strip() if "city" in person_cols_set and row["city"] is not None else ""
+            country = (row["country"] or "").strip() if "country" in person_cols_set and row["country"] is not None else ""
+            zip_code = str(row["zip_code"]).strip() if "zip_code" in person_cols_set and row["zip_code"] is not None else ""
+            birthday = str(row["birthday"]).strip() if "birthday" in person_cols_set and row["birthday"] is not None else ""
+
+            incoming_icfs = {
+                r["icf_code"]: int(r["qualifier"])
+                for r in conn.execute("SELECT icf_code, qualifier FROM hc_descriptor WHERE person_id = ?", (row["person_id"],)).fetchall()
+            }
+            incoming_jobs = set()
+            if has_job_eval:
+                incoming_jobs = {
+                    r["job_id"]
+                    for r in conn.execute("SELECT job_id FROM job_evaluation WHERE person_id = ?", (row["person_id"],)).fetchall()
+                }
+
+            if _person_exists(rdf_text, pid):
+                existing = _get_existing_person_data(g_existing, pid)
+                is_identical = (
+                    fname == existing["first_name"] and
+                    sname == existing["surname"] and
+                    (not tin or tin == existing["tin"]) and
+                    (not city or city == existing["city"]) and
+                    (not country or country == existing["country"]) and
+                    (not zip_code or zip_code == existing["zip_code"]) and
+                    (not birthday or birthday == existing["birthday"]) and
+                    incoming_icfs == existing["icfs"] and
+                    incoming_jobs == existing["jobs"]
+                )
+                if is_identical:
+                    skipped_ids.append(pid)
+                else:
+                    updated_ids.append(pid)
+            else:
+                new_ids.append(pid)
+
+        result.new_person_ids  = new_ids
+        result.updated_ids     = updated_ids
+        result.skipped_ids     = skipped_ids
+        result.persons_added   = len(new_ids)
+        result.persons_updated = len(updated_ids)
+        result.persons_skipped = len(skipped_ids)
+
+        persons_to_process = set(new_ids + updated_ids)
+
+        if not persons_to_process:
+            conn.close()
+            return result
+
+        # 5. For updated persons, remove existing RDF/XML blocks before injection
+        for u_pid in updated_ids:
+            rdf_text = _remove_person_from_rdf(rdf_text, u_pid)
+
+        # 6. Create auxiliary views
         v_icf_ok, v_icf_skip, v_job_ok, v_job_skip = _create_views(
             conn, known_icf, known_jobs
         )
@@ -586,17 +1103,17 @@ def import_sql_dataset(
         result.jobs_valid   = v_job_ok
         result.jobs_skipped = v_job_skip
 
-        # 4. Materialise via R2RML
+        # Materialise via R2RML
         db_file = _export_db_to_file(conn)
         try:
             new_graph = _run_r2rml(mapping_path, db_file)
         finally:
             Path(db_file).unlink(missing_ok=True)
 
-        # 5. Convert triples → RDF/XML blocks
-        blocks = _triples_to_rdfxml_blocks(new_graph, set(new_ids))
+        # 7. Convert triples → RDF/XML blocks only for persons_to_process
+        blocks = _triples_to_rdfxml_blocks(new_graph, persons_to_process)
 
-        # 6. Inject into the RDF file
+        # 8. Inject into the RDF file
         if CLOSING_TAG not in rdf_text:
             return ImportResult(error="</rdf:RDF> closing tag not found in ontology file.")
 
@@ -605,15 +1122,15 @@ def import_sql_dataset(
         result.backup_path = backup
 
         injection = (
-            "\n\n\n    <!-- ===== PERSONE IMPORTATE (RDB2RDF via R2RML) ===== -->\n\n"
+            "\n\n\n    <!-- ===== PERSONE IMPORTATE / AGGIORNATE (RDB2RDF via R2RML) ===== -->\n\n"
             + "\n\n".join(blocks) + "\n\n"
         )
         updated = rdf_text.replace(CLOSING_TAG, injection + CLOSING_TAG, 1)
         Path(ontology_path).write_text(updated, encoding="utf-8")
 
-        # Extract detailed mapping info for each imported person before closing DB conn
+        # 9. Extract detailed mapping info for each imported person before closing DB conn
         details = []
-        for pid in new_ids:
+        for pid in sorted(list(persons_to_process)):
             try:
                 row = conn.execute("SELECT first_name, surname FROM person WHERE person_id = ?", (pid,)).fetchone()
                 fullname = f"{row['first_name']} {row['surname']}" if row else pid
@@ -647,12 +1164,11 @@ def import_sql_dataset(
             details.append({
                 "person_id": pid,
                 "fullname": fullname,
+                "is_updated": pid in updated_ids,
                 "icfs": icfs,
                 "jobs": jobs
             })
         result.details = details
-
-        result.persons_added = len(new_ids)
         conn.close()
 
     except Exception as exc:

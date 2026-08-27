@@ -220,25 +220,36 @@ export function updateHealthConditions(
   });
 }
 
-// ── Worker import from SQL dataset ────────────────────────────────────────────
+export interface ValidationErrorItem {
+  category: 'schema' | 'person' | 'health_condition' | 'job' | 'ontology_conflict' | string;
+  message: string;
+  person_id?: string;
+  field?: string;
+  value?: string;
+  fix_hint?: string;
+}
 
 export interface ImportedPersonDetail {
   person_id: string;
   fullname: string;
+  is_updated?: boolean;
   icfs: string[];
   jobs: string[];
 }
 
 export interface ImportWorkersResult {
   persons_added: number;
+  persons_updated?: number;
   persons_skipped: number;
   icf_valid: number;
   icf_skipped: number;
   jobs_valid: number;
   jobs_skipped: number;
   new_person_ids: string[];
+  updated_ids?: string[];
   skipped_ids: string[];
   details?: ImportedPersonDetail[];
+  validation_errors?: ValidationErrorItem[];
   backup_path: string;
   error: string | null;
 }
@@ -264,8 +275,12 @@ export async function importWorkers(
 
   if (!res.ok) {
     const data = await res.json().catch(() => ({ detail: res.statusText }));
+    // If backend returned a structured 422 validation report, return it directly
+    if (data?.validation_errors && Array.isArray(data.validation_errors)) {
+      return data as ImportWorkersResult;
+    }
     throw Object.assign(
-      new Error(data?.detail?.message ?? data?.detail ?? res.statusText),
+      new Error(data?.detail?.message ?? data?.detail ?? data?.error ?? res.statusText),
       { status: res.status, body: data },
     );
   }

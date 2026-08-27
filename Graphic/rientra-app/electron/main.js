@@ -153,37 +153,64 @@ function preparePythonService() {
   });
 }
 
+const crypto = require('crypto');
+
 function ensureVenvAndDeps() {
   const serviceDir = getServiceDir();
   const venvDir = path.join(serviceDir, '.venv');
+  const reqFile = path.join(serviceDir, 'requirements.txt');
+  const hashFile = path.join(serviceDir, '.deps_installed_hash');
 
-  if (!fs.existsSync(venvDir)) {
-    console.log('[Python Setup] .venv not found. Creating virtual environment...');
-    
-    dialog.showMessageBoxSync({
-      type: 'info',
-      title: 'Inizializzazione Applicazione',
-      message: 'Configurazione dell\'ambiente Python locale in corso.',
-      detail: 'Sto creando l\'ambiente virtuale locale e installando le librerie necessarie (FastAPI, Owlready2, morph-kgc, ecc.).\n\nQuesta operazione viene eseguita solo al primo avvio e potrebbe richiedere da 1 a 3 minuti. Fai clic su OK per iniziare.',
-      buttons: ['OK']
-    });
+  const pipExe = isWindows
+    ? path.join(venvDir, 'Scripts', 'pip.exe')
+    : path.join(venvDir, 'bin', 'pip');
+
+  let currentHash = '';
+  if (fs.existsSync(reqFile)) {
+    currentHash = crypto.createHash('md5').update(fs.readFileSync(reqFile)).digest('hex');
+  }
+
+  const installedHash = fs.existsSync(hashFile) ? fs.readFileSync(hashFile, 'utf8').trim() : '';
+  const venvExists = fs.existsSync(venvDir) && fs.existsSync(pipExe);
+  const needsInstall = !venvExists || installedHash !== currentHash;
+
+  if (needsInstall) {
+    if (!venvExists) {
+      console.log('[Python Setup] .venv not found. Creating virtual environment...');
+      
+      dialog.showMessageBoxSync({
+        type: 'info',
+        title: 'Inizializzazione Applicazione',
+        message: 'Configurazione dell\'ambiente Python locale in corso.',
+        detail: 'Sto creando l\'ambiente virtuale locale e installando le librerie necessarie (FastAPI, Owlready2, morph-kgc, ecc.).\n\nQuesta operazione viene eseguita solo al primo avvio e potrebbe richiedere da 1 a 3 minuti. Fai clic su OK per iniziare.',
+        buttons: ['OK']
+      });
+
+      try {
+        execSync(`"${getFallbackPython()}" -m venv .venv`, { cwd: serviceDir });
+        console.log('[Python Setup] .venv created successfully.');
+      } catch (err) {
+        console.error('[Python Setup] Error during environment setup:', err);
+        dialog.showErrorBox(
+          'Errore di Inizializzazione',
+          'Si è verificato un errore durante la configurazione dell\'ambiente virtuale Python:\n\n' + err.message
+        );
+        return;
+      }
+    }
 
     try {
-      execSync(`"${getFallbackPython()}" -m venv .venv`, { cwd: serviceDir });
-      console.log('[Python Setup] .venv created successfully.');
-      
-      const pipExe = isWindows
-        ? path.join(venvDir, 'Scripts', 'pip.exe')
-        : path.join(venvDir, 'bin', 'pip');
-        
-      console.log('[Python Setup] Installing dependencies...');
+      console.log('[Python Setup] Installing/updating dependencies...');
       execSync(`"${pipExe}" install -r requirements.txt`, { cwd: serviceDir });
+      if (currentHash) {
+        fs.writeFileSync(hashFile, currentHash, 'utf8');
+      }
       console.log('[Python Setup] Dependencies installed successfully.');
     } catch (err) {
-      console.error('[Python Setup] Error during environment setup:', err);
+      console.error('[Python Setup] Error during dependencies installation:', err);
       dialog.showErrorBox(
         'Errore di Inizializzazione',
-        'Si è verificato un errore durante la configurazione delle dipendenze Python:\n\n' + err.message
+        'Si è verificato un errore durante l\'installazione delle dipendenze Python:\n\n' + err.message
       );
     }
   }
