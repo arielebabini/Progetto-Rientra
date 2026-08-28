@@ -11,6 +11,7 @@
   flex: 1;
   min-height: 0;
   gap: 0;
+  overflow: visible;
 }
 
 /* ═══════════════════════════════════════════
@@ -64,7 +65,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 10px 16px 0;
+  padding: 8px 2px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
 }
@@ -142,6 +143,8 @@
   flex: 1;
   min-height: 0;
   display: flex;
+  gap: 16px;
+  padding: 14px 2px 2px;
   overflow: hidden;
 }
 
@@ -196,7 +199,7 @@
 
 /* Jobs sidebar */
 .ja-jobs-sidebar {
-  width: 190px;
+  width: 210px;
   flex-shrink: 0;
   border-left: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
@@ -205,14 +208,43 @@
 }
 
 .ja-jobs-sidebar-hdr {
-  padding: 12px 14px 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  flex-shrink: 0;
+}
+
+.ja-jobs-sidebar-title {
   font-size: 0.70rem;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.35);
   text-transform: uppercase;
   letter-spacing: 0.09em;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-  flex-shrink: 0;
+}
+
+.ja-btn-edit-jobs-compact {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  transition: background 0.14s, color 0.14s, border-color 0.14s;
+  white-space: nowrap;
+}
+
+.ja-btn-edit-jobs-compact:hover {
+  background: rgba(255, 255, 255, 0.10);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 .ja-jobs-list {
@@ -435,6 +467,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  padding: 8px 0 0;
 }
 
 .ja-detail-split {
@@ -442,6 +475,7 @@
   min-height: 0;
   display: flex;
   overflow: hidden;
+  gap: 12px;
 }
 
 .ja-detail-pane {
@@ -450,7 +484,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  gap: 8px;
+  border-right: none;
 }
 
 .ja-detail-pane:last-child {
@@ -460,10 +495,10 @@
 /* Panel header */
 .ja-detail-hdr {
   display: flex;
-  padding: 10px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 2px 2px 4px;
+  border-bottom: none;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.02);
+  background: transparent;
 }
 
 /* Job picker */
@@ -593,8 +628,9 @@
   width: 20px;
   height: 20px;
   border-radius: 5px;
-  background: rgba(77, 217, 192, 0.14);
-  color: #4DD9C0;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
   font-size: 0.70rem;
   font-weight: 800;
   flex-shrink: 0;
@@ -648,13 +684,16 @@
   color: #f87171;
 }
 
-/* Skills table wrapper — scrollable */
+/* Skills table wrapper — scrollable rounded card (matches Worker Information table) */
 .ja-skills-wrap {
   flex: 1;
   overflow: auto;
   min-height: 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
   position: relative;
 }
 
@@ -664,23 +703,27 @@
 }
 
 .ja-skills-wrap::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 99px;
 }
 
 .ja-skills-tbl {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.83rem;
+  font-size: 0.85rem;
+}
+
+.ja-skills-tbl thead tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .ja-skills-tbl th {
-  padding: 9px 14px;
-  font-size: 0.68rem;
+  padding: 8px 16px;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: rgba(255, 255, 255, 0.40);
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.45);
   text-align: left;
   white-space: nowrap;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -789,10 +832,11 @@
 }
 
 .ja-skills-tbl td {
-  padding: 9px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   vertical-align: middle;
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.84rem;
 }
 
 .ja-skills-tbl th:first-child,
@@ -805,11 +849,11 @@
 }
 
 .ja-skills-tbl tbody tr {
-  transition: background 0.11s;
+  transition: background 0.15s;
 }
 
 .ja-skills-tbl tbody tr:hover {
-  background: rgba(77, 217, 192, 0.05);
+  background: rgba(77, 217, 192, 0.06);
 }
 
 .ja-td-skill {
@@ -829,11 +873,65 @@
 }
 
 .ja-td-crit {
-  font-size: 0.70rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+/* ── Split Mode Compare Table Rules ── */
+.ja-skills-wrap--split {
+  overflow-x: hidden;
+}
+
+.ja-skills-tbl--split {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.ja-skills-tbl--split th,
+.ja-skills-tbl--split td {
+  padding: 8px 6px;
+}
+
+.ja-skills-tbl--split th:first-child,
+.ja-skills-tbl--split td:first-child {
+  padding-left: 24px;
+  width: 40%;
+}
+
+.ja-skills-tbl--split th:nth-child(2),
+.ja-skills-tbl--split td:nth-child(2) {
+  width: 14%;
+  text-align: center;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+.ja-skills-tbl--split th:nth-child(3),
+.ja-skills-tbl--split td:nth-child(3) {
+  width: 16%;
+  text-align: center;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+.ja-skills-tbl--split th:nth-child(4),
+.ja-skills-tbl--split td:nth-child(4) {
+  width: 30%;
+  padding-left: 4px;
+  padding-right: 6px;
+}
+
+.ja-skills-tbl--split .ja-td-crit {
+  font-size: 0.60rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.ja-skills-tbl--split .ja-row-expander-arrow {
+  left: -18px;
 }
 
 .ja-td-bar {

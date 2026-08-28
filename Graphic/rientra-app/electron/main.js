@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Menu, shell } = require('electron');
 const path = require('path');
 const { spawn, execSync } = require('child_process');
 const fs = require('fs');
@@ -396,5 +396,73 @@ ipcMain.handle('upload-ontology-file', async (_event, filePath) => {
     return { ok: false, error: err.message };
   }
 });
+
+// ─── IPC — export HTML to PDF via native dialog and printToPDF ──────────────
+ipcMain.handle('export-pdf', async (_event, { defaultFileName, htmlContent }) => {
+  let printWin = null;
+  try {
+    const focusedWin = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0];
+    const saveResult = await dialog.showSaveDialog(focusedWin, {
+      title: 'Save Worker Technical Report (PDF)',
+      defaultPath: defaultFileName || 'Worker_Technical_Report.pdf',
+      filters: [{ name: 'PDF Documents (*.pdf)', extensions: ['pdf'] }],
+    });
+
+    if (saveResult.canceled || !saveResult.filePath) {
+      return { canceled: true };
+    }
+
+    printWin = new BrowserWindow({
+      show: false,
+      width: 1024,
+      height: 1400,
+      webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true,
+      },
+    });
+
+    const dataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(htmlContent)}`;
+    await printWin.loadURL(dataUrl);
+
+    // Short delay to ensure styles and fonts render cleanly
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    const pdfBuffer = await printWin.webContents.printToPDF({
+      pageSize: 'A4',
+      printBackground: true,
+      margins: {
+        top: 0.35,
+        bottom: 0.35,
+        left: 0.35,
+        right: 0.35,
+      },
+    });
+
+    fs.writeFileSync(saveResult.filePath, pdfBuffer);
+    return { ok: true, filePath: saveResult.filePath };
+  } catch (err) {
+    console.error('[IPC Export PDF] Error:', err);
+    return { ok: false, error: err.message };
+  } finally {
+    if (printWin && !printWin.isDestroyed()) {
+      printWin.destroy();
+    }
+  }
+});
+
+// ─── IPC — reveal saved file in OS file explorer ────────────────────────────
+ipcMain.handle('show-item-in-folder', async (_event, filePath) => {
+  try {
+    if (filePath && fs.existsSync(filePath)) {
+      shell.showItemInFolder(filePath);
+      return { ok: true };
+    }
+    return { ok: false, error: 'File not found' };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+});
+
 
 

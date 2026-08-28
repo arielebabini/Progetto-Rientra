@@ -2177,7 +2177,10 @@
   gap: 5px;
 }
 
-IMPORT VALIDATION ERROR DASHBOARD ═══════════════════════════════════════════ */ .wp-modal-error-circle {
+/* ═══════════════════════════════════════════
+   IMPORT VALIDATION ERROR DASHBOARD
+═══════════════════════════════════════════ */
+.wp-modal-error-circle {
   width: 54px;
   height: 54px;
   border-radius: 50%;
@@ -2321,4 +2324,150 @@ IMPORT VALIDATION ERROR DASHBOARD ═══════════════�
   display: flex;
   align-items: flex-start;
   gap: 5px;
+}
+
+/* ═══════════════════════════════════════════
+   PDF EXPORT & TOAST NOTIFICATION
+═══════════════════════════════════════════ */
+.wp-spinner-small {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+  margin-right: 6px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.wp-dropdown-item:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.wp-pdf-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  max-width: 420px;
+  min-width: 320px;
+  background: rgba(14, 27, 46, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  z-index: 9999;
+  animation: toastSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes toastSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.wp-pdf-toast.success {
+  border-left: 4px solid #22c55e;
+}
+
+.wp-pdf-toast.error {
+  border-left: 4px solid #ef4444;
+}
+
+.wp-pdf-toast-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.wp-pdf-toast.success .wp-pdf-toast-icon {
+  background: rgba(34, 197, 94, 0.18);
+  color: #4ade80;
+}
+
+.wp-pdf-toast.error .wp-pdf-toast-icon {
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+}
+
+.wp-pdf-toast-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wp-pdf-toast-msg {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #f8fafc;
+  line-height: 1.4;
+}
+
+.wp-pdf-toast-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wp-pdf-toast-action-btn {
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  color: #0b1a2d;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  transition: all 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wp-pdf-toast-action-btn:hover {
+  background: #f1f5f9;
+  color: #071322;
+  border-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  transform: translateY(-1px);
+}
+
+.wp-pdf-toast-action-btn:active {
+  transform: translateY(0);
+  background: #e2e8f0;
+}
+
+.wp-pdf-toast-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.wp-pdf-toast-close:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
 }

@@ -70,7 +70,7 @@ function ScatterPlot({ matchResults, jobA, jobB, onSelect }: ScatterPlotProps) {
   }, [matchResults]);
 
   const X_TICKS = useMemo(() => makeTicks(X_MAX, 10), [X_MAX]);
-  const Y_TICKS = useMemo(() => makeTicks(Y_MAX, 5),  [Y_MAX]);
+  const Y_TICKS = useMemo(() => makeTicks(Y_MAX, 5), [Y_MAX]);
 
   const { w, h } = size;
   const PW = w - PAD.l - PAD.r;
@@ -390,12 +390,12 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
       setSorts([...sorts, { col, dir: 'asc' }]);
     }
   };
-  
+
   const sortIcon = (col: SortCol, sorts: SortState) => {
     const idx = sorts.findIndex(s => s.col === col);
     if (idx === -1) return <span className="ja-sort-icon">⇅</span>;
     const s = sorts[idx];
-    const n = sorts.length > 1 ? <sub style={{fontSize: '0.7em', marginLeft: 1, verticalAlign: 'baseline'}}>{idx + 1}</sub> : null;
+    const n = sorts.length > 1 ? <sub style={{ fontSize: '0.7em', marginLeft: 1, verticalAlign: 'baseline' }}>{idx + 1}</sub> : null;
     return <span className="ja-sort-badge">{s.dir === 'asc' ? '↑' : '↓'}{n}</span>;
   };
 
@@ -455,7 +455,7 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
   }, [workerId, draftJobIds]);
 
 
-/* ── Job picker dropdown ── */
+  /* ── Job picker dropdown ── */
   const renderPicker = (
     panelId: 'A' | 'B',
     jobId: string | null, setJobId: (id: string) => void,
@@ -500,9 +500,9 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
   ) => {
     const result = matchResults.find(r => r.job_id === jobId) ?? null;
     if (!result) return null;
-    
+
     // Filter
-    const filteredSkills = (skillData?.skills ?? []).filter(s => 
+    const filteredSkills = (skillData?.skills ?? []).filter(s =>
       s.id.replace(/_/g, ' ').toLowerCase().includes(search.toLowerCase())
     );
 
@@ -523,8 +523,8 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
     });
     return (
       <div className="ja-detail-pane">
-        <div className="ja-detail-hdr" style={{ 
-          flexDirection: splitMode ? 'column' : 'row', 
+        <div className="ja-detail-hdr" style={{
+          flexDirection: splitMode ? 'column' : 'row',
           alignItems: splitMode ? 'stretch' : 'center',
           gap: splitMode ? '8px' : '12px',
           height: splitMode ? '84px' : 'auto',
@@ -541,9 +541,9 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
             )}
           </div>
 
-          <div style={{ 
-            display: 'flex', alignItems: 'center', gap: '12px', 
-            marginLeft: splitMode ? '0' : 'auto', 
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '12px',
+            marginLeft: splitMode ? '0' : 'auto',
             justifyContent: 'space-between'
           }}>
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
@@ -558,7 +558,7 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
             </span>
           </div>
         </div>
-        <div className="ja-skills-wrap" style={{ position: 'relative' }}>
+        <div className={`ja-skills-wrap${splitMode ? ' ja-skills-wrap--split' : ''}`} style={{ position: 'relative' }}>
           {loading && skillData && (
             <div className="ja-center" style={{ position: 'absolute', inset: 0, background: 'rgba(26,46,74,0.5)', zIndex: 10 }}>
               <div className="wp-spinner" />
@@ -567,7 +567,7 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
           {loading && !skillData ? (
             <div className="ja-center"><div className="wp-spinner" /><span className="ja-status-txt">Loading…</span></div>
           ) : skillData && skillData.skills.length > 0 ? (
-            <table className="ja-skills-tbl" style={{ opacity: loading ? 0.55 : 1, transition: 'opacity 0.2s' }}>
+            <table className={`ja-skills-tbl${splitMode ? ' ja-skills-tbl--split' : ''}`} style={{ opacity: loading ? 0.55 : 1, transition: 'opacity 0.2s' }}>
               <thead>
                 <tr>
                   <th className="ja-th-searchable" onClick={() => !showSearch && setShowSearch(true)}>
@@ -577,11 +577,11 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
                       </div>
                     ) : (
                       <div className="ja-th-search-wrap">
-                        <input 
+                        <input
                           autoFocus
-                          className="ja-th-search-input" 
-                          value={search} 
-                          onChange={e => setSearch(e.target.value)} 
+                          className="ja-th-search-input"
+                          value={search}
+                          onChange={e => setSearch(e.target.value)}
                           onBlur={() => { if (!search) setShowSearch(false); }}
                           placeholder="Search skill..."
                         />
@@ -797,8 +797,8 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
               )}
               {!loadingAllJobs && allOntologyJobs.length > 0 &&
                 allOntologyJobs.filter(j => j.label.toLowerCase().includes(jobSearch.toLowerCase()) || j.id.toLowerCase().includes(jobSearch.toLowerCase())).length === 0 && (
-                <p className="ja-status-txt" style={{ padding: '24px 16px', textAlign: 'center' }}>No jobs match "{jobSearch}".</p>
-              )}
+                  <p className="ja-status-txt" style={{ padding: '24px 16px', textAlign: 'center' }}>No jobs match "{jobSearch}".</p>
+                )}
             </div>
 
             {/* Error messaging */}
@@ -807,35 +807,34 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
                 ⚠ {saveError}
               </div>
             )}
+          </div>
 
-            {/* Footer */}
-            <div className="hc-wizard-footer" style={{ borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: '12px' }}>
-              <div className="hc-footer-left">
-                <button className="hc-btn-secondary" onClick={() => setEditJobsOpen(false)} disabled={savingJobs}>Cancel</button>
-              </div>
-              <div className="hc-footer-right">
-                <button
-                  className="hc-btn-primary"
-                  onClick={saveJobAssignment}
-                  disabled={savingJobs}
-                >
-                  {savingJobs ? (
-                    <>
-                      <span className="wp-spinner" style={{ width: 14, height: 14, borderWidth: 2, marginRight: 6 }} />
-                      Saving & Re-running Pellet…
-                    </>
-                  ) : (
-                    <>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                      Save Assignment
-                    </>
-                  )}
-                </button>
-              </div>
+          {/* Footer (direct child of hc-wizard-modal, same structure as HealthConditionWizard) */}
+          <div className="hc-wizard-footer">
+            <div className="hc-footer-left">
+              {draftJobIds.size} items selected
             </div>
-
+            <div className="hc-footer-right">
+              <button
+                className="hc-btn-primary"
+                onClick={saveJobAssignment}
+                disabled={savingJobs}
+              >
+                {savingJobs ? (
+                  <>
+                    <span className="wp-spinner" style={{ width: 14, height: 14, borderWidth: 2, marginRight: 6 }} />
+                    Saving & Re-running Pellet…
+                  </>
+                ) : (
+                  <>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Save Assignment
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       ) : (
@@ -872,14 +871,6 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
           <div className="ja-tab-bar">
             <button className={`ja-tab${mainTab === 'map' ? ' active' : ''}`} onClick={() => setMainTab('map')}>Suitability Map</button>
             <button className={`ja-tab${mainTab === 'detail' ? ' active' : ''}`} onClick={() => setMainTab('detail')}>Skill Detail</button>
-            <div className="ja-tab-spacer" />
-            <button className="ja-btn-edit-jobs" id="btn-edit-jobs" onClick={openEditJobs} title="Edit assigned jobs for this worker" style={{ marginRight: 0 }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-              </svg>
-              Edit Jobs
-            </button>
           </div>
 
           {/* ── MAP tab ── */}
@@ -902,7 +893,21 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
                   />
                 </div>
                 <div className="ja-jobs-sidebar">
-                  <div className="ja-jobs-sidebar-hdr">Jobs</div>
+                  <div className="ja-jobs-sidebar-hdr">
+                    <span className="ja-jobs-sidebar-title">Jobs</span>
+                    <button
+                      className="ja-btn-edit-jobs-compact"
+                      id="btn-edit-jobs"
+                      onClick={openEditJobs}
+                      title="Edit assigned jobs for this worker"
+                    >
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                      Edit Jobs
+                    </button>
+                  </div>
                   <ul className="ja-jobs-list" role="listbox">
                     {[...matchResults].sort((a, b) => {
                       const rank: Record<string, number> = { 'NOT SUITABLE': 0, 'SUITABLE WITH PRECAUTIONS': 1, 'SUITABLE': 2 };

@@ -660,13 +660,15 @@
 ───────────────────────────────────────────── */
 
 .hc-wizard-footer {
-  padding: 12px 0 10px 0;
+  padding: 14px 4px 14px 4px;
   border-top: 1px solid var(--border-color);
   background: transparent;
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-top: 12px;
+  overflow: visible;
+  flex-shrink: 0;
 }
 
 .hc-toast-stack {

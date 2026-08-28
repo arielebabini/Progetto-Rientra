@@ -270,7 +270,15 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
     return Array.from(byCode.values()).sort((a, b) => a.icf_code.localeCompare(b.icf_code));
   }, [allIcfCodes]);
 
-  // Derive unique core sets from the full catalogue
+  // Derive unique core sets from allCoreSets prop, full catalogue and current conditions
+  const effectiveCoreSets = useMemo(() => {
+    const set = new Set<string>();
+    (allCoreSets || []).forEach(cs => { if (cs && cs.trim()) set.add(cs.trim()); });
+    (allIcfCodes || []).forEach(c => { (c.core_sets || []).forEach(cs => { if (cs && cs.trim()) set.add(cs.trim()); }); });
+    (currentConditions || []).forEach(c => { (c.core_sets || []).forEach(cs => { if (cs && cs.trim()) set.add(cs.trim()); }); });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [allCoreSets, allIcfCodes, currentConditions]);
+
   const filteredCodes = useMemo(() => {
     const q = search.toLowerCase();
     const matchesText = (c: IcfCodeEntry) =>
@@ -577,10 +585,10 @@ export default function HealthConditionWizard({ workerId, currentConditions, all
                         </div>
                         <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '4px 0' }} />
 
-                        {allCoreSets.length === 0 ? (
+                        {effectiveCoreSets.length === 0 ? (
                           <div style={{ padding: '10px 14px', color: 'rgba(255,255,255,0.35)', fontSize: '0.82rem' }}>No core sets available</div>
                         ) : (
-                          allCoreSets.map(cs => {
+                          effectiveCoreSets.map(cs => {
                             const checked = wizardSelectedCoreSets.includes(cs);
                             return (
                               <button

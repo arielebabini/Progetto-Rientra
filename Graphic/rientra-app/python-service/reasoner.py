@@ -211,7 +211,9 @@ def get_all_core_sets() -> list[str]:
     Built from _icf_core_set_map, so must be called after _build_icf_core_set_map.
     """
     if _use_snapshot_cache():
-        return list(cast(dict, _snapshot_cache)["core_sets"])
+        cached_sets = list(cast(dict, _snapshot_cache).get("core_sets", []))
+        if cached_sets:
+            return cached_sets
 
     labels: set[str] = set()
     for cs_list in _icf_core_set_map.values():

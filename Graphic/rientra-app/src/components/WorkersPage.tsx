@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import './WorkersPage.css';
 import JobAnalysisView from './JobAnalysisView';
 import {
   fetchStatus,
   fetchWorkers,
   fetchHealthConditions,
+  fetchMatchResults,
   fetchCoreSets,
   selectWorker,
   importWorkers,
@@ -15,6 +16,7 @@ import {
   type ImportWorkersResult,
 } from '../api/semanticService';
 import HealthConditionWizard from './HealthConditionWizard';
+import { exportWorkerPdf } from '../utils/pdfGenerator';
 
 
 /* ─────────────────────────────────────────────
@@ -261,6 +263,23 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
   const [importError, setImportError] = useState<string | null>(null);
   const [importModalOpen, setImportModalOpen] = useState(false);
 
+  // ── PDF Export state ──────────────────────────────────────────────────────
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [pdfToast, setPdfToast] = useState<{
+    type: 'success' | 'error' | 'info';
+    message: string;
+    filePath?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (pdfToast) {
+      const timer = setTimeout(() => {
+        setPdfToast(null);
+      }, 7000);
+      return () => clearTimeout(timer);
+    }
+  }, [pdfToast]);
+
   // ── Click outside / Escape logic for dropdown ──
   const coreSetDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -370,8 +389,19 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
     return <span className="wp-sort-badge">{`${label}${ruleIndex + 1}`}</span>;
   };
 
-  // All available core set labels — fetched from API, not derived from conditions
-  const availableCoreSets = allCoreSets;
+  // All available core set labels — combined from API catalogue and current conditions
+  const availableCoreSets = useMemo(() => {
+    const set = new Set<string>();
+    (allCoreSets || []).forEach(cs => {
+      if (cs && cs.trim()) set.add(cs.trim());
+    });
+    (conditions || []).forEach(c => {
+      (c.core_sets || []).forEach(cs => {
+        if (cs && cs.trim()) set.add(cs.trim());
+      });
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [allCoreSets, conditions]);
 
   const filteredConditions = sortedConditions.filter(c => {
     const q = conditionSearchQuery.toLowerCase();
@@ -403,13 +433,16 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
 
       if (s.status === 'ready') {
         setIsReady(true);
-        // If we transitioned back to ready from loading or error, reload workers list!
+        // If we transitioned back to ready from loading or error, reload workers list & core sets!
         if (prevStatus && prevStatus !== 'ready') {
           setLoadingWorkers(true);
           fetchWorkers()
             .then(setWorkers)
             .catch(e => console.error('fetchWorkers:', e))
             .finally(() => setLoadingWorkers(false));
+          fetchCoreSets()
+            .then(setAllCoreSets)
+            .catch(e => console.error('fetchCoreSets:', e));
         }
         // Poll again in 3000ms
         pollRef.current = setTimeout(poll, 3000);
@@ -473,6 +506,60 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
       }
       return next;
     });
+  };
+
+  // ── Save / Export Worker Technical Sheet as PDF ────────────────────────────
+  const handleSavePdf = async () => {
+    if (!selectedWorker) return;
+    setDotsMenuOpen(false);
+    setIsExportingPdf(true);
+    setPdfToast(null);
+
+    try {
+      // Ensure we have complete health conditions and match results for this worker
+      const [conditionsData, matchResults] = await Promise.all([
+        fetchHealthConditions(selectedWorker.id).catch(() => ({ worker_id: selectedWorker.id, conditions })),
+        fetchMatchResults(selectedWorker.id).catch(() => []),
+      ]);
+
+      const workerConditions = conditionsData.conditions || conditions;
+      const isArchived = archivedWorkerIds.has(selectedWorker.id);
+
+      const result = await exportWorkerPdf(
+        selectedWorker,
+        workerConditions,
+        matchResults,
+        isArchived
+      );
+
+      if (result.canceled) {
+        setIsExportingPdf(false);
+        return;
+      }
+
+      if (result.ok) {
+        setPdfToast({
+          type: 'success',
+          message: result.filePath
+            ? 'Worker technical report PDF saved successfully.'
+            : 'Worker technical report PDF generated successfully.',
+          filePath: result.filePath,
+        });
+      } else {
+        setPdfToast({
+          type: 'error',
+          message: result.error || 'Error while saving PDF.',
+        });
+      }
+    } catch (err: any) {
+      console.error('Error generating PDF:', err);
+      setPdfToast({
+        type: 'error',
+        message: err?.message || 'Unexpected error while generating PDF report.',
+      });
+    } finally {
+      setIsExportingPdf(false);
+    }
   };
 
   // ── Filtered worker list ───────────────────────────────────────────
@@ -850,7 +937,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
               <div key={activeNav} className="wp-content-fade">
                 {/* ── Jobs Analysis nav: show JobAnalysisView (no tab bar) ── */}
                 {activeNav === 'jobs-analysis' ? (
-                  <div className="wp-section" style={{ gap: 0, padding: 0 }}>
+                  <div className="wp-section wp-section--wizard">
                     <JobAnalysisView
                       workerId={selectedWorker.id}
                       workerDisplayName={
@@ -896,7 +983,7 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                         <HealthConditionWizard
                           workerId={selectedWorker.id}
                           currentConditions={conditions}
-                          allCoreSets={allCoreSets}
+                          allCoreSets={availableCoreSets}
                           onClose={() => {
                             setIsWizardOpen(false);
                             setHealthWizardStep('select');
@@ -1010,9 +1097,21 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
                               </button>
                               {dotsMenuOpen && (
                                 <div className="wp-dropdown" id="overflow-dropdown">
-                                  <button className="wp-dropdown-item" id="btn-save-pdf"
-                                    onClick={() => setDotsMenuOpen(false)}>
-                                    <PdfIcon /> Save PDF
+                                  <button
+                                    className="wp-dropdown-item"
+                                    id="btn-save-pdf"
+                                    disabled={isExportingPdf}
+                                    onClick={handleSavePdf}
+                                  >
+                                    {isExportingPdf ? (
+                                      <>
+                                        <div className="wp-spinner wp-spinner-small" /> Generating PDF…
+                                      </>
+                                    ) : (
+                                      <>
+                                        <PdfIcon /> Save PDF
+                                      </>
+                                    )}
                                   </button>
                                 </div>
                               )}
@@ -1508,6 +1607,50 @@ CREATE TABLE job_evaluation (
               </>
             )}
           </div>
+        </div>
+      )}
+
+      {/* ── PDF Export Notification Toast ── */}
+      {pdfToast && (
+        <div className={`wp-pdf-toast ${pdfToast.type}`}>
+          <div className="wp-pdf-toast-icon">
+            {pdfToast.type === 'success' ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            )}
+          </div>
+          <div className="wp-pdf-toast-body">
+            <span className="wp-pdf-toast-msg">{pdfToast.message}</span>
+            {pdfToast.filePath && (
+              <div className="wp-pdf-toast-actions">
+                <button
+                  className="wp-pdf-toast-action-btn"
+                  onClick={() => {
+                    const electronAPI = (window as any).electronAPI;
+                    if (electronAPI?.showItemInFolder && pdfToast.filePath) {
+                      electronAPI.showItemInFolder(pdfToast.filePath);
+                    }
+                  }}
+                >
+                  Show in folder
+                </button>
+              </div>
+            )}
+          </div>
+          <button
+            className="wp-pdf-toast-close"
+            onClick={() => setPdfToast(null)}
+            aria-label="Close"
+          >
+            <XIcon />
+          </button>
         </div>
       )}
     </div>

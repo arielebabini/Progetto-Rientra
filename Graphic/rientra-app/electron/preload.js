@@ -17,5 +17,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Copy the selected ontology file and restart the Python service
   uploadOntologyFile: (filePath) => ipcRenderer.invoke('upload-ontology-file', filePath),
+
+  // Export HTML content to PDF file via native Save Dialog and printToPDF
+  exportPdf: (options) => ipcRenderer.invoke('export-pdf', options),
+
+  // Reveal saved file in macOS Finder / Windows Explorer / Linux file manager
+  showItemInFolder: (filePath) => ipcRenderer.invoke('show-item-in-folder', filePath),
 });
 
