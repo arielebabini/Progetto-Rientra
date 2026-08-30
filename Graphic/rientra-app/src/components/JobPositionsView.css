@@ -1,0 +1,348 @@
+/* ============================================================
+   JobPositionsView.css — RIENTR@ DSS
+   Extends WorkersPage & JobAnalysisView glassmorphism design.
+   ============================================================ */
+
+/* ── Tab Bar Navigation inside wp-section ── */
+.jp-tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 0 14px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.jp-tab-btn {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  background: transparent;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.jp-tab-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.jp-tab-btn.active {
+  color: #ffffff;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+}
+
+.jp-tab-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.jp-tab-btn.active .jp-tab-badge {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+/* ── Scrollable Tab Content Container ── */
+.jp-tab-content-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  display: flex;
+  flex-direction: column;
+}
+
+.jp-tab-content-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+
+.jp-tab-content-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.jp-tab-content-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 99px;
+}
+
+
+/* ── Filter Pills Bar ── */
+.jp-tier-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.jp-tier-pill {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.jp-tier-pill:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.jp-tier-pill.active {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+}
+
+.jp-tier-pill-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.jp-tier-pill-dot.very-important { background: #ef4444; }
+.jp-tier-pill-dot.important { background: #f59e0b; }
+.jp-tier-pill-dot.somewhat-important { background: #3b82f6; }
+.jp-tier-pill-dot.less-important { background: #94a3b8; }
+
+/* ── Grouped Tier Sections ── */
+.jp-tier-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.jp-tier-block {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+
+.jp-tier-block:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.jp-tier-block-header {
+  padding: 7px 14px;
+  background: #1a2e4a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+}
+
+.jp-tier-block-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.jp-tier-block-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.jp-tier-block-dot.very-important { background: #ef4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
+.jp-tier-block-dot.important { background: #f59e0b; box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
+.jp-tier-block-dot.somewhat-important { background: #3b82f6; box-shadow: 0 0 8px rgba(59, 130, 246, 0.4); }
+.jp-tier-block-dot.less-important { background: #94a3b8; box-shadow: 0 0 8px rgba(148, 163, 184, 0.2); }
+
+.jp-tier-block-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.jp-tier-block-desc {
+  font-size: 0.73rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.jp-tier-block-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ── Skill Cards Grid ── */
+.jp-skills-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 10px;
+  padding: 14px 16px;
+}
+
+.jp-skill-card-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.jp-skill-card-item:hover {
+  background: rgba(255, 255, 255, 0.065);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.jp-skill-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.jp-skill-card-name {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.jp-skill-card-score {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.jp-skill-card-bar-wrap {
+  height: 5px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.jp-skill-card-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.jp-skill-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 2px;
+}
+
+.jp-skill-card-cat-tag {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  line-height: 1.2;
+}
+
+.jp-skill-card-id-tag {
+  font-family: monospace;
+  font-size: 0.68rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+  opacity: 0.7;
+}
+
+/* ── Evaluated Workers Grid ── */
+.jp-workers-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.jp-worker-item-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.15s ease;
+}
+
+.jp-worker-item-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.jp-worker-avatar-box {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.jp-worker-info-box {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.jp-worker-name-text {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jp-worker-id-text {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.45);
+  font-family: monospace;
+}

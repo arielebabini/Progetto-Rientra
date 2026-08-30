@@ -163,7 +163,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 14px 8px;
+  padding: 0 14px 8px 62px;
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.45);
   flex-wrap: wrap;
@@ -171,6 +171,7 @@
 }
 
 .ja-legend-item {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -181,13 +182,14 @@
   font-size: 0.70rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.7);
+  cursor: help;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
 .ja-legend-item:hover {
   background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
 }
 
 .ja-legend-dot {
@@ -195,6 +197,82 @@
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+.ja-legend-tooltip {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 250px;
+  background: #182c4a;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+  transform: translateY(-4px);
+  pointer-events: none;
+  font-family: inherit;
+  color: #ffffff;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ja-legend-item:hover .ja-legend-tooltip {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ja-legend-tooltip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ja-legend-tooltip-title {
+  font-size: 0.80rem;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ja-legend-tooltip-formula-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 5px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ja-legend-tooltip-formula-lbl {
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.ja-legend-tooltip-formula-val {
+  font-family: monospace;
+  font-size: 0.70rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.ja-legend-tooltip-desc {
+  font-size: 0.71rem;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.35;
 }
 
 /* Jobs sidebar */

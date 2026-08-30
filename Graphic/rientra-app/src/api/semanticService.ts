@@ -299,6 +299,22 @@ export function fetchAllJobs(): Promise<JobEntry[]> {
   return apiFetch<JobEntry[]>('/jobs');
 }
 
+export interface ImportanceSkill {
+  id: string;
+  score: number;
+}
+
+export interface ImportanceEntry {
+  job_id: string;
+  importance_level: 'isVeryImportantFor' | 'isImportantFor' | 'isSomewhatImportantFor' | 'isLessImportantFor' | string;
+  skills: ImportanceSkill[];
+}
+
+/** Skill/ability importance summary for a job (SWRL rules 9-12). */
+export function fetchJobImportance(jobId: string): Promise<ImportanceEntry[]> {
+  return apiFetch<ImportanceEntry[]>(`/jobs/${encodeURIComponent(jobId)}/importance`);
+}
+
 // ── Worker job-assignment mutation ────────────────────────────────────────────
 
 export interface UpdateWorkerJobsResponse {
@@ -324,3 +340,4 @@ export function updateWorkerJobs(
     },
   );
 }
+

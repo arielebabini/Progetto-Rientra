@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import './WorkersPage.css';
 import JobAnalysisView from './JobAnalysisView';
+import JobPositionsView from './JobPositionsView';
 import {
   fetchStatus,
   fetchWorkers,
@@ -246,7 +247,9 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
   const [coreSetFilterOpen, setCoreSetFilterOpen] = useState(false);
   const [selectedCoreSets, setSelectedCoreSets] = useState<string[]>([]);
   const [allCoreSets, setAllCoreSets] = useState<string[]>([]);
-  const [activeNav] = useState<'workers' | 'jobs-analysis' | 'jobs-positions'>(initialNav);
+  const [activeNav, setActiveNav] = useState<'workers' | 'jobs-analysis' | 'jobs-positions'>(initialNav);
+  const [navOrigin, setNavOrigin] = useState<'jobs-positions' | null>(null);
+  const [selectedJobPositionId, setSelectedJobPositionId] = useState<string | null>(null);
   const [expandedConditionCode, setExpandedConditionCode] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -719,8 +722,16 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
         <div className="wp-breadcrumbs-container">
           <button
             className="wp-breadcrumb-back-btn"
-            onClick={onNavigateHome}
-            aria-label="Back to Home"
+            onClick={() => {
+              if (navOrigin === 'jobs-positions' && activeNav === 'workers') {
+                setNavOrigin(null);
+                setActiveNav('jobs-positions');
+              } else {
+                setNavOrigin(null);
+                onNavigateHome();
+              }
+            }}
+            aria-label="Back"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -729,10 +740,35 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
           </button>
           <div className="wp-breadcrumbs-box">
             {(() => {
-              const navTitle = activeNav === 'workers' ? 'Worker Information' : activeNav === 'jobs-analysis' ? 'Job Analysis' : 'Job Positions';
-              const breadcrumbItems = [];
-              breadcrumbItems.push({ label: 'Home', onClick: onNavigateHome });
-              breadcrumbItems.push({ label: navTitle, onClick: isWizardOpen ? () => setIsWizardOpen(false) : undefined });
+              const breadcrumbItems: { label: string; onClick?: () => void }[] = [];
+              breadcrumbItems.push({
+                label: 'Home',
+                onClick: () => {
+                  setNavOrigin(null);
+                  onNavigateHome();
+                }
+              });
+
+              if (navOrigin === 'jobs-positions' && activeNav === 'workers') {
+                breadcrumbItems.push({
+                  label: 'Job Positions',
+                  onClick: () => {
+                    setNavOrigin(null);
+                    setActiveNav('jobs-positions');
+                  }
+                });
+                breadcrumbItems.push({
+                  label: 'Worker Information',
+                  onClick: isWizardOpen ? () => setIsWizardOpen(false) : undefined
+                });
+              } else {
+                const navTitle = activeNav === 'workers' ? 'Worker Information' : activeNav === 'jobs-analysis' ? 'Job Analysis' : 'Job Positions';
+                breadcrumbItems.push({
+                  label: navTitle,
+                  onClick: isWizardOpen ? () => setIsWizardOpen(false) : undefined
+                });
+              }
+
               if (activeNav === 'workers' && isWizardOpen) {
                 breadcrumbItems.push({ label: 'Modify Health Conditions' });
               }
@@ -815,16 +851,35 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
 
       {/* ── Body ── */}
       <div className="wp-body">
-
-        {/* ── Left Sidebar ── */}
-        <aside
-          className={`wp-sidebar ${isSidebarOpen ? '' : 'wp-sidebar--closed'}`}
-          style={{
-            pointerEvents: isReady ? 'auto' : 'none',
-            opacity: isReady ? 1 : 0.6,
-            transition: 'opacity 0.2s ease, transform 0.3s ease',
-          }}
-        >
+        {activeNav === 'jobs-positions' ? (
+          <JobPositionsView
+            isReady={isReady}
+            serviceStatus={serviceStatus}
+            serviceError={serviceError}
+            onRetry={() => { setServiceError(null); poll(); }}
+            onSelectWorker={(workerId) => {
+              const target = workers.find(w => w.id === workerId);
+              if (target) {
+                setSelectedWorker(target);
+              }
+              setNavOrigin('jobs-positions');
+              setActiveNav('workers');
+            }}
+            isSidebarOpen={isSidebarOpen}
+            onToggleSidebar={() => setIsSidebarOpen(prev => !prev)}
+            selectedJobId={selectedJobPositionId}
+            onSelectJobId={setSelectedJobPositionId}
+          />
+        ) : (
+          <>
+            {/* ── Left Sidebar ── */}
+            <aside
+              className={`wp-sidebar ${isSidebarOpen ? '' : 'wp-sidebar--closed'}`}
+              style={{
+                pointerEvents: isReady ? 'auto' : 'none',
+                opacity: isReady ? 1 : 0.6,
+              }}
+            >
           <div className="wp-sidebar-header">
             <span className="wp-sidebar-title">Workers</span>
             <button className="wp-icon-button" onClick={() => setIsSidebarOpen(false)} aria-label="Close sidebar">
@@ -1307,6 +1362,8 @@ export default function WorkersPage({ onNavigateHome, initialNav = 'workers' }: 
             )}
           </div>
         </main>
+          </>
+        )}
       </div>
 
       {/* ── Import Workers Modal ── */}

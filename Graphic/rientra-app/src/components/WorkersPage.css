@@ -253,8 +253,15 @@
   border-radius: 14px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   overflow: hidden;
-  /* no sidebar-level scrollbar */
-  transition: width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), min-width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), max-width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), padding 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), margin 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.35s ease;
+  will-change: width, min-width, max-width, margin, padding, opacity, transform;
+  transition:
+    width 0.32s cubic-bezier(0.25, 1, 0.5, 1),
+    min-width 0.32s cubic-bezier(0.25, 1, 0.5, 1),
+    max-width 0.32s cubic-bezier(0.25, 1, 0.5, 1),
+    padding 0.32s cubic-bezier(0.25, 1, 0.5, 1),
+    margin 0.32s cubic-bezier(0.25, 1, 0.5, 1),
+    opacity 0.22s ease,
+    transform 0.32s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .wp-sidebar--closed {
@@ -266,8 +273,9 @@
   margin-left: 0 !important;
   margin-right: 0 !important;
   border: none !important;
-  opacity: 0;
-  pointer-events: none;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateX(-12px);
 }
 
 .wp-sidebar-header {

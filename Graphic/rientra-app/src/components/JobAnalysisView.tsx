@@ -108,36 +108,36 @@ function ScatterPlot({ matchResults, jobA, jobB, onSelect }: ScatterPlotProps) {
         {/* border */}
         <rect x={PAD.l} y={PAD.t} width={PW} height={PH} fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="0.8" rx="3" />
 
-        {/* suitability threshold lines — muted, clipped to plot area */}
+        {/* suitability threshold lines — visible dashed diagonals */}
         <g clipPath="url(#ja-clip)">
           {/* NOT SUITABLE boundary */}
-          <line x1={toX(0)} y1={toY(21)} x2={toX(nsX2)} y2={toY(Math.max(0, 21 - 0.5 * nsX2))} stroke="rgba(210,80,80,0.30)" strokeWidth="1.2" strokeDasharray="6,4" />
+          <line x1={toX(0)} y1={toY(21)} x2={toX(nsX2)} y2={toY(Math.max(0, 21 - 0.5 * nsX2))} stroke="#ef4444" strokeWidth="1.8" strokeDasharray="6,4" opacity="0.85" />
           {/* WITH PRECAUTIONS boundary */}
-          <line x1={toX(0)} y1={toY(15.5)} x2={toX(wpX2)} y2={toY(Math.max(0, 15.5 - 0.5 * wpX2))} stroke="rgba(190,145,55,0.30)" strokeWidth="1.2" strokeDasharray="6,4" />
+          <line x1={toX(0)} y1={toY(15.5)} x2={toX(wpX2)} y2={toY(Math.max(0, 15.5 - 0.5 * wpX2))} stroke="#f59e0b" strokeWidth="1.8" strokeDasharray="6,4" opacity="0.85" />
         </g>
 
         {/* X axis */}
         {X_TICKS.map(t => (
           <g key={`xt${t}`}>
-            <line x1={toX(t)} y1={PAD.t + PH} x2={toX(t)} y2={PAD.t + PH + 5} stroke="rgba(255,255,255,0.20)" strokeWidth="0.8" />
-            <text x={toX(t)} y={PAD.t + PH + 15} textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.45)">{t}</text>
+            <line x1={toX(t)} y1={PAD.t + PH} x2={toX(t)} y2={PAD.t + PH + 5} stroke="rgba(255,255,255,0.35)" strokeWidth="0.8" />
+            <text x={toX(t)} y={PAD.t + PH + 15} textAnchor="middle" fontSize="9.5" fontWeight="500" fill="#ffffff" opacity="0.85">{t}</text>
           </g>
         ))}
 
         {/* Y axis */}
         {Y_TICKS.map(t => (
           <g key={`yt${t}`}>
-            <line x1={PAD.l - 5} y1={toY(t)} x2={PAD.l} y2={toY(t)} stroke="rgba(255,255,255,0.20)" strokeWidth="0.8" />
-            <text x={PAD.l - 8} y={toY(t) + 3} textAnchor="end" fontSize="9" fill="rgba(255,255,255,0.45)">{t}</text>
+            <line x1={PAD.l - 5} y1={toY(t)} x2={PAD.l} y2={toY(t)} stroke="rgba(255,255,255,0.35)" strokeWidth="0.8" />
+            <text x={PAD.l - 8} y={toY(t) + 3} textAnchor="end" fontSize="9.5" fontWeight="500" fill="#ffffff" opacity="0.85">{t}</text>
           </g>
         ))}
 
         {/* axis labels */}
-        <text x={PAD.l + PW / 2} y={h - 6} textAnchor="middle" fontSize="9" fontWeight="500" fill="rgba(255,255,255,0.35)" letterSpacing="0.5">
+        <text x={PAD.l + PW / 2} y={h - 6} textAnchor="middle" fontSize="9.5" fontWeight="600" fill="#ffffff" opacity="0.9" letterSpacing="0.6">
           AMOUNT OF IMPAIRED SKILLS &amp; ABILITIES — AISA (%)
         </text>
-        <text x={12} y={PAD.t + PH / 2} textAnchor="middle" fontSize="9" fontWeight="500" fill="rgba(255,255,255,0.35)" letterSpacing="0.5"
-          transform={`rotate(-90,12,${PAD.t + PH / 2})`}>
+        <text x={14} y={PAD.t + PH / 2} textAnchor="middle" fontSize="9.5" fontWeight="600" fill="#ffffff" opacity="0.9" letterSpacing="0.6"
+          transform={`rotate(-90,14,${PAD.t + PH / 2})`}>
           GENERAL CRITICALITY SCORE — GCS (%)
         </text>
 
@@ -158,34 +158,110 @@ function ScatterPlot({ matchResults, jobA, jobB, onSelect }: ScatterPlotProps) {
           })}
         </g>
 
-        {/* tooltip */}
-        {tooltip && (() => {
-          const r = tooltip.result;
-          const lbl = r.job_id.replace(/_/g, ' ');
-          const trunc = lbl.length > 22 ? lbl.slice(0, 22) + '…' : lbl;
-          const bw = 200, bh = 76;
-          const px = toX(tooltip.dataX), py = toY(tooltip.dataY);
-          const tx = px + 14 + bw > w - PAD.r ? px - bw - 14 : px + 14;
-          const ty = Math.max(PAD.t + 2, Math.min(py - bh / 2, PAD.t + PH - bh - 2));
-          const icon = r.suitability === 'SUITABLE' ? '✔' : r.suitability === 'SUITABLE WITH PRECAUTIONS' ? '⚠' : '✘';
-          return (
-            <g style={{ pointerEvents: 'none' }}>
-              <line x1={px} y1={PAD.t} x2={px} y2={PAD.t + PH} stroke="rgba(255,255,255,0.07)" strokeWidth="0.8" strokeDasharray="4,3" clipPath="url(#ja-clip)" />
-              <line x1={PAD.l} y1={py} x2={PAD.l + PW} y2={py} stroke="rgba(255,255,255,0.07)" strokeWidth="0.8" strokeDasharray="4,3" clipPath="url(#ja-clip)" />
-              <rect x={tx} y={ty} width={bw} height={bh} rx="7" fill="rgba(14,28,54,0.97)" stroke="rgba(255,255,255,0.12)" strokeWidth="0.8" />
-              <rect x={tx} y={ty} width="4" height={bh} rx="3" fill={r.suitability_color} opacity="0.85" />
-              <text x={tx + 14} y={ty + 21} fontSize="11.5" fontWeight="700" fill="rgba(255,255,255,0.92)">{trunc}</text>
-              <text x={tx + 14} y={ty + 40} fontSize="9.5" fill="rgba(255,255,255,0.40)">
-                GCS <tspan fontWeight="600" fill="rgba(255,255,255,0.78)">{r.gcs_pct.toFixed(1)}%</tspan>
-                {'   '}AISA <tspan fontWeight="600" fill="rgba(255,255,255,0.78)">{r.aisa_pct.toFixed(1)}%</tspan>
-              </text>
-              <text x={tx + 14} y={ty + 60} fontSize="9" fontWeight="700" fill={r.suitability_color} letterSpacing="0.4">
-                {icon}{' '}{r.suitability}
-              </text>
-            </g>
-          );
-        })()}
+        {/* Crosshair guide lines on hover */}
+        {tooltip && (
+          <g style={{ pointerEvents: 'none' }}>
+            <line x1={toX(tooltip.dataX)} y1={PAD.t} x2={toX(tooltip.dataX)} y2={PAD.t + PH} stroke="rgba(255,255,255,0.12)" strokeWidth="0.8" strokeDasharray="4,3" clipPath="url(#ja-clip)" />
+            <line x1={PAD.l} y1={toY(tooltip.dataY)} x2={PAD.l + PW} y2={toY(tooltip.dataY)} stroke="rgba(255,255,255,0.12)" strokeWidth="0.8" strokeDasharray="4,3" clipPath="url(#ja-clip)" />
+          </g>
+        )}
       </svg>
+
+      {/* Modern Glassmorphism Floating Pop-up */}
+      {tooltip && (() => {
+        const r = tooltip.result;
+        const jobTitle = r.job_id.replace(/_/g, ' ');
+        const px = toX(tooltip.dataX);
+        const py = toY(tooltip.dataY);
+
+        const tooltipWidth = 216;
+        const isOnRightHalf = px > w - tooltipWidth - 30;
+        const leftPos = isOnRightHalf ? px - tooltipWidth - 14 : px + 14;
+        const topPos = Math.max(10, Math.min(py - 44, h - 96));
+
+        const icon = r.suitability === 'SUITABLE' ? '✔' : r.suitability === 'SUITABLE WITH PRECAUTIONS' ? '⚠' : '✘';
+
+        return (
+          <div
+            style={{
+              position: 'absolute',
+              left: leftPos,
+              top: topPos,
+              width: tooltipWidth,
+              background: '#182c4a',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              borderRadius: '10px',
+              padding: '11px 13px',
+              boxShadow: '0 12px 30px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4)',
+              pointerEvents: 'none',
+              zIndex: 30,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+            }}
+          >
+            {/* Job Title */}
+            <div
+              style={{
+                fontSize: '0.86rem',
+                fontWeight: 700,
+                color: '#ffffff',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                lineHeight: 1.2,
+              }}
+              title={jobTitle}
+            >
+              {jobTitle}
+            </div>
+
+            {/* Metrics Row */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                fontSize: '0.72rem',
+                color: 'rgba(255, 255, 255, 0.6)',
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid rgba(255, 255, 255, 0.06)',
+                borderRadius: '6px',
+                padding: '4px 8px',
+              }}
+            >
+              <span>
+                GCS: <strong style={{ color: '#ffffff', fontWeight: 600 }}>{r.gcs_pct.toFixed(1)}%</strong>
+              </span>
+              <span>
+                AISA: <strong style={{ color: '#ffffff', fontWeight: 600 }}>{r.aisa_pct.toFixed(1)}%</strong>
+              </span>
+            </div>
+
+            {/* Suitability Badge */}
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                alignSelf: 'flex-start',
+                gap: '5px',
+                padding: '3px 8px',
+                borderRadius: '6px',
+                fontSize: '0.68rem',
+                fontWeight: 700,
+                letterSpacing: '0.03em',
+                color: r.suitability_color,
+                background: `${r.suitability_color}18`,
+                border: `1px solid ${r.suitability_color}40`,
+                marginTop: '1px',
+              }}
+            >
+              <span style={{ fontSize: '0.7rem' }}>{icon}</span>
+              <span>{r.suitability}</span>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -879,9 +955,44 @@ export default function JobAnalysisView({ workerId, workerDisplayName }: JobAnal
               <div className="ja-map-body">
                 <div className="ja-scatter-area">
                   <div className="ja-scatter-legend">
-                    {[['#ef4444', 'Not suitable'], ['#f59e0b', 'With precautions'], ['#22c55e', 'Suitable']].map(([c, l]) => (
-                      <span key={l} className="ja-legend-item">
-                        <span className="ja-legend-dot" style={{ background: c }} />{l}
+                    {[
+                      {
+                        label: 'Not suitable',
+                        color: '#ef4444',
+                        formula: 'GCS > −0.5·AISA + 21',
+                        description: 'High criticality on essential job capabilities. The position exceeds the safety threshold and is not recommended without substantial adaptations.',
+                      },
+                      {
+                        label: 'With precautions',
+                        color: '#f59e0b',
+                        formula: '−0.5·AISA + 15.5 ≤ GCS ≤ 21',
+                        description: 'Moderate criticality score. The worker can perform the position with specific ergonomic precautions, assistive devices, or task accommodations.',
+                      },
+                      {
+                        label: 'Suitable',
+                        color: '#22c55e',
+                        formula: 'GCS < −0.5·AISA + 15.5',
+                        description: 'Low criticality score and minimal impairment. The worker is fully compatible with this job position under standard operational conditions.',
+                      },
+                    ].map(item => (
+                      <span key={item.label} className="ja-legend-item">
+                        <span className="ja-legend-dot" style={{ background: item.color }} />
+                        {item.label}
+                        <div className="ja-legend-tooltip">
+                          <div className="ja-legend-tooltip-header">
+                            <span className="ja-legend-tooltip-title">
+                              <span className="ja-legend-dot" style={{ background: item.color }} />
+                              {item.label}
+                            </span>
+                          </div>
+                          <div className="ja-legend-tooltip-formula-box">
+                            <div className="ja-legend-tooltip-formula-lbl">Threshold</div>
+                            <div className="ja-legend-tooltip-formula-val">{item.formula}</div>
+                          </div>
+                          <div className="ja-legend-tooltip-desc">
+                            {item.description}
+                          </div>
+                        </div>
                       </span>
                     ))}
                   </div>
