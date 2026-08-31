@@ -155,7 +155,48 @@ function preparePythonService() {
 
 const crypto = require('crypto');
 
-function ensureVenvAndDeps() {
+function runCommandAsync(command, args, options, onLog) {
+  return new Promise((resolve, reject) => {
+    const proc = spawn(command, args, {
+      ...options,
+      shell: true,
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+
+    let stderrData = '';
+    let stdoutData = '';
+
+    if (proc.stdout) {
+      proc.stdout.on('data', (chunk) => {
+        const text = chunk.toString();
+        stdoutData += text;
+        if (onLog) onLog(text.trim());
+      });
+    }
+
+    if (proc.stderr) {
+      proc.stderr.on('data', (chunk) => {
+        const text = chunk.toString();
+        stderrData += text;
+        if (onLog) onLog(text.trim());
+      });
+    }
+
+    proc.on('close', (code) => {
+      if (code === 0) {
+        resolve(stdoutData);
+      } else {
+        reject(new Error(`Comando terminato con codice ${code}: ${stderrData || stdoutData}`));
+      }
+    });
+
+    proc.on('error', (err) => {
+      reject(err);
+    });
+  });
+}
+
+async function ensureVenvAndDeps(updateStatus) {
   const serviceDir = getServiceDir();
   const venvDir = path.join(serviceDir, '.venv');
   const reqFile = path.join(serviceDir, 'requirements.txt');
@@ -177,41 +218,42 @@ function ensureVenvAndDeps() {
   if (needsInstall) {
     if (!venvExists) {
       console.log('[Python Setup] .venv not found. Creating virtual environment...');
-      
-      dialog.showMessageBoxSync({
-        type: 'info',
-        title: 'Inizializzazione Applicazione',
-        message: 'Configurazione dell\'ambiente Python locale in corso.',
-        detail: 'Sto creando l\'ambiente virtuale locale e installando le librerie necessarie (FastAPI, Owlready2, morph-kgc, ecc.).\n\nQuesta operazione viene eseguita solo al primo avvio e potrebbe richiedere da 1 a 3 minuti. Fai clic su OK per iniziare.',
-        buttons: ['OK']
-      });
+      if (updateStatus) {
+        updateStatus(
+          'Configurazione ambiente Python...',
+          'Creazione dell\'ambiente virtuale isolato (.venv)...'
+        );
+      }
 
+      const pythonCmd = getFallbackPython();
       try {
-        execSync(`"${getFallbackPython()}" -m venv .venv`, { cwd: serviceDir });
+        await runCommandAsync(pythonCmd, ['-m', 'venv', '.venv'], { cwd: serviceDir });
         console.log('[Python Setup] .venv created successfully.');
       } catch (err) {
         console.error('[Python Setup] Error during environment setup:', err);
-        dialog.showErrorBox(
-          'Errore di Inizializzazione',
-          'Si è verificato un errore durante la configurazione dell\'ambiente virtuale Python:\n\n' + err.message
-        );
-        return;
+        throw new Error('Errore durante la creazione dell\'ambiente virtuale Python:\n' + err.message);
       }
+    }
+
+    if (updateStatus) {
+      updateStatus(
+        'Installazione librerie Python...',
+        'Installazione dei moduli (FastAPI, Owlready2, morph-kgc, ecc.). Attendere 1-3 minuti...'
+      );
     }
 
     try {
       console.log('[Python Setup] Installing/updating dependencies...');
-      execSync(`"${pipExe}" install -r requirements.txt`, { cwd: serviceDir });
+      await runCommandAsync(pipExe, ['install', '-r', 'requirements.txt'], { cwd: serviceDir }, (log) => {
+        console.log('[Pip]', log);
+      });
       if (currentHash) {
         fs.writeFileSync(hashFile, currentHash, 'utf8');
       }
       console.log('[Python Setup] Dependencies installed successfully.');
     } catch (err) {
       console.error('[Python Setup] Error during dependencies installation:', err);
-      dialog.showErrorBox(
-        'Errore di Inizializzazione',
-        'Si è verificato un errore durante l\'installazione delle dipendenze Python:\n\n' + err.message
-      );
+      throw new Error('Errore durante l\'installazione delle dipendenze Python:\n' + err.message);
     }
   }
 }
@@ -268,7 +310,51 @@ function stopPythonService() {
   }
 }
 
-// ─── Create the main window ─────────────────────────────────────────────────
+// ─── Splash & Main Windows ──────────────────────────────────────────────────
+let splashWindow = null;
+
+function createSplashWindow() {
+  if (!isWindows) return;
+
+  splashWindow = new BrowserWindow({
+    width: 520,
+    height: 330,
+    resizable: false,
+    movable: true,
+    center: true,
+    frame: false,
+    alwaysOnTop: true,
+    backgroundColor: '#0b1329',
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, 'splash-preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  splashWindow.loadFile(path.join(__dirname, 'splash.html'));
+  splashWindow.once('ready-to-show', () => {
+    if (splashWindow && !splashWindow.isDestroyed()) {
+      splashWindow.show();
+    }
+  });
+}
+
+function updateSplashStatus(title, detail) {
+  if (!isWindows) return;
+  if (splashWindow && !splashWindow.isDestroyed()) {
+    splashWindow.webContents.send('status-update', { title, detail });
+  }
+}
+
+function closeSplashWindow() {
+  if (splashWindow && !splashWindow.isDestroyed()) {
+    splashWindow.destroy();
+    splashWindow = null;
+  }
+}
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1280,
@@ -277,6 +363,7 @@ function createWindow() {
     minHeight: 600,
     title: 'RIENTR@ returns — Decision Support System',
     backgroundColor: '#1a2a4a',
+    show: !isWindows,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -289,37 +376,82 @@ function createWindow() {
   } else {
     win.loadFile(path.join(__dirname, '../dist/index.html'));
   }
+
+  return win;
 }
 
 // ─── App lifecycle ──────────────────────────────────────────────────────────
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   Menu.setApplicationMenu(null); // Remove native menu bar
 
-  // 1. Prepare files in production
-  preparePythonService();
+  // 1. Create and show Splash Screen (Windows only)
+  if (isWindows) {
+    createSplashWindow();
+  }
 
-  // 2. Validate prerequisites
-  const hasPython = checkPythonInstalled();
-  const hasJava = checkJavaInstalled();
+  try {
+    // 2. Prepare files in production
+    updateSplashStatus('Inizializzazione applicazione...', 'Preparazione dei file di sistema...');
+    preparePythonService();
 
-  if (!hasPython || !hasJava) {
-    let msg = 'I seguenti componenti richiesti non sono stati trovati sul sistema:\n\n';
-    if (!hasPython) msg += '❌ Python 3 (versione 3.11 o superiore)\n';
-    if (!hasJava) msg += '❌ Java (JRE o JDK versione 17 o superiore, richiesta dal ragionatore Pellet)\n';
-    msg += '\nAssicurati che siano installati e aggiunti al PATH di sistema, quindi riavvia l\'applicazione.';
-    
-    dialog.showErrorBox('Componenti di sistema mancanti', msg);
+    // 3. Validate prerequisites
+    updateSplashStatus('Verifica requisiti di sistema...', 'Controllo della presenza di Python e Java...');
+    const hasPython = checkPythonInstalled();
+    const hasJava = checkJavaInstalled();
+
+    if (!hasPython || !hasJava) {
+      closeSplashWindow();
+      let msg = 'I seguenti componenti richiesti non sono stati trovati sul sistema:\n\n';
+      if (!hasPython) msg += '❌ Python 3 (versione 3.11 o superiore)\n';
+      if (!hasJava) msg += '❌ Java (JRE o JDK versione 17 o superiore, richiesta dal ragionatore Pellet)\n';
+      msg += '\nAssicurati che siano installati e aggiunti al PATH di sistema, quindi riavvia l\'applicazione.';
+      
+      dialog.showErrorBox('Componenti di sistema mancanti', msg);
+      app.quit();
+      return;
+    }
+
+    // 4. Setup virtualenv if in production
+    if (!isDev) {
+      await ensureVenvAndDeps((title, detail) => {
+        updateSplashStatus(title, detail);
+      });
+    }
+
+    // 5. Start Python service
+    updateSplashStatus('Avvio motore semantico...', 'Avvio del server di calcolo e dell\'interfaccia...');
+    startPythonService();
+
+    // 6. Create main window
+    const mainWindow = createWindow();
+
+    if (isWindows) {
+      let shown = false;
+      const showApp = () => {
+        if (shown) return;
+        shown = true;
+        mainWindow.show();
+        mainWindow.focus();
+        setTimeout(() => {
+          closeSplashWindow();
+        }, 300);
+      };
+
+      mainWindow.once('ready-to-show', showApp);
+      mainWindow.webContents.once('did-finish-load', () => {
+        setTimeout(showApp, 500);
+      });
+    }
+
+  } catch (err) {
+    console.error('[App Startup Error]', err);
+    closeSplashWindow();
+    dialog.showErrorBox(
+      'Errore di Inizializzazione',
+      'Si è verificato un errore durante l\'inizializzazione dell\'applicazione:\n\n' + err.message
+    );
     app.quit();
-    return;
   }
-
-  // 3. Setup virtualenv if in production
-  if (!isDev) {
-    ensureVenvAndDeps();
-  }
-
-  startPythonService();
-  createWindow();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

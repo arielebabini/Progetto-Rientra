@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Inizializzazione - RIENTR@ returns</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(145deg, #0b1329 0%, #151d38 50%, #0a0f24 100%);
+      color: #f1f5f9;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 28px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .logo-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+      flex-shrink: 0;
+    }
+    .logo-box svg {
+      width: 28px;
+      height: 28px;
+    }
+    .title-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(to right, #ffffff, #93c5fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      font-size: 12px;
+      color: #94a3b8;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 2px;
+    }
+    .content-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 12px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+    }
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .spinner {
+      width: 22px;
+      height: 22px;
+      border: 2.5px solid rgba(59, 130, 246, 0.2);
+      border-top-color: #38bdf8;
+      border-right-color: #818cf8;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .status-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .status-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #f8fafc;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .status-detail {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 3px;
+      line-height: 1.4;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .progress-bar-container {
+      width: 100%;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+      overflow: hidden;
+      position: relative;
+    }
+    .progress-bar-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 40%;
+      background: linear-gradient(90deg, #2563eb, #38bdf8, #818cf8);
+      border-radius: 9999px;
+      animation: indeterminate 1.8s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+    }
+    @keyframes indeterminate {
+      0% {
+        left: -40%;
+        width: 40%;
+      }
+      50% {
+        left: 30%;
+        width: 50%;
+      }
+      100% {
+        left: 100%;
+        width: 40%;
+      }
+    }
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #64748b;
+    }
+    .footer .tag {
+      background: rgba(56, 189, 248, 0.1);
+      color: #38bdf8;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    <div class="title-group">
+      <div class="title">RIENTR@ returns</div>
+      <div class="subtitle">Decision Support System</div>
+    </div>
+  </div>
+
+  <div class="content-box">
+    <div class="status-row">
+      <div class="spinner"></div>
+      <div class="status-info">
+        <div id="status-title" class="status-title">Inizializzazione in corso...</div>
+        <div id="status-detail" class="status-detail">Verifica dei componenti e configurazione dell'ambiente locale...</div>
+      </div>
+    </div>
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>Configurazione automatica iniziale</span>
+    <span class="tag">PRIMO AVVIO</span>
+  </div>
+
+  <script>
+    if (window.splashAPI) {
+      window.splashAPI.onStatusUpdate((data) => {
+        if (data.title) {
+          document.getElementById('status-title').textContent = data.title;
+        }
+        if (data.detail) {
+          document.getElementById('status-detail').textContent = data.detail;
+        }
+      });
+    }
+  </script>
+</body>
+</html>
