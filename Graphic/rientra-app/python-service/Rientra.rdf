@@ -41256,4 +41256,900 @@ Associated Health Condition: HCSandraVerdi.</rdfs:comment>
 </swrl:Imp>
 
 
+
+
+
+    <!-- ===== PERSONE IMPORTATE / AGGIORNATE (RDB2RDF via R2RML) ===== -->
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b740">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b740"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1408-AuditoryAttention">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1408-AuditoryAttention"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d170">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d170"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1440">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1440"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4502">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d4502"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">4</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1568-FlexibilityOfClosure">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1568-FlexibilityOfClosure"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b789-DynamicFlexibility">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b789-DynamicFlexibility"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b21001">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b21001"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1400">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1400"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b2351">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b2351"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b7608-SpeedOfLimbMovement">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b7608-SpeedOfLimbMovement"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b710">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b710"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4106">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d4106"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1648-Monitoring">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1648-Monitoring"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4501">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d4501"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">4</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b7308-ExplosiveStrength">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b7308-ExplosiveStrength"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b176">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b176"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1143">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1143"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d2400">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d2400"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b189-InductiveReasoning">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b189-InductiveReasoning"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b730">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b730"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b7305">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b7305"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d3301">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d3301"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d330">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d330"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b7401">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b7401"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1144">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1144"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1401">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1401"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d865">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d865"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b21028-NightVision">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b21028-NightVision"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d720">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d720"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b21021">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b21021"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b7306">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b7306"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b2101">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b2101"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d3302">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d3302"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d3558-Persuasion">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d3558-Persuasion"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b21028-GlareSensitivity">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b21028-GlareSensitivity"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d1751">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d1751"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b16700">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b16700"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b2304">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b2304"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4408-WristFingerSpeed">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d4408-WristFingerSpeed"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d859-ManagementOfMaterialResources">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d859-ManagementOfMaterialResources"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4503">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d4503"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">4</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b4550">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b4550"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d166">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d166"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1641">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1641"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b122">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b122"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1261">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1261"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b320">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b320"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1478-ReactionTime">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1478-ReactionTime"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b735">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b735"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4104">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d4104"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">4</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d198-LearningStrategies">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d198-LearningStrategies"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1721">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1721"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b2303">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b2303"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d310">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d310"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b21003">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b21003"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d455">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d455"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">4</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d160">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d160"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d198-ActiveLearning">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d198-ActiveLearning"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d3558-Negotiation">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d3558-Negotiation"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1442">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1442"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b2302">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b2302"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1640">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1640"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4402">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d4402"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d325">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d325"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d177">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d177"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d3300">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d3300"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b7603">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b7603"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b755">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b755"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b7602">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b7602"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1565">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1565"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b28014">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b28014"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1646">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1646"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1560">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1560"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b265">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b265"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b130">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b130"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1648-FluencyOfIdeas">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1648-FluencyOfIdeas"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d445">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d445"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b7608-ResponseOrientation">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b7608-ResponseOrientation"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1643">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1643"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4105">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d4105"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">4</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b21000">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b21000"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1568-PerceptualSpeed">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1568-PerceptualSpeed"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1645">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1645"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b7608-RateControl">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b7608-RateControl"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b770">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b770"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">4</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d329-ActiveListening">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d329-ActiveListening"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4102">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d4102"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">4</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b330">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b330"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d398-Instructing">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d398-Instructing"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1600">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1600"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d345">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d345"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4100">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d4100"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1441">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1441"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1642">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1642"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b28010">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b28010"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b760">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b760"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4500">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d4500"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">4</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d172">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d172"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1720">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1720"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b21022">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b21022"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1648-Originality">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1648-Originality"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1648-ProblemSensitivity">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1648-ProblemSensitivity"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b21002">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b21002"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b2301">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b2301"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b189-DeductiveReasoning">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b189-DeductiveReasoning"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1601">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b1601"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d859-ManagementOfPersonnelResources">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d859-ManagementOfPersonnelResources"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/Person-CommonBox#HCElenaRinaldi">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#Health_Condition"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b740"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1408-AuditoryAttention"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d170"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1440"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4502"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1568-FlexibilityOfClosure"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b789-DynamicFlexibility"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b21001"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1400"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b2351"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b7608-SpeedOfLimbMovement"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b710"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4106"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1648-Monitoring"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4501"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b7308-ExplosiveStrength"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b176"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1143"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d2400"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b189-InductiveReasoning"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b730"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b7305"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d3301"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d330"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b7401"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1144"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1401"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d865"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b21028-NightVision"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d720"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b21021"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b7306"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b2101"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d3302"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d3558-Persuasion"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b21028-GlareSensitivity"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d1751"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b16700"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b2304"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4408-WristFingerSpeed"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d859-ManagementOfMaterialResources"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4503"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b4550"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d166"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1641"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b122"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1261"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b320"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1478-ReactionTime"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b735"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4104"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d198-LearningStrategies"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1721"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b2303"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d310"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b21003"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d455"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d160"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d198-ActiveLearning"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d3558-Negotiation"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1442"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b2302"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1640"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4402"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d325"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d177"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d3300"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b7603"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b755"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b7602"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1565"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b28014"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1646"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1560"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b265"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b130"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1648-FluencyOfIdeas"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d445"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b7608-ResponseOrientation"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1643"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4105"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b21000"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1568-PerceptualSpeed"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1645"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b7608-RateControl"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b770"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d329-ActiveListening"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4102"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b330"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d398-Instructing"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1600"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d345"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4100"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1441"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1642"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b28010"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b760"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d4500"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d172"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1720"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b21022"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1648-Originality"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1648-ProblemSensitivity"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b21002"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b2301"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b189-DeductiveReasoning"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_b1601"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_ElenaRinaldi_d859-ManagementOfPersonnelResources"/>
+    </owl:NamedIndividual>
+
+    <!-- Person: ElenaRinaldi -->
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/Person-CommonBox#ElenaRinaldi">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/FOAF-excerpt#Person"/>
+        <Rien3:isInHealthCondition rdf:resource="http://www.stiima.cnr.it/Person-CommonBox#HCElenaRinaldi"/>
+        <FOAF:first_name>Elena</FOAF:first_name>
+        <FOAF:surname>Rinaldi</FOAF:surname>
+        <FOAF:TIN>RNLLNE89M52F205K</FOAF:TIN>
+        <FOAF:city>Bologna</FOAF:city>
+        <FOAF:country>Italy</FOAF:country>
+        <FOAF:birthday rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">1989-08-12T00:00:00</FOAF:birthday>
+        <FOAF:ZIPcode rdf:datatype="http://www.w3.org/2001/XMLSchema#int">40121</FOAF:ZIPcode>
+        <Rien:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#Travel_guide"/>
+        <Rien:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#Carpenter"/>
+        <Rien:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#Receptionist"/>
+        <Rien:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#Construction_laborer"/>
+        <Rien:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#FileClerk"/>
+        <Rien:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#WordProcessors"/>
+        <Rien:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#GemWorker"/>
+        <Rien2:isSelected rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</Rien2:isSelected>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GioeleBianchi_b140">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b140"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GioeleBianchi_s750">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#s750"/>
+        <Rien3:BS1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</Rien3:BS1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GioeleBianchi_d410">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d410"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GioeleBianchi_b110">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b110"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GioeleBianchi_d450">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d450"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/Person-CommonBox#HCGioeleBianchi">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#Health_Condition"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GioeleBianchi_b140"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GioeleBianchi_s750"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GioeleBianchi_d410"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GioeleBianchi_b110"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GioeleBianchi_d450"/>
+    </owl:NamedIndividual>
+
+    <!-- Person: GioeleBianchi -->
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/Person-CommonBox#GioeleBianchi">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/FOAF-excerpt#Person"/>
+        <Rien3:isInHealthCondition rdf:resource="http://www.stiima.cnr.it/Person-CommonBox#HCGioeleBianchi"/>
+        <FOAF:first_name>Gioele</FOAF:first_name>
+        <FOAF:surname>Bianchi</FOAF:surname>
+        <FOAF:TIN>BNCGLI88C12F205W</FOAF:TIN>
+        <FOAF:city>Roma</FOAF:city>
+        <FOAF:country>Italy</FOAF:country>
+        <FOAF:birthday rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">1988-03-12T00:00:00</FOAF:birthday>
+        <FOAF:ZIPcode rdf:datatype="http://www.w3.org/2001/XMLSchema#int">185</FOAF:ZIPcode>
+        <Rien:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#Data_Entry_Keyers"/>
+        <Rien:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#Receptionist"/>
+        <Rien2:isSelected rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</Rien2:isSelected>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LuciaVerdi_d430">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d430"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LuciaVerdi_s730">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#s730"/>
+        <Rien3:BS1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:BS1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LuciaVerdi_d710">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d710"/>
+        <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:AP1qual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LuciaVerdi_b130">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b130"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_LuciaVerdi_b280">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
+        <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b280"/>
+        <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</Rien3:BFqual>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/Person-CommonBox#HCLuciaVerdi">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#Health_Condition"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LuciaVerdi_d430"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LuciaVerdi_s730"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LuciaVerdi_d710"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LuciaVerdi_b130"/>
+        <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_LuciaVerdi_b280"/>
+    </owl:NamedIndividual>
+
+    <!-- Person: LuciaVerdi -->
+    <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/Person-CommonBox#LuciaVerdi">
+        <rdf:type rdf:resource="http://www.stiima.cnr.it/FOAF-excerpt#Person"/>
+        <Rien3:isInHealthCondition rdf:resource="http://www.stiima.cnr.it/Person-CommonBox#HCLuciaVerdi"/>
+        <FOAF:first_name>Lucia</FOAF:first_name>
+        <FOAF:surname>Verdi</FOAF:surname>
+        <FOAF:TIN>VRDLCU92A41H501U</FOAF:TIN>
+        <FOAF:city>Milano</FOAF:city>
+        <FOAF:country>Italy</FOAF:country>
+        <FOAF:birthday rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">1992-01-15T00:00:00</FOAF:birthday>
+        <FOAF:ZIPcode rdf:datatype="http://www.w3.org/2001/XMLSchema#int">20121</FOAF:ZIPcode>
+        <Rien:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#Graphic_Designers"/>
+        <Rien:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#Programmers"/>
+        <Rien2:isSelected rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</Rien2:isSelected>
+    </owl:NamedIndividual>
+
 </rdf:RDF>
