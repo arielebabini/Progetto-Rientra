@@ -40,11 +40,9 @@ const XIcon = () => (
   </svg>
 );
 
-const UploadCloudIcon = () => (
-  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M16 16l-4-4-4 4M12 12v9" />
-    <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" />
-    <polyline points="16 16 12 12 8 16" />
+const ToolIcon = () => (
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#4DD9C0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
   </svg>
 );
 
@@ -253,8 +251,6 @@ export default function JobPositionsView({
 
   // Import Modal
   const [importModalOpen, setImportModalOpen] = useState(false);
-  const [importStep, setImportStep] = useState<1 | 2>(1);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   /* ── Initial Load ── */
   const loadInitialData = useCallback(async () => {
@@ -569,7 +565,7 @@ export default function JobPositionsView({
         <button
           className="wp-add-btn"
           id="btn-import-jobs"
-          onClick={() => { setImportStep(1); setImportModalOpen(true); }}
+          onClick={() => setImportModalOpen(true)}
         >
           <PlusIcon /> Import Jobs
         </button>
@@ -930,119 +926,71 @@ export default function JobPositionsView({
         </div>
       </main>
 
-      {/* ── Import Jobs Modal ── */}
+      {/* ── Import Jobs: Not Yet Implemented Modal ── */}
       {importModalOpen && (
         <div className="wp-modal-backdrop" onClick={() => setImportModalOpen(false)}>
-          <div className="wp-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 540 }}>
-            <div className="wp-modal-header">
-              <h3 className="wp-modal-title">Import Job Positions</h3>
-              <button className="wp-icon-button" onClick={() => setImportModalOpen(false)} aria-label="Close">
-                <XIcon />
-              </button>
+          <div
+            className="wp-modal jp-not-implemented-modal"
+            onClick={e => e.stopPropagation()}
+            style={{ maxWidth: 460, position: 'relative' }}
+          >
+            <button
+              className="wp-modal-header-close-btn"
+              onClick={() => setImportModalOpen(false)}
+              aria-label="Close"
+            >
+              <XIcon />
+            </button>
+
+            <div
+              className="wp-modal-success-circle"
+              style={{
+                background: 'rgba(77, 217, 192, 0.1)',
+                borderColor: 'rgba(77, 217, 192, 0.25)',
+                marginBottom: 14,
+              }}
+            >
+              <ToolIcon />
             </div>
 
-            <div className="wp-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {importStep === 1 ? (
-                <>
-                  <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', margin: 0, lineHeight: 1.5 }}>
-                    Select a SQL dataset or RDF ontology file containing new Job individual definitions and O*NET skill descriptor mappings.
-                  </p>
-
-                  <div
-                    className="uom-dropzone"
-                    style={{
-                      border: '2px dashed rgba(255, 255, 255, 0.2)',
-                      borderRadius: 12,
-                      padding: '28px 16px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                      cursor: 'pointer',
-                      background: 'rgba(255, 255, 255, 0.02)',
-                    }}
-                    onClick={() => document.getElementById('job-import-file-input')?.click()}
-                  >
-                    <input
-                      id="job-import-file-input"
-                      type="file"
-                      accept=".sql,.rdf,.owl,.json,.csv"
-                      style={{ display: 'none' }}
-                      onChange={e => {
-                        if (e.target.files && e.target.files[0]) {
-                          setSelectedFile(e.target.files[0]);
-                          setImportStep(2);
-                        }
-                      }}
-                    />
-                    <UploadCloudIcon />
-                    <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#ffffff' }}>
-                      Click to choose file or drag and drop
-                    </span>
-                    <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>
-                      Supports .sql, .rdf, .owl, .csv datasets
-                    </span>
-                  </div>
-
-                  <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.08)' }}>
-                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>
-                      Dataset Structure Example
-                    </div>
-                    <code style={{ fontSize: '0.72rem', color: '#4DD9C0', display: 'block', marginTop: 4 }}>
-                      INSERT INTO job_descriptor (job_id, skill_id, score) VALUES ('Job_Electrician', 'DynamicStrength', 72);
-                    </code>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
-                    <button className="uom-btn-secondary" onClick={() => setImportModalOpen(false)}>
-                      Cancel
-                    </button>
-                    <button
-                      className="uom-btn-primary"
-                      onClick={() => {
-                        setSelectedFile(new File([''], 'sample_jobs.sql'));
-                        setImportStep(2);
-                      }}
-                    >
-                      Continue
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div style={{ textAlign: 'center', padding: '12px 0' }}>
-                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px', fontSize: '1.2rem', fontWeight: 700 }}>
-                      ✓
-                    </div>
-                    <h4 style={{ color: '#ffffff', margin: '0 0 6px', fontSize: '1rem' }}>Dataset Verified (Preview)</h4>
-                    <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.8rem', margin: 0 }}>
-                      File <strong>{selectedFile?.name || 'sample_jobs.sql'}</strong> parsed successfully. Practical ingestion into the semantic graph will be connected in the next phase.
-                    </p>
-                  </div>
-
-                  <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 8, border: '1px solid rgba(255,255,255,0.08)', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#ffffff' }}>
-                      <span>New Job Definitions:</span>
-                      <strong style={{ color: '#4DD9C0' }}>3 positions</strong>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#ffffff' }}>
-                      <span>O*NET Skill Mappings:</span>
-                      <strong style={{ color: '#4DD9C0' }}>142 descriptors</strong>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
-                    <button className="uom-btn-secondary" onClick={() => setImportStep(1)}>
-                      Back
-                    </button>
-                    <button className="uom-btn-primary" onClick={() => setImportModalOpen(false)}>
-                      Close
-                    </button>
-                  </div>
-                </>
-              )}
+            <div className="jp-modal-badge">
+              Coming Soon
             </div>
+
+            <h3 className="wp-modal-title" style={{ marginTop: 6, marginBottom: 8, fontSize: '1.2rem' }}>
+              Feature Not Yet Implemented
+            </h3>
+
+            <p
+              className="wp-modal-sub"
+              style={{
+                fontSize: '0.86rem',
+                color: 'rgba(255, 255, 255, 0.7)',
+                lineHeight: 1.55,
+                marginBottom: 18,
+              }}
+            >
+              The <strong>Import Jobs</strong> feature is currently not yet implemented. Support for importing custom O*NET job positions and ontology datasets will be available in an upcoming release.
+            </p>
+
+            <div className="jp-modal-info-card">
+              <div className="jp-modal-info-row">
+                <span className="jp-modal-info-label">Module:</span>
+                <span className="jp-modal-info-val">Job Position Ingestion</span>
+              </div>
+              <div className="jp-modal-info-row">
+                <span className="jp-modal-info-label">Status:</span>
+                <span className="jp-modal-info-val" style={{ color: '#4DD9C0' }}>Under Development</span>
+              </div>
+            </div>
+
+            <button
+              className="wp-modal-close-btn"
+              style={{ marginTop: 20 }}
+              onClick={() => setImportModalOpen(false)}
+            >
+              Got it
+            </button>
           </div>
         </div>
       )}

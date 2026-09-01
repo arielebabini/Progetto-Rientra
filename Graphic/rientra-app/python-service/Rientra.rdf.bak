@@ -38810,60 +38810,6 @@ Associated Health Condition: HCSandraVerdi.</rdfs:comment>
   <Rien2:isSelected rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</Rien2:isSelected>
 </owl:NamedIndividual>
 
-<owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GioeleBianchi_s750">
-  <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-  <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#s750"/>
-  <Rien3:BS1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</Rien3:BS1qual>
-</owl:NamedIndividual>
-
-<owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GioeleBianchi_b140">
-  <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-  <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b140"/>
-  <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:BFqual>
-</owl:NamedIndividual>
-
-<owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GioeleBianchi_d410">
-  <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-  <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d410"/>
-  <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:AP1qual>
-</owl:NamedIndividual>
-
-<owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GioeleBianchi_b110">
-  <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-  <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#b110"/>
-  <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</Rien3:BFqual>
-</owl:NamedIndividual>
-
-<owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_GioeleBianchi_d450">
-  <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
-  <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#d450"/>
-  <Rien3:AP1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</Rien3:AP1qual>
-</owl:NamedIndividual>
-
-<owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/Person-CommonBox#HCGioeleBianchi">
-  <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#Health_Condition"/>
-  <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GioeleBianchi_s750"/>
-  <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GioeleBianchi_b140"/>
-  <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GioeleBianchi_d410"/>
-  <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GioeleBianchi_b110"/>
-  <Rien3:isDescribedBy rdf:resource="http://www.stiima.cnr.it/RientraHC#des_GioeleBianchi_d450"/>
-</owl:NamedIndividual>
-
-<owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/Person-CommonBox#GioeleBianchi">
-  <rdf:type rdf:resource="http://www.stiima.cnr.it/FOAF-excerpt#Person"/>
-  <Rien3:isInHealthCondition rdf:resource="http://www.stiima.cnr.it/Person-CommonBox#HCGioeleBianchi"/>
-  <Rien:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#Data_Entry_Keyers"/>
-  <Rien:isEvaluatedForJob rdf:resource="http://www.stiima.cnr.it/JobList#Receptionist"/>
-  <FOAF:first_name rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Gioele</FOAF:first_name>
-  <FOAF:surname rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Bianchi</FOAF:surname>
-  <FOAF:TIN rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BNCGLI88C12F205W</FOAF:TIN>
-  <FOAF:city rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Roma</FOAF:city>
-  <FOAF:country rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Italy</FOAF:country>
-  <FOAF:birthday rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">1988-03-12T00:00:00</FOAF:birthday>
-  <FOAF:ZIPcode rdf:datatype="http://www.w3.org/2001/XMLSchema#int">185</FOAF:ZIPcode>
-  <Rien2:isSelected rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</Rien2:isSelected>
-</owl:NamedIndividual>
-
 <swrl:Variable rdf:about="urn:swrl#p"/>
 
 <swrl:Variable rdf:about="urn:swrl#m"/>
