@@ -38027,7 +38027,6 @@ Associated Health Condition: HCSandraVerdi.</rdfs:comment>
   <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
   <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#s760"/>
   <Rien3:BS1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</Rien3:BS1qual>
-  <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</Rien3:BFqual>
 </owl:NamedIndividual>
 
 <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarcoBianchi_d415">
@@ -38040,7 +38039,6 @@ Associated Health Condition: HCSandraVerdi.</rdfs:comment>
   <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
   <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#s720"/>
   <Rien3:BS1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</Rien3:BS1qual>
-  <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</Rien3:BFqual>
 </owl:NamedIndividual>
 
 <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/RientraHC#des_MarcoBianchi_b735">
@@ -38089,7 +38087,6 @@ Associated Health Condition: HCSandraVerdi.</rdfs:comment>
   <rdf:type rdf:resource="http://www.stiima.cnr.it/RientraHC#HC_Descriptor"/>
   <Rien3:involvesICFCode rdf:resource="http://www.stiima.cnr.it/ICF-exc-coreset#s730"/>
   <Rien3:BS1qual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</Rien3:BS1qual>
-  <Rien3:BFqual rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</Rien3:BFqual>
 </owl:NamedIndividual>
 
 <owl:NamedIndividual rdf:about="http://www.stiima.cnr.it/Person-CommonBox#HCMarcoBianchi">
